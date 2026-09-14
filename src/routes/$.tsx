@@ -2,6 +2,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 
 import { useSiteConfig } from "@/lib/use-site-config";
 import { AdminLoginPage } from "@/components/admin/AdminLoginPage";
+import { ContentSection } from "@/components/ContentSection";
 
 export const Route = createFileRoute("/$")({
   component: CatchAll,
@@ -17,9 +18,12 @@ function CatchAll() {
 
   const page = config.pages.find((item) => item.enabled && item.path === slug);
   if (page) {
+    const pageSections = (page.sectionIds || [])
+      .map((sectionId) => config.landing.sectionsArray.find((section) => section.id === sectionId))
+      .filter((section): section is NonNullable<typeof section> => Boolean(section && section.enabled));
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="w-full max-w-xl rounded-2xl border border-border bg-card p-8 text-center shadow-[var(--shadow-card)]">
+      <main className="min-h-screen bg-background">
+        <div className="mx-auto w-full max-w-3xl px-4 pt-16 text-center">
           <p className="text-xs font-bold uppercase tracking-widest text-primary">{page.title}</p>
           <h1 className="mt-3 text-3xl font-black text-foreground">{page.heading || page.title}</h1>
           <p className="mt-4 leading-relaxed text-muted-foreground">{page.description}</p>
@@ -28,6 +32,9 @@ function CatchAll() {
               {page.ctaLabel}
             </a>
           )}
+        </div>
+        <div className="mt-8">
+          {pageSections.map((section) => <ContentSection key={section.id} section={section} />)}
         </div>
       </main>
     );

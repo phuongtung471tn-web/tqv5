@@ -32,6 +32,8 @@ export interface SitePage {
   description: string;
   ctaLabel: string;
   ctaHref: string;
+  /** Các section custom từ thư viện được hiển thị trên trang này. */
+  sectionIds: string[];
 }
 
 export interface WebhookEndpoint {
@@ -241,6 +243,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
       description: "",
       ctaLabel: "",
       ctaHref: "#dang-ky",
+        sectionIds: [],
     },
     {
       id: "thank-you",
@@ -254,6 +257,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
       description: "Thông tin đã được ghi nhận. Tư vấn viên sẽ liên hệ với bạn trong thời gian sớm nhất.",
       ctaLabel: "Về trang chủ",
       ctaHref: "/",
+        sectionIds: [],
     },
   ],
   tracking: {

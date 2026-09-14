@@ -15,6 +15,7 @@ import { useSiteConfig } from "@/lib/use-site-config";
 import { getVariant } from "@/lib/ab";
 import { contactLinks } from "@/lib/contact-links";
 import { FooterStats } from "@/components/FooterStats";
+import { ContentSection } from "@/components/ContentSection";
 import { initBehavior, markFaqClick } from "@/lib/behavior";
 import visaImg from "@/assets/gallery-visa.webp";
 import campusImg from "@/assets/gallery-campus.webp";
@@ -506,20 +507,9 @@ function Landing() {
       </section>
 
       {customSections.map((item) => (
-        <section
-          key={item.id}
-          style={{
-            order: item.order + 1,
-            backgroundColor: item.content?.backgroundColor || undefined,
-            color: item.content?.textColor || undefined,
-          }}
-          className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20"
-        >
-          {item.content?.imageUrl && <img src={item.content.imageUrl} alt="" className="mb-6 max-h-[28rem] w-full rounded-2xl object-cover" />}
-          <h2 style={{ color: item.content?.accentColor || undefined }} className="text-2xl font-extrabold sm:text-3xl">{item.content?.heading || item.label}</h2>
-          {item.content?.body && <p className="mt-3 max-w-3xl whitespace-pre-line text-muted-foreground">{item.content.body}</p>}
-          {item.content?.buttonLabel && <a href={item.content.buttonHref || "#dang-ky"} className="mt-6 inline-flex rounded-xl bg-primary px-5 py-3 font-bold text-primary-foreground">{item.content.buttonLabel}</a>}
-        </section>
+        <div key={item.id} style={{ order: item.order + 1 }}>
+          <ContentSection section={item} />
+        </div>
       ))}
 
       {/* Footer */}

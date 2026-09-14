@@ -1042,6 +1042,80 @@ function InfoModal({
   );
 }
 
+const SECTION_LIBRARY: Record<string, { label: string; heading: string; body: string; buttonLabel: string }> = {
+  hero: { label: "Hero", heading: "Bắt đầu hành trình mới", body: "Thông điệp chính của trang và lý do khách hàng nên hành động ngay.", buttonLabel: "Nhận tư vấn" },
+  countdown: { label: "Countdown", heading: "Ưu đãi có thời hạn", body: "Tạo động lực hành động bằng thời hạn rõ ràng và minh bạch.", buttonLabel: "Giữ suất ngay" },
+  pricing: { label: "Pricing / Quyền lợi", heading: "Quyền lợi chương trình", body: "Liệt kê học phí, học bổng và các quyền lợi nổi bật.", buttonLabel: "Xem quyền lợi" },
+  grid: { label: "Grid Icons", heading: "Điểm nổi bật", body: "Trình bày các lợi ích chính theo dạng lưới dễ quét trên mobile.", buttonLabel: "Tìm hiểu thêm" },
+  testimonials: { label: "Testimonials", heading: "Khách hàng nói gì", body: "Thêm bằng chứng xã hội, trải nghiệm thực tế và kết quả đạt được.", buttonLabel: "Xem câu chuyện" },
+  faq: { label: "FAQ", heading: "Câu hỏi thường gặp", body: "Giải đáp các băn khoăn trước khi khách hàng đăng ký.", buttonLabel: "Hỏi chuyên viên" },
+  video: { label: "Video", heading: "Xem chương trình thực tế", body: "Đặt video giới thiệu, phỏng vấn hoặc hướng dẫn ở vị trí nổi bật.", buttonLabel: "Xem video" },
+  guarantee: { label: "Guarantee / Cam kết", heading: "Cam kết đồng hành", body: "Nội dung cam kết, điều kiện và thông tin minh bạch.", buttonLabel: "Xem chi tiết" },
+};
+
+function SectionLibraryModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const customSections = config.landing.sectionsArray.filter((section) => section.type === "custom");
+
+  function addTemplate(type: string) {
+    const template = SECTION_LIBRARY[type] ?? SECTION_LIBRARY["hero"]!;
+    update((draft) => {
+      draft.landing.sectionsArray.push({
+        id: `library-${type}-${Date.now()}`,
+        type: "custom",
+        label: template.label,
+        enabled: true,
+        order: draft.landing.sectionsArray.length,
+        content: {
+          heading: template.heading,
+          body: template.body,
+          imageUrl: "",
+          buttonLabel: template.buttonLabel,
+          buttonHref: "#dang-ky",
+          backgroundColor: "",
+          textColor: "",
+          accentColor: "",
+        },
+      });
+    });
+  }
+
+  function toggleSection(id: string) {
+    update((draft) => {
+      const section = draft.landing.sectionsArray.find((item) => item.id === id);
+      if (section) section.enabled = !section.enabled;
+    });
+  }
+
+  return (
+    <AdminModal title="Thêm Khối Giao Diện" subtitle="Thư viện section chuyển đổi cao" onClose={onClose}>
+      <p className="mb-3 text-xs text-neutral-600">Chọn một mẫu để thêm vào landing. Sau khi thêm, chỉnh sửa nội dung trong Sửa Giao Diện rồi bấm LƯU.</p>
+      <div className="grid grid-cols-2 gap-2">
+        {Object.entries(SECTION_LIBRARY).map(([type, template]) => (
+          <button key={type} type="button" onClick={() => addTemplate(type)} className="rounded-lg border border-neutral-200 p-3 text-left transition hover:border-primary hover:bg-neutral-50">
+            <span className="block text-xs font-bold">{template.label}</span>
+            <span className="mt-1 block text-[11px] text-neutral-500">+ Thêm khối</span>
+          </button>
+        ))}
+      </div>
+      <div className="mt-4 border-t border-neutral-200 pt-3">
+        <p className="mb-2 text-xs font-bold">Section đã thêm ({customSections.length})</p>
+        {customSections.length === 0 ? (
+          <p className="text-xs text-neutral-400">Chưa có section custom.</p>
+        ) : customSections.map((section) => (
+          <div key={section.id} className="mb-1.5 flex items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 text-xs">
+            <span className="truncate pr-2">{section.label}</span>
+            <button type="button" onClick={() => toggleSection(section.id)} className={section.enabled ? "font-bold text-emerald-600" : "font-bold text-neutral-400"}>
+              {section.enabled ? "Đang bật" : "Đang tắt"}
+            </button>
+          </div>
+        ))}
+      </div>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
 function LandingEditorModal({ onClose }: ModalProps) {
   const { config, update, save, resetLanding } = useSiteConfig();
   const content = config.landing;
@@ -1372,6 +1446,7 @@ function PagesModal({ onClose }: ModalProps) {
         description: "Nội dung trang được chỉnh sửa trong Admin.",
         ctaLabel: "Về trang chủ",
         ctaHref: "/",
+        sectionIds: [],
       });
     });
     setSelectedId(id);
@@ -1417,6 +1492,27 @@ function PagesModal({ onClose }: ModalProps) {
       <Toggle checked={selected.enabled} onChange={(value) => updatePage(selected.id, { enabled: value })} label="Trang đang hoạt động" />
       <Toggle checked={selected.showInMenu} onChange={(value) => updatePage(selected.id, { showInMenu: value })} label="Hiển thị trong menu" />
       <Field label="Thứ tự menu"><TextInput type="number" value={selected.menuOrder} onChange={(e) => updatePage(selected.id, { menuOrder: Number(e.target.value) || 0 })} /></Field>
+      {selected.kind !== "landing" && (
+        <Field label="Section hiển thị trên trang" hint="Tạo section trong Thêm Khối Giao Diện trước, sau đó chọn nội dung muốn đưa vào trang này.">
+          <div className="space-y-1.5 rounded-lg border border-neutral-200 p-2">
+            {config.landing.sectionsArray.filter((section) => section.type === "custom").length === 0 ? (
+              <p className="text-xs text-neutral-400">Chưa có section custom.</p>
+            ) : config.landing.sectionsArray.filter((section) => section.type === "custom").map((section) => {
+              const selectedIds = selected.sectionIds || [];
+              return (
+                <label key={section.id} className="flex items-center gap-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(section.id)}
+                    onChange={(event) => updatePage(selected.id, { sectionIds: event.target.checked ? [...selectedIds, section.id] : selectedIds.filter((id) => id !== section.id) })}
+                  />
+                  <span>{section.label}</span>
+                </label>
+              );
+            })}
+          </div>
+        </Field>
+      )}
       <button type="button" disabled={selected.id === "home" || pathConflict} onClick={() => removePage(selected.id)} className="w-full rounded-lg border border-red-200 py-2 text-xs font-bold text-red-600 disabled:opacity-40">Xóa trang này</button>
       <SaveHint />
     </AdminModal>
@@ -1470,18 +1566,7 @@ const REGISTRY: Record<AdminModalKey, (p: ModalProps) => ReactElement | null> = 
   abtest: AbTestModal,
   email: EmailModal,
   webhook: WebhookModal,
-  sections: (p) => (
-    <InfoModal
-      {...p}
-      title="Thêm Khối Giao Diện"
-      subtitle="Thư viện section chuyển đổi cao"
-      points={[
-        "Các khối có sẵn: Hero, Countdown, Pricing, Grid Icons, Testimonials, FAQ, Video, Guarantee.",
-        "Bật/tắt Countdown & Floating Contact bằng thẻ tương ứng.",
-        "Thêm section mới bằng cách tạo component trong src/components và chèn vào index.tsx.",
-      ]}
-    />
-  ),
+  sections: SectionLibraryModal,
   theme: ThemeModal,
   guide: GuideModal,
   leads: LeadsModal,
