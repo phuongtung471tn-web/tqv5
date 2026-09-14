@@ -278,7 +278,14 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
 
       // Đồng bộ webhook sau khi CRM đã lưu thành công. Webhook lỗi không làm mất lead.
       void dispatchLead(config, payload).then(({ ok, results }) => {
-        if (!ok && results.length > 0) console.warn("All webhook endpoints failed:", results);
+        if (!ok && results.length > 0) {
+          console.warn("All webhook endpoints failed:", results);
+          toast.warning("Lead đã lưu vào CRM nhưng webhook chưa nhận được", {
+            description: "Kiểm tra cấu hình endpoint trong Admin > Cổng Webhook & Đa Kênh.",
+          });
+        } else if (results.some((result) => !result.ok)) {
+          console.warn("Some webhook endpoints failed:", results);
+        }
       });
 
       // Ghi nhận chuyển đổi cho Analytics Dashboard + A/B comparison.

@@ -18,7 +18,7 @@ import {
   type LeadRecord,
 } from "@/services/dataAdapter";
 import { fireTestEvent, type TestEventLog } from "@/lib/tracking";
-import { testWebhookEndpoint, type WebhookResult } from "@/services/webhooks";
+import { testWebhookEndpoint, webhookConfigurationWarning, type WebhookResult } from "@/services/webhooks";
 import { getVariant, resetVariant } from "@/lib/ab";
 import { AdminModal, Field, Stat, TextArea, TextInput, Toggle } from "./adminUi";
 
@@ -508,8 +508,14 @@ function WebhookModal({ onClose }: ModalProps) {
   const list = config.webhooks;
   const [testingId, setTestingId] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, WebhookResult>>({});
+  const enabledCount = list.filter((endpoint) => endpoint.enabled && endpoint.url.trim()).length;
   return (
     <AdminModal title="Cổng Webhook & Đa Kênh" subtitle="Gửi lead tới nhiều nơi cùng lúc" onClose={onClose}>
+      <div className="mb-3 rounded-lg bg-neutral-50 p-3 text-xs text-neutral-600">
+        <p className="font-bold text-neutral-800">Cách vận hành</p>
+        <p className="mt-1">Mỗi lead được gửi song song tới {enabledCount} endpoint đang bật. Một endpoint lỗi không làm mất lead trong Mini-CRM.</p>
+        <p className="mt-1">Hãy bấm test sau khi nhập URL. Trình duyệt có thể chặn endpoint không bật CORS; khi đó nên dùng Make/Zapier làm cổng trung gian.</p>
+      </div>
       {list.length === 0 && <p className="mb-3 text-xs text-neutral-400">Chưa có endpoint nào. Thêm mới bên dưới.</p>}
       {list.map((w, i) => (
         <div key={w.id} className="mb-2 rounded-lg border border-neutral-200 p-2">
@@ -543,6 +549,9 @@ function WebhookModal({ onClose }: ModalProps) {
             placeholder="https://..."
             onChange={(e) => update((d) => (d.webhooks[i]!.url = e.target.value))}
           />
+          {webhookConfigurationWarning(w, config) && (
+            <p className="mt-1 text-[11px] font-semibold text-amber-600">Cảnh báo: {webhookConfigurationWarning(w, config)}</p>
+          )}
           <div className="mt-2">
             <Toggle checked={w.enabled} onChange={(v) => update((d) => (d.webhooks[i]!.enabled = v))} label="Kích hoạt" />
           </div>
@@ -564,6 +573,11 @@ function WebhookModal({ onClose }: ModalProps) {
               {results[w.id]!.ok ? `OK sau ${results[w.id]!.attempts} lần thử` : `Lỗi: ${results[w.id]!.detail}`}
             </p>
           )}
+          <p className="mt-1 text-[10px] text-neutral-400">
+            {w.type === "telegram" && "Telegram: dùng URL Bot API kèm chat_id."}
+            {w.type === "supabase" && "Supabase: dùng tên bảng trong URL, ví dụ leads."}
+            {(w.type === "make" || w.type === "sheets" || w.type === "custom") && "Endpoint phải nhận POST JSON và cho phép CORS từ landing page."}
+          </p>
         </div>
       ))}
       <button
@@ -1411,8 +1425,17 @@ function PagesModal({ onClose }: ModalProps) {
 
 function GuideModal({ onClose }: ModalProps) {
   const { config } = useSiteConfig();
+  const configuredWebhookCount = [
+    config.form.webhookUrl,
+    ...config.webhooks.filter((endpoint) => endpoint.enabled).map((endpoint) => endpoint.url),
+  ].filter((url) => url.trim() && url.startsWith("http") && !url.includes("REPLACE")).length;
+  const configuredWebhookUrls = [
+    config.form.webhookUrl,
+    ...config.webhooks.filter((endpoint) => endpoint.enabled).map((endpoint) => endpoint.url),
+  ].filter((url) => url.trim() && url.startsWith("http") && !url.includes("REPLACE"));
   const checks = [
-    { label: "Webhook đã cấu hình", ok: config.form.webhookUrl.includes("http") && !config.form.webhookUrl.includes("REPLACE") },
+    { label: "Có ít nhất một webhook hoạt động", ok: configuredWebhookCount > 0 },
+    { label: "Không có endpoint trùng URL", ok: new Set(configuredWebhookUrls).size === configuredWebhookCount },
     { label: "TikTok Pixel", ok: !!config.tracking.tiktokPixelId },
     { label: "SEO title & description", ok: !!config.seo.title && !!config.seo.description },
     { label: "Hotline/Zalo", ok: !!config.floatingContact.hotline },
@@ -1432,7 +1455,7 @@ function GuideModal({ onClose }: ModalProps) {
         <li>Đăng nhập admin, chỉnh sửa các thẻ công cụ trên thanh trên cùng.</li>
         <li>Bấm LƯU để áp dụng (localStorage) hoặc XUẤT CONFIG để tải file dán vào mã nguồn.</li>
         <li>Kết nối Supabase trong Storage Mode để đồng bộ đa thiết bị & lưu lead cloud.</li>
-        <li>Kiểm tra form gửi về Make.com và Pixel bắn sự kiện trước khi chạy Ads.</li>
+        <li>Vào Cổng Webhook & Đa Kênh, bấm test từng endpoint và chỉ chạy Ads khi các kênh cần thiết trả về OK.</li>
       </ol>
     </AdminModal>
   );
