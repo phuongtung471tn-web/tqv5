@@ -1420,6 +1420,7 @@ function PagesModal({ onClose }: ModalProps) {
   const [selectedId, setSelectedId] = useState(config.pages[0]?.id || "");
   const selected = config.pages.find((page) => page.id === selectedId) || config.pages[0];
   if (!selected) return null;
+  const selectedPageId = selected.id;
   const normalizedSelectedPath = selected?.path.trim().replace(/^\/+|\/+$/g, "").toLowerCase() || "";
   const pathConflict = Boolean(normalizedSelectedPath && config.pages.some((page) => page.id !== selected.id && page.path === normalizedSelectedPath));
 
@@ -1460,6 +1461,39 @@ function PagesModal({ onClose }: ModalProps) {
     if (selectedId === id) setSelectedId("home");
   }
 
+  function addSectionToPage(type: string) {
+    const template = SECTION_LIBRARY[type] ?? SECTION_LIBRARY["hero"]!;
+    const sectionId = `page-${selectedPageId}-${type}-${Date.now()}`;
+    update((draft) => {
+      draft.landing.sectionsArray.push({
+        id: sectionId,
+        type: "custom",
+        label: template.label,
+        enabled: true,
+        order: draft.landing.sectionsArray.length,
+        content: {
+          heading: template.heading,
+          body: template.body,
+          imageUrl: "",
+          buttonLabel: template.buttonLabel,
+          buttonHref: "#dang-ky",
+          backgroundColor: "",
+          textColor: "",
+          accentColor: "",
+        },
+      });
+      const page = draft.pages.find((item) => item.id === selectedPageId);
+      if (page) page.sectionIds = [...(page.sectionIds || []), sectionId];
+    });
+  }
+
+  function detachSectionFromPage(sectionId: string) {
+    update((draft) => {
+      const page = draft.pages.find((item) => item.id === selectedPageId);
+      if (page) page.sectionIds = (page.sectionIds || []).filter((id) => id !== sectionId);
+    });
+  }
+
   return (
     <AdminModal title="Quản Lý Đa Trang & Menu" subtitle="Tạo trang phụ, Thank You page và menu điều hướng hoạt động thật" onClose={onClose}>
       <div className="mb-3 flex gap-2">
@@ -1493,23 +1527,26 @@ function PagesModal({ onClose }: ModalProps) {
       <Toggle checked={selected.showInMenu} onChange={(value) => updatePage(selected.id, { showInMenu: value })} label="Hiển thị trong menu" />
       <Field label="Thứ tự menu"><TextInput type="number" value={selected.menuOrder} onChange={(e) => updatePage(selected.id, { menuOrder: Number(e.target.value) || 0 })} /></Field>
       {selected.kind !== "landing" && (
-        <Field label="Section hiển thị trên trang" hint="Tạo section trong Thêm Khối Giao Diện trước, sau đó chọn nội dung muốn đưa vào trang này.">
+        <Field label="Section hiển thị trên trang" hint="Tạo mới và gắn section ngay tại đây, hoặc quản lý nội dung trong Thêm Khối Giao Diện.">
           <div className="space-y-1.5 rounded-lg border border-neutral-200 p-2">
-            {config.landing.sectionsArray.filter((section) => section.type === "custom").length === 0 ? (
-              <p className="text-xs text-neutral-400">Chưa có section custom.</p>
-            ) : config.landing.sectionsArray.filter((section) => section.type === "custom").map((section) => {
-              const selectedIds = selected.sectionIds || [];
+            {(selected.sectionIds || []).length === 0 && <p className="text-xs text-neutral-400">Chưa gắn section nào vào trang này.</p>}
+            {(selected.sectionIds || []).map((sectionId) => {
+              const section = config.landing.sectionsArray.find((item) => item.id === sectionId);
+              if (!section) return null;
               return (
-                <label key={section.id} className="flex items-center gap-2 text-xs">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(section.id)}
-                    onChange={(event) => updatePage(selected.id, { sectionIds: event.target.checked ? [...selectedIds, section.id] : selectedIds.filter((id) => id !== section.id) })}
-                  />
-                  <span>{section.label}</span>
-                </label>
+                <div key={section.id} className="flex items-center gap-2 text-xs">
+                  <span className="min-w-0 flex-1 truncate">{section.label}</span>
+                  <button type="button" onClick={() => detachSectionFromPage(section.id)} className="font-bold text-red-600">Bỏ</button>
+                </div>
               );
             })}
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            {Object.entries(SECTION_LIBRARY).map(([type, template]) => (
+              <button key={type} type="button" onClick={() => addSectionToPage(type)} className="rounded-lg border border-dashed border-neutral-300 px-2 py-1.5 text-left text-[11px] font-semibold hover:border-primary">
+                + {template.label}
+              </button>
+            ))}
           </div>
         </Field>
       )}
