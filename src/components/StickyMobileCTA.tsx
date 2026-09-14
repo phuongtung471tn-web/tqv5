@@ -21,7 +21,9 @@ export function StickyMobileCTA() {
 
   function toForm(e: React.MouseEvent) {
     e.preventDefault();
-    const el = document.getElementById("dang-ky-cuoi") ?? document.getElementById("dang-ky");
+    const el =
+      document.getElementById("dang-ky-cuoi") ??
+      document.getElementById("dang-ky");
     el?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 

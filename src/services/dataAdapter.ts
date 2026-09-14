@@ -6,7 +6,11 @@
  *
  * Toàn bộ hệ thống chỉ gọi qua adapter này nên có thể đổi backend mà không sửa UI.
  */
-import { DEFAULT_CONFIG, type SiteConfig, type StorageMode } from "@/config/site-config";
+import {
+  DEFAULT_CONFIG,
+  type SiteConfig,
+  type StorageMode,
+} from "@/config/site-config";
 
 const CONFIG_KEY = "funnel_site_config_v1";
 const LEADS_KEY = "funnel_leads_v1";
@@ -17,23 +21,45 @@ export const ANALYTICS_UPDATED_EVENT = "funnel:analytics-updated";
 const CLOUD_CONFIG_TABLE = "funnel_configs";
 
 /** Deep-merge dữ liệu đã lưu lên mặc định để config luôn đủ trường khi nâng cấp. */
-function mergeConfig(base: SiteConfig, override: Partial<SiteConfig> | null): SiteConfig {
+function mergeConfig(
+  base: SiteConfig,
+  override: Partial<SiteConfig> | null,
+): SiteConfig {
   if (!override) return structuredClone(base);
-  const compatibleOverride = structuredClone(override) as Partial<SiteConfig> & {
-    landing?: Partial<SiteConfig["landing"]> & { sections?: SiteConfig["landing"]["sectionsArray"] };
+  const compatibleOverride = structuredClone(
+    override,
+  ) as Partial<SiteConfig> & {
+    landing?: Partial<SiteConfig["landing"]> & {
+      sections?: SiteConfig["landing"]["sectionsArray"];
+    };
   };
-  if (compatibleOverride.landing?.sections && !compatibleOverride.landing.sectionsArray) {
-    compatibleOverride.landing.sectionsArray = compatibleOverride.landing.sections.map((section, order) => ({
-      ...section,
-      type: section.type || section.id,
-      order,
-    }));
+  if (
+    compatibleOverride.landing?.sections &&
+    !compatibleOverride.landing.sectionsArray
+  ) {
+    compatibleOverride.landing.sectionsArray =
+      compatibleOverride.landing.sections.map((section, order) => ({
+        ...section,
+        type: section.type || section.id,
+        order,
+      }));
     delete compatibleOverride.landing.sections;
   }
   const merge = (baseValue: unknown, overrideValue: unknown): unknown => {
-    if (overrideValue && typeof overrideValue === "object" && !Array.isArray(overrideValue) && baseValue && typeof baseValue === "object" && !Array.isArray(baseValue)) {
-      const result: Record<string, unknown> = { ...(baseValue as Record<string, unknown>) };
-      for (const [key, value] of Object.entries(overrideValue as Record<string, unknown>)) {
+    if (
+      overrideValue &&
+      typeof overrideValue === "object" &&
+      !Array.isArray(overrideValue) &&
+      baseValue &&
+      typeof baseValue === "object" &&
+      !Array.isArray(baseValue)
+    ) {
+      const result: Record<string, unknown> = {
+        ...(baseValue as Record<string, unknown>),
+      };
+      for (const [key, value] of Object.entries(
+        overrideValue as Record<string, unknown>,
+      )) {
         result[key] = merge(result[key], value);
       }
       return result;
@@ -51,21 +77,36 @@ export function loadConfig(): SiteConfig {
   if (!isBrowser()) return structuredClone(DEFAULT_CONFIG);
   try {
     const raw = window.localStorage.getItem(CONFIG_KEY);
-    return mergeConfig(DEFAULT_CONFIG, raw ? (JSON.parse(raw) as Partial<SiteConfig>) : null);
+    return mergeConfig(
+      DEFAULT_CONFIG,
+      raw ? (JSON.parse(raw) as Partial<SiteConfig>) : null,
+    );
   } catch {
     return structuredClone(DEFAULT_CONFIG);
   }
 }
 
 /** Nạp cấu hình landing từ Supabase khi Database Mode được bật. */
-export async function loadCloudConfig(config: SiteConfig): Promise<SiteConfig | null> {
-  if (!isBrowser() || config.admin.storageMode !== "database" || !config.admin.supabaseUrl || !config.admin.supabaseAnonKey) {
+export async function loadCloudConfig(
+  config: SiteConfig,
+): Promise<SiteConfig | null> {
+  if (
+    !isBrowser() ||
+    config.admin.storageMode !== "database" ||
+    !config.admin.supabaseUrl ||
+    !config.admin.supabaseAnonKey
+  ) {
     return null;
   }
   try {
     const response = await fetch(
       `${config.admin.supabaseUrl.replace(/\/$/, "")}/rest/v1/${CLOUD_CONFIG_TABLE}?id=eq.1&select=data`,
-      { headers: { apikey: config.admin.supabaseAnonKey, Authorization: `Bearer ${config.admin.supabaseAnonKey}` } },
+      {
+        headers: {
+          apikey: config.admin.supabaseAnonKey,
+          Authorization: `Bearer ${config.admin.supabaseAnonKey}`,
+        },
+      },
     );
     if (!response.ok) return null;
     const rows = (await response.json()) as { data?: Partial<SiteConfig> }[];
@@ -80,14 +121,20 @@ export function saveConfig(config: SiteConfig): void {
   window.localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
   // Auto backup snapshot (giữ tối đa 10 bản gần nhất)
   try {
-    const snaps = JSON.parse(window.localStorage.getItem(BACKUP_KEY) || "[]") as unknown[];
+    const snaps = JSON.parse(
+      window.localStorage.getItem(BACKUP_KEY) || "[]",
+    ) as unknown[];
     snaps.unshift({ at: new Date().toISOString(), config });
     window.localStorage.setItem(BACKUP_KEY, JSON.stringify(snaps.slice(0, 10)));
   } catch {
     /* ignore */
   }
   // DATABASE MODE: đẩy lên Supabase nếu được cấu hình.
-  if (config.admin.storageMode === "database" && config.admin.supabaseUrl && config.admin.supabaseAnonKey) {
+  if (
+    config.admin.storageMode === "database" &&
+    config.admin.supabaseUrl &&
+    config.admin.supabaseAnonKey
+  ) {
     void syncConfigToSupabase(config);
   }
 }
@@ -134,7 +181,9 @@ export interface LeadRecord {
 export function loadLeads(): LeadRecord[] {
   if (!isBrowser()) return [];
   try {
-    return JSON.parse(window.localStorage.getItem(LEADS_KEY) || "[]") as LeadRecord[];
+    return JSON.parse(
+      window.localStorage.getItem(LEADS_KEY) || "[]",
+    ) as LeadRecord[];
   } catch {
     return [];
   }
@@ -143,7 +192,9 @@ export function loadLeads(): LeadRecord[] {
 /** Trùng lặp: cùng số điện thoại đã gửi trong 24 giờ gần nhất. */
 export function isDuplicateLead(phone: string): boolean {
   const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-  return loadLeads().some((l) => l.phone === phone && new Date(l.at).getTime() > cutoff);
+  return loadLeads().some(
+    (l) => l.phone === phone && new Date(l.at).getTime() > cutoff,
+  );
 }
 
 export function clearLeads(): void {
@@ -155,26 +206,41 @@ export function clearLeads(): void {
  * Lưu lead vào kho đang hoạt động. Luôn ghi bản sao ở máy để Mini-CRM hiển thị
  * ngay; ở Database Mode sẽ đẩy thêm lên bảng `leads` của Supabase.
  */
-export async function saveLead(lead: LeadRecord, config?: SiteConfig): Promise<LeadRecord> {
+export async function saveLead(
+  lead: LeadRecord,
+  config?: SiteConfig,
+): Promise<LeadRecord> {
   const mode: StorageMode =
-    config?.admin.storageMode === "database" && config.admin.supabaseUrl && config.admin.supabaseAnonKey
+    config?.admin.storageMode === "database" &&
+    config.admin.supabaseUrl &&
+    config.admin.supabaseAnonKey
       ? "database"
       : "local";
   const record: LeadRecord = { ...lead, storage: mode };
   if (mode === "database" && config) {
-    const ok = await pushLeadToSupabase(record, config.admin.supabaseUrl, config.admin.supabaseAnonKey);
+    const ok = await pushLeadToSupabase(
+      record,
+      config.admin.supabaseUrl,
+      config.admin.supabaseAnonKey,
+    );
     if (!ok) record.storage = "local";
   }
   if (isBrowser()) {
     const leads = loadLeads();
     leads.unshift(record);
     window.localStorage.setItem(LEADS_KEY, JSON.stringify(leads.slice(0, 500)));
-    window.dispatchEvent(new CustomEvent<LeadRecord>(LEAD_CREATED_EVENT, { detail: record }));
+    window.dispatchEvent(
+      new CustomEvent<LeadRecord>(LEAD_CREATED_EVENT, { detail: record }),
+    );
   }
   return record;
 }
 
-async function pushLeadToSupabase(lead: LeadRecord, url: string, key: string): Promise<boolean> {
+async function pushLeadToSupabase(
+  lead: LeadRecord,
+  url: string,
+  key: string,
+): Promise<boolean> {
   try {
     const res = await fetch(`${url.replace(/\/$/, "")}/rest/v1/leads`, {
       method: "POST",
@@ -207,9 +273,25 @@ async function pushLeadToSupabase(lead: LeadRecord, url: string, key: string): P
 
 export function exportLeadsCsv(leads: LeadRecord[]): void {
   if (!isBrowser()) return;
-  const headers = ["at", "name", "phone", "email", "city", "major", "aiScore", "aiRank", "utmSource", "variant"];
+  const headers = [
+    "at",
+    "name",
+    "phone",
+    "email",
+    "city",
+    "major",
+    "aiScore",
+    "aiRank",
+    "utmSource",
+    "variant",
+  ];
   const rows = leads.map((l) =>
-    headers.map((h) => `"${String((l as unknown as Record<string, unknown>)[h] ?? "").replace(/"/g, '""')}"`).join(","),
+    headers
+      .map(
+        (h) =>
+          `"${String((l as unknown as Record<string, unknown>)[h] ?? "").replace(/"/g, '""')}"`,
+      )
+      .join(","),
   );
   const csv = [headers.join(","), ...rows].join("\n");
   const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
@@ -232,7 +314,13 @@ export interface AnalyticsState {
 }
 
 function emptyAnalytics(): AnalyticsState {
-  return { visits: 0, leads: 0, bySource: {}, bySourceStats: {}, byVariant: {} };
+  return {
+    visits: 0,
+    leads: 0,
+    bySource: {},
+    bySourceStats: {},
+    byVariant: {},
+  };
 }
 
 function cleanSource(source: string): string {
@@ -240,28 +328,46 @@ function cleanSource(source: string): string {
   return value || "direct";
 }
 
-function normalizeAnalytics(value: Partial<AnalyticsState> | null): AnalyticsState {
+function normalizeAnalytics(
+  value: Partial<AnalyticsState> | null,
+): AnalyticsState {
   const result = emptyAnalytics();
-  result.visits = Number.isFinite(value?.visits) ? Math.max(0, Number(value?.visits)) : 0;
-  result.leads = Number.isFinite(value?.leads) ? Math.max(0, Number(value?.leads)) : 0;
+  result.visits = Number.isFinite(value?.visits)
+    ? Math.max(0, Number(value?.visits))
+    : 0;
+  result.leads = Number.isFinite(value?.leads)
+    ? Math.max(0, Number(value?.leads))
+    : 0;
   for (const [source, count] of Object.entries(value?.bySource || {})) {
-    if (Number.isFinite(count)) result.bySource[cleanSource(source)] = Math.max(0, Number(count));
+    if (Number.isFinite(count))
+      result.bySource[cleanSource(source)] = Math.max(0, Number(count));
   }
   for (const [source, stats] of Object.entries(value?.bySourceStats || {})) {
     if (!stats) continue;
     result.bySourceStats[cleanSource(source)] = {
-      visits: Number.isFinite(stats.visits) ? Math.max(0, Number(stats.visits)) : 0,
-      leads: Number.isFinite(stats.leads) ? Math.max(0, Number(stats.leads)) : 0,
+      visits: Number.isFinite(stats.visits)
+        ? Math.max(0, Number(stats.visits))
+        : 0,
+      leads: Number.isFinite(stats.leads)
+        ? Math.max(0, Number(stats.leads))
+        : 0,
     };
   }
   for (const [source, visits] of Object.entries(result.bySource)) {
-    result.bySourceStats[source] = result.bySourceStats[source] || { visits, leads: 0 };
+    result.bySourceStats[source] = result.bySourceStats[source] || {
+      visits,
+      leads: 0,
+    };
   }
   for (const [variant, stats] of Object.entries(value?.byVariant || {})) {
     if (!stats) continue;
     result.byVariant[variant] = {
-      visits: Number.isFinite(stats.visits) ? Math.max(0, Number(stats.visits)) : 0,
-      leads: Number.isFinite(stats.leads) ? Math.max(0, Number(stats.leads)) : 0,
+      visits: Number.isFinite(stats.visits)
+        ? Math.max(0, Number(stats.visits))
+        : 0,
+      leads: Number.isFinite(stats.leads)
+        ? Math.max(0, Number(stats.leads))
+        : 0,
     };
   }
   return result;
@@ -270,7 +376,11 @@ function normalizeAnalytics(value: Partial<AnalyticsState> | null): AnalyticsSta
 export function loadAnalytics(): AnalyticsState {
   if (!isBrowser()) return emptyAnalytics();
   try {
-    return normalizeAnalytics(JSON.parse(window.localStorage.getItem(ANALYTICS_KEY) || "{}") as Partial<AnalyticsState>);
+    return normalizeAnalytics(
+      JSON.parse(
+        window.localStorage.getItem(ANALYTICS_KEY) || "{}",
+      ) as Partial<AnalyticsState>,
+    );
   } catch {
     return emptyAnalytics();
   }
@@ -279,7 +389,9 @@ export function loadAnalytics(): AnalyticsState {
 function saveAnalytics(state: AnalyticsState): void {
   if (!isBrowser()) return;
   window.localStorage.setItem(ANALYTICS_KEY, JSON.stringify(state));
-  window.dispatchEvent(new CustomEvent<AnalyticsState>(ANALYTICS_UPDATED_EVENT, { detail: state }));
+  window.dispatchEvent(
+    new CustomEvent<AnalyticsState>(ANALYTICS_UPDATED_EVENT, { detail: state }),
+  );
 }
 
 export function trackVisit(source: string, variant?: string): void {
@@ -287,7 +399,10 @@ export function trackVisit(source: string, variant?: string): void {
   a.visits += 1;
   const normalizedSource = cleanSource(source);
   a.bySource[normalizedSource] = (a.bySource[normalizedSource] || 0) + 1;
-  a.bySourceStats[normalizedSource] = a.bySourceStats[normalizedSource] || { visits: 0, leads: 0 };
+  a.bySourceStats[normalizedSource] = a.bySourceStats[normalizedSource] || {
+    visits: 0,
+    leads: 0,
+  };
   a.bySourceStats[normalizedSource].visits += 1;
   if (variant) {
     a.byVariant[variant] = a.byVariant[variant] || { visits: 0, leads: 0 };
@@ -301,7 +416,10 @@ export function trackConversion(source: string, variant?: string): void {
   a.leads += 1;
   const normalizedSource = cleanSource(source);
   a.bySource[normalizedSource] = a.bySource[normalizedSource] || 0;
-  a.bySourceStats[normalizedSource] = a.bySourceStats[normalizedSource] || { visits: 0, leads: 0 };
+  a.bySourceStats[normalizedSource] = a.bySourceStats[normalizedSource] || {
+    visits: 0,
+    leads: 0,
+  };
   a.bySourceStats[normalizedSource].leads += 1;
   if (variant) {
     a.byVariant[variant] = a.byVariant[variant] || { visits: 0, leads: 0 };
@@ -313,7 +431,11 @@ export function trackConversion(source: string, variant?: string): void {
 export function clearAnalytics(): void {
   if (!isBrowser()) return;
   window.localStorage.removeItem(ANALYTICS_KEY);
-  window.dispatchEvent(new CustomEvent<AnalyticsState>(ANALYTICS_UPDATED_EVENT, { detail: emptyAnalytics() }));
+  window.dispatchEvent(
+    new CustomEvent<AnalyticsState>(ANALYTICS_UPDATED_EVENT, {
+      detail: emptyAnalytics(),
+    }),
+  );
 }
 
 /* ------------------------------- SUPABASE --------------------------------- */
@@ -322,22 +444,30 @@ export function clearAnalytics(): void {
 async function syncConfigToSupabase(config: SiteConfig): Promise<void> {
   try {
     const { supabaseUrl, supabaseAnonKey } = config.admin;
-    await fetch(`${supabaseUrl.replace(/\/$/, "")}/rest/v1/${CLOUD_CONFIG_TABLE}?on_conflict=id`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Prefer: "resolution=merge-duplicates",
-        apikey: supabaseAnonKey,
-        Authorization: `Bearer ${supabaseAnonKey}`,
+    await fetch(
+      `${supabaseUrl.replace(/\/$/, "")}/rest/v1/${CLOUD_CONFIG_TABLE}?on_conflict=id`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Prefer: "resolution=merge-duplicates",
+          apikey: supabaseAnonKey,
+          Authorization: `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify([
+          { id: 1, data: config, updated_at: new Date().toISOString() },
+        ]),
       },
-      body: JSON.stringify([{ id: 1, data: config, updated_at: new Date().toISOString() }]),
-    });
+    );
   } catch (err) {
     console.log("[v0] Supabase sync failed:", (err as Error).message);
   }
 }
 
-export async function testSupabaseConnection(url: string, key: string): Promise<boolean> {
+export async function testSupabaseConnection(
+  url: string,
+  key: string,
+): Promise<boolean> {
   try {
     const res = await fetch(`${url.replace(/\/$/, "")}/rest/v1/`, {
       headers: { apikey: key, Authorization: `Bearer ${key}` },

@@ -281,7 +281,8 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
         if (!ok && results.length > 0) {
           console.warn("All webhook endpoints failed:", results);
           toast.warning("Lead đã lưu vào CRM nhưng webhook chưa nhận được", {
-            description: "Kiểm tra cấu hình endpoint trong Admin > Cổng Webhook & Đa Kênh.",
+            description:
+              "Kiểm tra cấu hình endpoint trong Admin > Cổng Webhook & Đa Kênh.",
           });
         } else if (results.some((result) => !result.ok)) {
           console.warn("Some webhook endpoints failed:", results);
@@ -307,11 +308,17 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
             subject: fill(config.emailAutomation.subject),
             text: fill(config.emailAutomation.body),
           },
-        }).then((result) => {
-          if (!result.sent) console.warn("Lead confirmation email was not sent:", result.reason);
-        }).catch((error) => {
-          console.warn("Lead confirmation email failed:", error);
-        });
+        })
+          .then((result) => {
+            if (!result.sent)
+              console.warn(
+                "Lead confirmation email was not sent:",
+                result.reason,
+              );
+          })
+          .catch((error) => {
+            console.warn("Lead confirmation email failed:", error);
+          });
       }
 
       // Chỉ bắn tracking SAU khi dữ liệu đã gửi thành công
@@ -326,8 +333,11 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
       if (redirect && typeof window !== "undefined")
         window.location.assign(redirect);
       else {
-        const thankYou = config.pages.find((page) => page.enabled && page.kind === "thankYou");
-        if (thankYou && typeof window !== "undefined") window.location.assign(`/${thankYou.path}`);
+        const thankYou = config.pages.find(
+          (page) => page.enabled && page.kind === "thankYou",
+        );
+        if (thankYou && typeof window !== "undefined")
+          window.location.assign(`/${thankYou.path}`);
       }
     } catch {
       setError(

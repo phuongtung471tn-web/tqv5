@@ -130,16 +130,41 @@ const PAINS = [
 ];
 
 const STEPS = [
-  { n: "01", t: "Đăng ký & tư vấn 1:1", d: "Điền form, chuyên viên gọi lại trong 30 phút, gửi lộ trình chi tiết." },
-  { n: "02", t: "Chọn ngành & xét hồ sơ", d: "Chọn 1 trong 8 ngành hot, hoàn thiện hồ sơ theo hướng dẫn từng bước." },
-  { n: "03", t: "Học tiếng Hán & định hướng", d: "Đào tạo tiếng Hán nền tảng và kỹ năng trước khi bay." },
-  { n: "04", t: "Nhập học & bắt đầu kiếm tiền", d: "Sang trường đối tác, học nghề và làm việc có lương ngay từ kỳ đầu." },
+  {
+    n: "01",
+    t: "Đăng ký & tư vấn 1:1",
+    d: "Điền form, chuyên viên gọi lại trong 30 phút, gửi lộ trình chi tiết.",
+  },
+  {
+    n: "02",
+    t: "Chọn ngành & xét hồ sơ",
+    d: "Chọn 1 trong 8 ngành hot, hoàn thiện hồ sơ theo hướng dẫn từng bước.",
+  },
+  {
+    n: "03",
+    t: "Học tiếng Hán & định hướng",
+    d: "Đào tạo tiếng Hán nền tảng và kỹ năng trước khi bay.",
+  },
+  {
+    n: "04",
+    t: "Nhập học & bắt đầu kiếm tiền",
+    d: "Sang trường đối tác, học nghề và làm việc có lương ngay từ kỳ đầu.",
+  },
 ];
 
 const GALLERY = [
-  { img: visaImg, caption: "Visa du học sinh đã được cấp cho học viên khóa gần nhất" },
-  { img: campusImg, caption: "Khuôn viên trường Cao đẳng nghề đối tác tại Trung Quốc" },
-  { img: dormRoomImg, caption: "Phòng ký túc xá trong trường — miễn 100% phí ở" },
+  {
+    img: visaImg,
+    caption: "Visa du học sinh đã được cấp cho học viên khóa gần nhất",
+  },
+  {
+    img: campusImg,
+    caption: "Khuôn viên trường Cao đẳng nghề đối tác tại Trung Quốc",
+  },
+  {
+    img: dormRoomImg,
+    caption: "Phòng ký túc xá trong trường — miễn 100% phí ở",
+  },
   { img: airportImg, caption: "Học viên lên đường nhập học kỳ tháng 9" },
 ];
 
@@ -149,21 +174,24 @@ const EXPERTS = [
     name: "Ths. Nguyễn Thu Hương",
     role: "Chuyên gia định hướng ngành học",
     bio: "Tập trung đánh giá năng lực, sở thích và mục tiêu dài hạn để giúp học viên chọn ngành phù hợp.",
-    experience: "Kinh nghiệm tư vấn lộ trình học nghề quốc tế và định hướng nghề nghiệp sau tốt nghiệp.",
+    experience:
+      "Kinh nghiệm tư vấn lộ trình học nghề quốc tế và định hướng nghề nghiệp sau tốt nghiệp.",
   },
   {
     img: expert2,
     name: "Ông Lê Quang Vinh",
     role: "Chuyên gia hồ sơ & tuyển sinh",
     bio: "Đồng hành cùng học viên từ bước rà soát điều kiện đến hoàn thiện hồ sơ nhập học và visa.",
-    experience: "Kinh nghiệm xử lý hồ sơ tuyển sinh, thủ tục du học và chuẩn bị trước khi xuất cảnh.",
+    experience:
+      "Kinh nghiệm xử lý hồ sơ tuyển sinh, thủ tục du học và chuẩn bị trước khi xuất cảnh.",
   },
   {
     img: expert3,
     name: "Cô Phạm Minh Anh",
     role: "Chuyên gia đồng hành học viên",
     bio: "Hỗ trợ học viên chuẩn bị ngôn ngữ, kỹ năng thích nghi và kế hoạch học tập tại Trung Quốc.",
-    experience: "Kinh nghiệm đào tạo kỹ năng tiền du học và hỗ trợ học viên trong quá trình hòa nhập.",
+    experience:
+      "Kinh nghiệm đào tạo kỹ năng tiền du học và hỗ trợ học viên trong quá trình hòa nhập.",
   },
 ];
 
@@ -196,9 +224,14 @@ function Landing() {
   const { config } = useSiteConfig();
   const content = config.landing;
   const variant = getVariant(config.abTest.enabled, config.abTest.split);
-  const experimentHeadline = variant === "B" ? config.abTest.variantBHeadline : config.abTest.variantAHeadline;
-  const experimentCta = variant === "B" ? config.abTest.variantBCta : config.abTest.variantACta;
-  const section = (id: string) => content.sectionsArray.find((item) => item.id === id);
+  const experimentHeadline =
+    variant === "B"
+      ? config.abTest.variantBHeadline
+      : config.abTest.variantAHeadline;
+  const experimentCta =
+    variant === "B" ? config.abTest.variantBCta : config.abTest.variantACta;
+  const section = (id: string) =>
+    content.sectionsArray.find((item) => item.id === id);
   const sectionStyle = (id: string) => ({
     order: content.sectionsArray.findIndex((item) => item.id === id) + 1,
     display: section(id)?.enabled === false ? "none" : undefined,
@@ -208,29 +241,45 @@ function Landing() {
     img: content.galleryImageUrls[index] || slide.img,
     caption: content.galleryCaptions[index] || slide.caption,
   }));
-  const faqs = content.faqs.map((faq) => ({ slug: faq.slug, q: faq.question, a: faq.answer }));
-  const customSections = content.sectionsArray.filter((item) => item.type === "custom" && item.enabled);
+  const faqs = content.faqs.map((faq) => ({
+    slug: faq.slug,
+    q: faq.question,
+    a: faq.answer,
+  }));
+  const customSections = content.sectionsArray.filter(
+    (item) => item.type === "custom" && item.enabled,
+  );
   const links = contactLinks(config);
-  const menuPages = config.pages.filter((page) => page.enabled && page.showInMenu).sort((a, b) => a.menuOrder - b.menuOrder);
+  const menuPages = config.pages
+    .filter((page) => page.enabled && page.showInMenu)
+    .sort((a, b) => a.menuOrder - b.menuOrder);
   const secondaryPageSectionIds = new Set(
     config.pages
       .filter((page) => page.id !== "home")
       .flatMap((page) => page.sectionIds || []),
   );
-  const homeCustomSections = customSections.filter((section) => !secondaryPageSectionIds.has(section.id));
+  const homeCustomSections = customSections.filter(
+    (section) => !secondaryPageSectionIds.has(section.id),
+  );
   useEffect(() => initBehavior(), []);
-
 
   return (
     <div id="top" className="flex min-h-screen flex-col bg-background">
       <Toaster position="top-center" richColors />
 
       {/* Header */}
-      <header style={{ order: 0 }} className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
+      <header
+        style={{ order: 0 }}
+        className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur"
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <a href="#top" className="flex min-w-0 max-w-[78%] items-center gap-2.5" aria-label={content.brandName}>
-            {content.showLogo && (
-              content.logoUrl ? (
+          <a
+            href="#top"
+            className="flex min-w-0 max-w-[78%] items-center gap-2.5"
+            aria-label={content.brandName}
+          >
+            {content.showLogo &&
+              (content.logoUrl ? (
                 <img
                   src={content.logoUrl}
                   alt="Logo"
@@ -238,10 +287,12 @@ function Landing() {
                 />
               ) : (
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-[var(--shadow-cta)] sm:h-11 sm:w-11 sm:rounded-xl">
-                  <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+                  <GraduationCap
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                    aria-hidden="true"
+                  />
                 </span>
-              )
-            )}
+              ))}
             <span className="min-w-0 max-w-[15rem] truncate text-xs font-extrabold leading-tight sm:max-w-[22rem] sm:text-sm">
               {content.brandName}
             </span>
@@ -252,9 +303,16 @@ function Landing() {
           >
             {content.heroCtaLabel}
           </a>
-          <nav className="hidden items-center gap-3 lg:flex" aria-label="Menu chính">
+          <nav
+            className="hidden items-center gap-3 lg:flex"
+            aria-label="Menu chính"
+          >
             {menuPages.map((page) => (
-              <a key={page.id} href={page.path ? `/${page.path}` : "#top"} className="text-xs font-semibold text-muted-foreground transition hover:text-foreground">
+              <a
+                key={page.id}
+                href={page.path ? `/${page.path}` : "#top"}
+                className="text-xs font-semibold text-muted-foreground transition hover:text-foreground"
+              >
                 {page.title}
               </a>
             ))}
@@ -263,7 +321,10 @@ function Landing() {
       </header>
 
       {/* Hero */}
-      <section style={sectionStyle("hero")} className="surface-panel relative overflow-hidden">
+      <section
+        style={sectionStyle("hero")}
+        className="surface-panel relative overflow-hidden"
+      >
         <img
           src={content.heroImageUrl || heroImg}
           alt="Học viên Việt Nam thực hành lắp ráp ô tô điện tại trung tâm đào tạo nghề Trung Quốc"
@@ -280,7 +341,9 @@ function Landing() {
             </span>
             <h1 className="mt-6 text-3xl font-black leading-[1.12] sm:text-4xl lg:text-[3.25rem]">
               {experimentHeadline || content.heroTitle}{" "}
-              <span className="text-hero-gradient">{content.heroHighlight}</span>
+              <span className="text-hero-gradient">
+                {content.heroHighlight}
+              </span>
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-surface-foreground/85 sm:text-lg">
               {content.heroDescription}
@@ -293,11 +356,17 @@ function Landing() {
                 {experimentCta || content.heroCtaLabel}
               </a>
               <span className="text-center text-sm text-surface-foreground/70 sm:text-left">
-                Chỉ còn <strong className="text-gold">{config.countdown.slotsLeft}</strong> {config.countdown.headline}
+                Chỉ còn{" "}
+                <strong className="text-gold">
+                  {config.countdown.slotsLeft}
+                </strong>{" "}
+                {config.countdown.headline}
               </span>
             </div>
             <ul className="mt-9 grid gap-2.5 text-sm text-surface-foreground/80 sm:grid-cols-2">
-              {content.heroTrustItems.map((item) => <li key={item}>✓ {item}</li>)}
+              {content.heroTrustItems.map((item) => (
+                <li key={item}>✓ {item}</li>
+              ))}
             </ul>
           </div>
           <div className="space-y-3 lg:pl-4">
@@ -308,12 +377,17 @@ function Landing() {
       </section>
 
       {/* Stats */}
-      <section style={sectionStyle("stats")} className="border-b border-border bg-muted/50 py-10">
+      <section
+        style={sectionStyle("stats")}
+        className="border-b border-border bg-muted/50 py-10"
+      >
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 px-4 lg:grid-cols-4">
           {content.stats.map((s, i) => (
             <Reveal key={s.label} delay={i * 80}>
               <div className="glass-card h-full rounded-2xl p-5 text-center">
-                <p className="text-2xl font-black text-primary sm:text-3xl">{s.value}</p>
+                <p className="text-2xl font-black text-primary sm:text-3xl">
+                  {s.value}
+                </p>
                 <p className="mt-2 text-xs font-semibold leading-snug text-muted-foreground sm:text-sm">
                   {s.label}
                 </p>
@@ -324,8 +398,13 @@ function Landing() {
       </section>
 
       {/* Pain */}
-      <section style={sectionStyle("pains")} className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
-        <h2 className="max-w-2xl text-2xl font-extrabold sm:text-3xl lg:text-4xl">{content.painHeading}</h2>
+      <section
+        style={sectionStyle("pains")}
+        className="mx-auto max-w-6xl px-4 py-16 sm:py-20"
+      >
+        <h2 className="max-w-2xl text-2xl font-extrabold sm:text-3xl lg:text-4xl">
+          {content.painHeading}
+        </h2>
         <div className="mt-8 grid gap-5 sm:grid-cols-3">
           {content.pains.map((p, i) => (
             <Reveal key={p} delay={i * 100}>
@@ -339,7 +418,11 @@ function Landing() {
       </section>
 
       {/* Benefits */}
-      <section style={sectionStyle("benefits")} data-section="luong_thuc_tap" className="bg-muted/60 py-16 sm:py-20">
+      <section
+        style={sectionStyle("benefits")}
+        data-section="luong_thuc_tap"
+        className="bg-muted/60 py-16 sm:py-20"
+      >
         <div className="mx-auto max-w-6xl px-4">
           <h2 className="text-2xl font-extrabold sm:text-3xl lg:text-4xl">
             {content.benefitsHeading}
@@ -350,7 +433,9 @@ function Landing() {
                 <div className="glass-card h-full rounded-2xl p-6 transition hover:-translate-y-1">
                   <p className="text-3xl font-black text-primary">{b.stat}</p>
                   <h3 className="mt-3 text-lg font-bold">{b.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{b.text}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {b.text}
+                  </p>
                 </div>
               </Reveal>
             ))}
@@ -359,7 +444,11 @@ function Landing() {
       </section>
 
       {/* Majors */}
-      <section style={sectionStyle("majors")} data-section="nganh_hoc" className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+      <section
+        style={sectionStyle("majors")}
+        data-section="nganh_hoc"
+        className="mx-auto max-w-6xl px-4 py-16 sm:py-20"
+      >
         <h2 className="text-2xl font-extrabold sm:text-3xl lg:text-4xl">
           {content.majorsHeading}
         </h2>
@@ -382,9 +471,14 @@ function Landing() {
       </section>
 
       {/* Experts */}
-      <section style={sectionStyle("experts")} className="bg-muted/50 py-16 sm:py-20">
+      <section
+        style={sectionStyle("experts")}
+        className="bg-muted/50 py-16 sm:py-20"
+      >
         <div className="mx-auto max-w-6xl px-4">
-          <h2 className="text-2xl font-extrabold sm:text-3xl lg:text-4xl">{content.expertsHeading}</h2>
+          <h2 className="text-2xl font-extrabold sm:text-3xl lg:text-4xl">
+            {content.expertsHeading}
+          </h2>
           <p className="mt-3 max-w-2xl text-muted-foreground">
             {content.expertsDescription}
           </p>
@@ -401,9 +495,15 @@ function Landing() {
                     decoding="async"
                     className="h-20 w-20 shrink-0 rounded-full object-cover ring-2 ring-border"
                   />
-                  <h3 className="mt-4 text-base font-bold leading-snug">{e.name}</h3>
-                  <p className="mt-1 text-xs font-semibold text-primary">{e.role}</p>
-                  <p className="mt-4 text-sm leading-relaxed text-card-foreground/85">{e.bio}</p>
+                  <h3 className="mt-4 text-base font-bold leading-snug">
+                    {e.name}
+                  </h3>
+                  <p className="mt-1 text-xs font-semibold text-primary">
+                    {e.role}
+                  </p>
+                  <p className="mt-4 text-sm leading-relaxed text-card-foreground/85">
+                    {e.bio}
+                  </p>
                   <p className="mt-3 border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
                     {e.experience}
                   </p>
@@ -415,7 +515,10 @@ function Landing() {
       </section>
 
       {/* Gallery carousel */}
-      <section style={sectionStyle("gallery")} className="mx-auto max-w-3xl px-4 py-16 sm:py-20">
+      <section
+        style={sectionStyle("gallery")}
+        className="mx-auto max-w-3xl px-4 py-16 sm:py-20"
+      >
         <h2 className="text-2xl font-extrabold sm:text-3xl lg:text-4xl">
           {content.galleryHeading}
         </h2>
@@ -430,7 +533,10 @@ function Landing() {
       </section>
 
       {/* Testimonials */}
-      <section style={sectionStyle("testimonials")} className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+      <section
+        style={sectionStyle("testimonials")}
+        className="mx-auto max-w-6xl px-4 py-16 sm:py-20"
+      >
         <h2 className="text-2xl font-extrabold sm:text-3xl lg:text-4xl">
           {content.testimonialsHeading}
         </h2>
@@ -455,16 +561,23 @@ function Landing() {
       </section>
 
       {/* Steps */}
-      <section style={sectionStyle("steps")} className="surface-panel py-16 text-surface-foreground sm:py-20">
+      <section
+        style={sectionStyle("steps")}
+        className="surface-panel py-16 text-surface-foreground sm:py-20"
+      >
         <div className="mx-auto max-w-6xl px-4">
-          <h2 className="text-2xl font-extrabold sm:text-3xl lg:text-4xl">{content.stepsHeading}</h2>
+          <h2 className="text-2xl font-extrabold sm:text-3xl lg:text-4xl">
+            {content.stepsHeading}
+          </h2>
           <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {content.steps.map((s, i) => (
               <Reveal key={s.number} delay={i * 90}>
                 <div className="glass-card-dark h-full rounded-2xl p-5">
                   <p className="text-2xl font-black text-gold">{s.number}</p>
                   <h3 className="mt-2 text-base font-bold">{s.title}</h3>
-                  <p className="mt-1.5 text-sm text-surface-foreground/75">{s.description}</p>
+                  <p className="mt-1.5 text-sm text-surface-foreground/75">
+                    {s.description}
+                  </p>
                 </div>
               </Reveal>
             ))}
@@ -473,7 +586,10 @@ function Landing() {
       </section>
 
       {/* FAQ */}
-      <section style={sectionStyle("faq")} className="mx-auto max-w-3xl px-4 py-16 sm:py-20">
+      <section
+        style={sectionStyle("faq")}
+        className="mx-auto max-w-3xl px-4 py-16 sm:py-20"
+      >
         <h2 className="text-center text-2xl font-extrabold sm:text-3xl lg:text-4xl">
           {content.faqHeading}
         </h2>
@@ -482,7 +598,8 @@ function Landing() {
             <details
               key={f.q}
               onToggle={(e) => {
-                if ((e.currentTarget as HTMLDetailsElement).open) markFaqClick(f.slug);
+                if ((e.currentTarget as HTMLDetailsElement).open)
+                  markFaqClick(f.slug);
               }}
               className="group rounded-2xl border border-border bg-card p-5 transition hover:border-primary/50"
             >
@@ -490,14 +607,19 @@ function Landing() {
                 <span className="mr-2 text-primary">?</span>
                 {f.q}
               </summary>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                {f.a}
+              </p>
             </details>
           ))}
         </div>
       </section>
 
       {/* Final CTA */}
-      <section style={sectionStyle("finalCta")} className="bg-muted/60 py-16 sm:py-20">
+      <section
+        style={sectionStyle("finalCta")}
+        className="bg-muted/60 py-16 sm:py-20"
+      >
         <div className="mx-auto max-w-3xl px-4">
           <h2 className="text-center text-2xl font-extrabold sm:text-3xl lg:text-4xl">
             {content.finalCtaHeading}
@@ -519,20 +641,24 @@ function Landing() {
       ))}
 
       {/* Footer */}
-      <footer style={{ order: 99 }} className="border-t border-border bg-background py-12">
+      <footer
+        style={{ order: 99 }}
+        className="border-t border-border bg-background py-12"
+      >
         <div className="mx-auto mb-10 max-w-6xl px-4">
           <FooterStats />
         </div>
         <div className="mx-auto max-w-6xl px-4 text-sm text-muted-foreground">
-          <p className="font-bold text-foreground">
-            {content.brandName}
-          </p>
+          <p className="font-bold text-foreground">{content.brandName}</p>
           {(links.hasHotline || FOOTER.email) && (
             <p className="mt-2">
               {links.hasHotline && (
                 <>
                   Hotline tư vấn:{" "}
-                  <a className="font-semibold text-foreground" href={links.hotlineHref}>
+                  <a
+                    className="font-semibold text-foreground"
+                    href={links.hotlineHref}
+                  >
                     {config.floatingContact.hotline}
                   </a>
                 </>
@@ -541,7 +667,10 @@ function Landing() {
               {FOOTER.email && (
                 <>
                   Email:{" "}
-                  <a className="font-semibold text-foreground" href={`mailto:${FOOTER.email}`}>
+                  <a
+                    className="font-semibold text-foreground"
+                    href={`mailto:${FOOTER.email}`}
+                  >
                     {FOOTER.email}
                   </a>
                 </>
@@ -551,10 +680,15 @@ function Landing() {
           <p className="mt-4 text-xs leading-relaxed">
             Đơn vị bảo trợ chuyên môn &amp; tuyển sinh: {FOOTER.sponsor}
             {FOOTER.address ? ` — ${FOOTER.address}` : ""}
-            {FOOTER.licenseNumber ? ` · Giấy phép hoạt động số ${FOOTER.licenseNumber}` : ""}. Chương
-            trình liên kết đào tạo với các trường Cao đẳng nghề và doanh nghiệp tại Trung Quốc.
+            {FOOTER.licenseNumber
+              ? ` · Giấy phép hoạt động số ${FOOTER.licenseNumber}`
+              : ""}
+            . Chương trình liên kết đào tạo với các trường Cao đẳng nghề và
+            doanh nghiệp tại Trung Quốc.
           </p>
-          <p className="mt-4 text-xs">© {new Date().getFullYear()} Bản quyền thuộc Trung tâm.</p>
+          <p className="mt-4 text-xs">
+            © {new Date().getFullYear()} Bản quyền thuộc Trung tâm.
+          </p>
         </div>
       </footer>
 

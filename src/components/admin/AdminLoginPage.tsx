@@ -30,7 +30,9 @@ export function AdminLoginPage() {
             <Lock className="h-5 w-5" />
           </div>
           <h1 className="text-lg font-bold">Đăng nhập quản trị</h1>
-          <p className="mt-1 text-xs text-white/50">Funnel Builder — Bảng điều khiển</p>
+          <p className="mt-1 text-xs text-white/50">
+            Funnel Builder — Bảng điều khiển
+          </p>
         </div>
 
         {authed ? (
@@ -56,7 +58,9 @@ export function AdminLoginPage() {
               autoFocus
               className="w-full rounded-lg bg-neutral-800 px-3 py-2.5 text-sm outline-none ring-1 ring-white/10 focus:ring-white/30"
             />
-            {error && <p className="text-xs text-red-400">Mật khẩu không đúng.</p>}
+            {error && (
+              <p className="text-xs text-red-400">Mật khẩu không đúng.</p>
+            )}
             <button
               type="submit"
               className="w-full rounded-lg bg-white py-2.5 text-sm font-bold text-neutral-900 transition-opacity hover:opacity-90"

@@ -32,8 +32,24 @@ export default tseslint.config(
           ],
         },
       ],
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react-refresh/only-export-components": [
+        "warn",
+        { allowConstantExport: true },
+      ],
       "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
+  {
+    files: [
+      "src/components/LeadForm.tsx",
+      "src/components/admin/DeviceFrame.tsx",
+      "src/components/ui/**/*.tsx",
+      "src/lib/use-admin.tsx",
+      "src/lib/use-site-config.tsx",
+    ],
+    rules: {
+      // These modules intentionally expose hooks, helpers, or variant factories alongside components.
+      "react-refresh/only-export-components": "off",
     },
   },
   eslintPluginPrettier,

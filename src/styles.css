@@ -96,7 +96,6 @@
     scroll-behavior: smooth;
   }
 
-
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
@@ -147,7 +146,6 @@
   backdrop-filter: blur(14px);
   border: 1px solid oklch(1 0 0 / 0.14);
 }
-
 
 @keyframes cta-pulse {
   0%,

@@ -14,12 +14,18 @@ export function AdminModal({
   children: ReactNode;
 }) {
   return (
-    <div className={`fixed inset-0 z-[95] flex bg-black/60 ${title === "Sửa Giao Diện" ? "justify-end" : "items-end justify-center p-0 sm:items-center sm:p-4"}`}>
-      <div className={`flex max-h-[92vh] w-full flex-col bg-white text-neutral-900 shadow-2xl dark:bg-neutral-900 dark:text-neutral-100 ${title === "Sửa Giao Diện" ? "h-full max-h-full max-w-xl border-l border-neutral-200 dark:border-white/10" : "rounded-t-2xl sm:max-w-2xl sm:rounded-2xl"}`}>
+    <div
+      className={`fixed inset-0 z-[95] flex bg-black/60 ${title === "Sửa Giao Diện" ? "justify-end" : "items-end justify-center p-0 sm:items-center sm:p-4"}`}
+    >
+      <div
+        className={`flex max-h-[92vh] w-full flex-col bg-white text-neutral-900 shadow-2xl dark:bg-neutral-900 dark:text-neutral-100 ${title === "Sửa Giao Diện" ? "h-full max-h-full max-w-xl border-l border-neutral-200 dark:border-white/10" : "rounded-t-2xl sm:max-w-2xl sm:rounded-2xl"}`}
+      >
         <div className="flex items-start justify-between gap-3 border-b border-neutral-200 px-4 py-3 dark:border-white/10">
           <div>
             <h2 className="text-base font-bold">{title}</h2>
-            {subtitle && <p className="mt-0.5 text-xs text-neutral-500">{subtitle}</p>}
+            {subtitle && (
+              <p className="mt-0.5 text-xs text-neutral-500">{subtitle}</p>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -35,12 +41,24 @@ export function AdminModal({
   );
 }
 
-export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+export function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: ReactNode;
+}) {
   return (
     <label className="mb-3 block">
-      <span className="mb-1 block text-xs font-semibold text-neutral-700 dark:text-neutral-300">{label}</span>
+      <span className="mb-1 block text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+        {label}
+      </span>
       {children}
-      {hint && <span className="mt-1 block text-[11px] text-neutral-400">{hint}</span>}
+      {hint && (
+        <span className="mt-1 block text-[11px] text-neutral-400">{hint}</span>
+      )}
     </label>
   );
 }
@@ -52,8 +70,15 @@ export function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={inputCls} />;
 }
 
-export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea {...props} className={`${inputCls} min-h-[90px] font-mono text-xs`} />;
+export function TextArea(
+  props: React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+) {
+  return (
+    <textarea
+      {...props}
+      className={`${inputCls} min-h-[90px] font-mono text-xs`}
+    />
+  );
 }
 
 export function Toggle({
@@ -67,7 +92,9 @@ export function Toggle({
 }) {
   return (
     <label className="mb-3 flex items-center justify-between gap-3">
-      <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">{label}</span>
+      <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+        {label}
+      </span>
       <button
         type="button"
         role="switch"
@@ -87,11 +114,23 @@ export function Toggle({
   );
 }
 
-export function Stat({ label, value, tone }: { label: string; value: string | number; tone?: string }) {
+export function Stat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string | number;
+  tone?: string;
+}) {
   return (
     <div className="rounded-xl border border-neutral-200 p-3 dark:border-white/10">
-      <div className={`text-2xl font-black tabular-nums ${tone ?? ""}`}>{value}</div>
-      <div className="mt-0.5 text-[11px] font-medium text-neutral-500">{label}</div>
+      <div className={`text-2xl font-black tabular-nums ${tone ?? ""}`}>
+        {value}
+      </div>
+      <div className="mt-0.5 text-[11px] font-medium text-neutral-500">
+        {label}
+      </div>
     </div>
   );
 }

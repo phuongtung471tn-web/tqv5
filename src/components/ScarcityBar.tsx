@@ -4,7 +4,15 @@ import { useSiteConfig } from "@/lib/use-site-config";
 
 function endOfMonth() {
   const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0).getTime();
+  return new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    1,
+    0,
+    0,
+    0,
+    0,
+  ).getTime();
 }
 
 function pad(n: number) {
@@ -18,7 +26,9 @@ export function ScarcityBar({ tone = "light" }: { tone?: "light" | "dark" }) {
   const [left, setLeft] = useState<number | null>(null);
 
   const target =
-    c.endMode === "fixed" && c.endDate ? new Date(c.endDate).getTime() : endOfMonth();
+    c.endMode === "fixed" && c.endDate
+      ? new Date(c.endDate).getTime()
+      : endOfMonth();
   const validTarget = Number.isFinite(target) ? target : endOfMonth();
 
   useEffect(() => {
@@ -46,7 +56,9 @@ export function ScarcityBar({ tone = "light" }: { tone?: "light" | "dark" }) {
     <div className={`rounded-2xl px-4 py-3 ring-1 ${box}`} aria-live="polite">
       <p className="text-sm font-bold">
         Chỉ còn{" "}
-        <span className={accent}>{c.slotsLeft.toString().padStart(2, "0")} suất</span>{" "}
+        <span className={accent}>
+          {c.slotsLeft.toString().padStart(2, "0")} suất
+        </span>{" "}
         {c.headline}
       </p>
       <div className="mt-2 flex items-center gap-2">
@@ -56,8 +68,13 @@ export function ScarcityBar({ tone = "light" }: { tone?: "light" | "dark" }) {
           { v: m, l: "Phút" },
           { v: s, l: "Giây" },
         ].map((u) => (
-          <div key={u.l} className={`min-w-[3.25rem] rounded-lg px-2 py-1.5 text-center ${cell}`}>
-            <span className={`block text-lg font-black leading-none tabular-nums ${accent}`}>
+          <div
+            key={u.l}
+            className={`min-w-[3.25rem] rounded-lg px-2 py-1.5 text-center ${cell}`}
+          >
+            <span
+              className={`block text-lg font-black leading-none tabular-nums ${accent}`}
+            >
               {left === null ? "--" : pad(u.v)}
             </span>
             <span className="text-[10px] font-semibold uppercase tracking-wide opacity-70">

@@ -20,7 +20,9 @@ export function FooterStats() {
 
     const drift = window.setInterval(() => {
       setOnline((v) => {
-        const next = v + (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 2));
+        const next =
+          v +
+          (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 2));
         return Math.min(38, Math.max(12, next));
       });
     }, 4000);
@@ -36,12 +38,22 @@ export function FooterStats() {
 
   const items = [
     { icon: "🔴", label: "Đang online", value: `${online} người` },
-    { icon: "📅", label: "Truy cập hôm nay", value: visits.today.toLocaleString("vi-VN") },
-    { icon: "📆", label: "Truy cập tháng này", value: visits.month.toLocaleString("vi-VN") },
+    {
+      icon: "📅",
+      label: "Truy cập hôm nay",
+      value: visits.today.toLocaleString("vi-VN"),
+    },
+    {
+      icon: "📆",
+      label: "Truy cập tháng này",
+      value: visits.month.toLocaleString("vi-VN"),
+    },
     {
       icon: "⚡",
       label: "Thiết bị của bạn",
-      value: device ? `${device}${ip.ip ? ` · IP ${ip.ip}` : ""}` : "Đang nhận diện...",
+      value: device
+        ? `${device}${ip.ip ? ` · IP ${ip.ip}` : ""}`
+        : "Đang nhận diện...",
     },
   ];
 
@@ -52,12 +64,18 @@ export function FooterStats() {
     >
       <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {items.map((it) => (
-          <div key={it.label} className="rounded-xl bg-background/70 px-3.5 py-3 ring-1 ring-border/70">
+          <div
+            key={it.label}
+            className="rounded-xl bg-background/70 px-3.5 py-3 ring-1 ring-border/70"
+          >
             <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               <span aria-hidden="true">{it.icon}</span>
               {it.label}
             </dt>
-            <dd className="mt-1 truncate text-sm font-bold text-foreground" title={it.value}>
+            <dd
+              className="mt-1 truncate text-sm font-bold text-foreground"
+              title={it.value}
+            >
               {it.value}
             </dd>
           </div>

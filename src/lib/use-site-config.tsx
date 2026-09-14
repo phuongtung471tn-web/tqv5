@@ -1,7 +1,21 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
 import { DEFAULT_CONFIG, type SiteConfig } from "@/config/site-config";
-import { exportConfigFile, loadCloudConfig, loadConfig, resetConfig, saveConfig } from "@/services/dataAdapter";
+import {
+  exportConfigFile,
+  loadCloudConfig,
+  loadConfig,
+  resetConfig,
+  saveConfig,
+} from "@/services/dataAdapter";
 
 interface SiteConfigContextValue {
   config: SiteConfig;
@@ -55,7 +69,10 @@ export function SiteConfigProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetLanding = useCallback(() => {
-    setConfig((current) => ({ ...current, landing: structuredClone(DEFAULT_CONFIG.landing) }));
+    setConfig((current) => ({
+      ...current,
+      landing: structuredClone(DEFAULT_CONFIG.landing),
+    }));
     setDirty(true);
   }, []);
 
@@ -71,11 +88,16 @@ export function SiteConfigProvider({ children }: { children: ReactNode }) {
     [config, update, save, reset, resetLanding, exportFile, dirty],
   );
 
-  return <SiteConfigContext.Provider value={value}>{children}</SiteConfigContext.Provider>;
+  return (
+    <SiteConfigContext.Provider value={value}>
+      {children}
+    </SiteConfigContext.Provider>
+  );
 }
 
 export function useSiteConfig(): SiteConfigContextValue {
   const ctx = useContext(SiteConfigContext);
-  if (!ctx) throw new Error("useSiteConfig must be used within SiteConfigProvider");
+  if (!ctx)
+    throw new Error("useSiteConfig must be used within SiteConfigProvider");
   return ctx;
 }

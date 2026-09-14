@@ -3,7 +3,13 @@ import { useEffect, useRef, useState } from "react";
 export type Slide = { img: string; caption: string };
 
 /** Carousel ảnh thực tế, tự chạy mượt, có nút chuyển và chấm điều hướng. */
-export function PhotoCarousel({ slides, interval = 4000 }: { slides: Slide[]; interval?: number }) {
+export function PhotoCarousel({
+  slides,
+  interval = 4000,
+}: {
+  slides: Slide[];
+  interval?: number;
+}) {
   const [i, setI] = useState(0);
   const paused = useRef(false);
 
