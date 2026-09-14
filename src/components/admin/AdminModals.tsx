@@ -1,0 +1,1505 @@
+import { checkEmailConfig, sendTestEmail } from "@/lib/email.functions";
+import { Download, GraduationCap, Plus, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
+
+import { useAdmin, type AdminModalKey } from "@/lib/use-admin";
+import { DEFAULT_CONFIG } from "@/config/site-config";
+import { useSiteConfig } from "@/lib/use-site-config";
+import {
+  clearLeads,
+  clearAnalytics,
+  ANALYTICS_UPDATED_EVENT,
+  exportLeadsCsv,
+  loadAnalytics,
+  loadLeads,
+  saveLead,
+  testSupabaseConnection,
+  type AnalyticsState,
+  type LeadRecord,
+} from "@/services/dataAdapter";
+import { fireTestEvent, type TestEventLog } from "@/lib/tracking";
+import { testWebhookEndpoint, type WebhookResult } from "@/services/webhooks";
+import { getVariant, resetVariant } from "@/lib/ab";
+import { AdminModal, Field, Stat, TextArea, TextInput, Toggle } from "./adminUi";
+
+export function AdminModals() {
+  const { activeModal, closeModal } = useAdmin();
+  if (!activeModal) return null;
+  const Body = REGISTRY[activeModal];
+  return <Body onClose={closeModal} />;
+}
+
+type ModalProps = { onClose: () => void };
+
+/* ------------------------------- FOMO ------------------------------------ */
+function FomoModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const f = config.fomo;
+  return (
+    <AdminModal title="Thông Báo FOMO" subtitle="Popup 'khách vừa đăng ký' kích thích tâm lý đám đông" onClose={onClose}>
+      <Toggle checked={f.enabled} onChange={(v) => update((d) => (d.fomo.enabled = v))} label="Bật thông báo FOMO" />
+      <Field label="Nguồn dữ liệu" hint="Khuyến nghị dùng lead thật để tránh hiển thị thông tin gây hiểu nhầm.">
+        <div className="flex gap-2">
+          {(["recentLeads", "sample"] as const).map((source) => (
+            <button
+              key={source}
+              type="button"
+              onClick={() => update((d) => (d.fomo.source = source))}
+              className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold ${
+                f.source === source ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"
+              }`}
+            >
+              {source === "recentLeads" ? "Lead thật" : "Mẫu minh họa"}
+            </button>
+          ))}
+        </div>
+      </Field>
+      <Toggle checked={f.respectReducedMotion} onChange={(v) => update((d) => (d.fomo.respectReducedMotion = v))} label="Tắt chuyển động khi người dùng yêu cầu giảm motion" />
+      <Field label="Mẫu nội dung" hint="Dùng {name}, {city}, {mins}">
+        <TextInput value={f.template} onChange={(e) => update((d) => (d.fomo.template = e.target.value))} />
+      </Field>
+      <Field label="Danh sách tên khách (mỗi dòng 1 tên)">
+        <TextArea
+          value={f.names.join("\n")}
+          onChange={(e) => update((d) => (d.fomo.names = e.target.value.split("\n").filter(Boolean)))}
+        />
+      </Field>
+      <Field label="Danh sách tỉnh/thành (mỗi dòng 1 địa danh)">
+        <TextArea
+          value={f.cities.join("\n")}
+          onChange={(e) => update((d) => (d.fomo.cities = e.target.value.split("\n").filter(Boolean)))}
+        />
+      </Field>
+      <div className="grid grid-cols-3 gap-2">
+        <Field label="Trễ tối thiểu (s)">
+          <TextInput
+            type="number"
+            value={f.minDelaySec}
+            onChange={(e) => update((d) => (d.fomo.minDelaySec = +e.target.value))}
+          />
+        </Field>
+        <Field label="Trễ tối đa (s)">
+          <TextInput
+            type="number"
+            value={f.maxDelaySec}
+            onChange={(e) => update((d) => (d.fomo.maxDelaySec = +e.target.value))}
+          />
+        </Field>
+        <Field label="Hiển thị (s)">
+          <TextInput
+            type="number"
+            value={f.displaySec}
+            onChange={(e) => update((d) => (d.fomo.displaySec = +e.target.value))}
+          />
+        </Field>
+      </div>
+      <Field label="Vị trí">
+        <div className="flex gap-2">
+          {(["left", "right"] as const).map((p) => (
+            <button
+              key={p}
+              onClick={() => update((d) => (d.fomo.position = p))}
+              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold ${
+                f.position === p ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"
+              }`}
+            >
+              {p === "left" ? "Góc trái" : "Góc phải"}
+            </button>
+          ))}
+        </div>
+      </Field>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+/* ------------------------------- FORM ------------------------------------ */
+function FormModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const form = config.form;
+  return (
+    <AdminModal title="Form & Webhook" subtitle="Tùy chỉnh nội dung form và kết nối gửi lead" onClose={onClose}>
+      <Field label="Tiêu đề form">
+        <TextInput value={form.headline} onChange={(e) => update((d) => (d.form.headline = e.target.value))} />
+      </Field>
+      <Field label="Chữ trên nút CTA">
+        <TextInput value={form.ctaLabel} onChange={(e) => update((d) => (d.form.ctaLabel = e.target.value))} />
+      </Field>
+      <Field label="Webhook URL (Make/Zapier)" hint="Giữ nguyên URL đang chạy để không đứt kết nối">
+        <TextInput value={form.webhookUrl} onChange={(e) => update((d) => (d.form.webhookUrl = e.target.value))} />
+      </Field>
+      <Field label="Redirect sau khi gửi (tùy chọn)">
+        <TextInput value={form.redirectUrl} onChange={(e) => update((d) => (d.form.redirectUrl = e.target.value))} />
+      </Field>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Giới hạn số lần gửi">
+          <TextInput
+            type="number"
+            value={form.rateLimitCount}
+            onChange={(e) => update((d) => (d.form.rateLimitCount = +e.target.value))}
+          />
+        </Field>
+        <Field label="Trong khoảng (phút)">
+          <TextInput
+            type="number"
+            value={form.rateLimitWindowMin}
+            onChange={(e) => update((d) => (d.form.rateLimitWindowMin = +e.target.value))}
+          />
+        </Field>
+      </div>
+      <p className="mb-2 text-xs font-semibold text-neutral-700">Nhãn & placeholder các trường</p>
+      {form.fields.map((field, i) => (
+        <div key={field.name} className="mb-2 grid grid-cols-2 gap-2 rounded-lg border border-neutral-200 p-2">
+          <TextInput
+            value={field.label}
+            onChange={(e) => update((d) => (d.form.fields[i]!.label = e.target.value))}
+            placeholder="Label"
+          />
+          <TextInput
+            value={field.placeholder}
+            onChange={(e) => update((d) => (d.form.fields[i]!.placeholder = e.target.value))}
+            placeholder="Placeholder"
+          />
+        </div>
+      ))}
+      <p className="mt-1 text-[11px] text-neutral-400">
+        Dropdown 63 tỉnh/thành (phân theo Miền) và danh sách ngành được giữ nguyên trong form.
+      </p>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+/* ------------------------------ THEME ------------------------------------ */
+function ThemeModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const t = config.theme;
+  return (
+    <AdminModal title="Style & Theme" subtitle="Màu sắc & font hiển thị" onClose={onClose}>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Màu chính (primary)">
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={t.primary}
+              onChange={(e) => update((d) => (d.theme.primary = e.target.value))}
+              className="h-9 w-12 rounded border border-neutral-300"
+            />
+            <TextInput value={t.primary} onChange={(e) => update((d) => (d.theme.primary = e.target.value))} />
+          </div>
+        </Field>
+        <Field label="Màu nhấn (gold)">
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={t.gold}
+              onChange={(e) => update((d) => (d.theme.gold = e.target.value))}
+              className="h-9 w-12 rounded border border-neutral-300"
+            />
+            <TextInput value={t.gold} onChange={(e) => update((d) => (d.theme.gold = e.target.value))} />
+          </div>
+        </Field>
+      </div>
+      <Field label="Font tiêu đề">
+        <TextInput value={t.fontHeading} onChange={(e) => update((d) => (d.theme.fontHeading = e.target.value))} />
+      </Field>
+      <Field label="Font nội dung">
+        <TextInput value={t.fontBody} onChange={(e) => update((d) => (d.theme.fontBody = e.target.value))} />
+      </Field>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+/* ---------------------------- COUNTDOWN ---------------------------------- */
+function CountdownModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const c = config.countdown;
+  return (
+    <AdminModal title="Đồng Hồ Đếm Ngược" subtitle="Tạo cảm giác khan hiếm & khẩn cấp" onClose={onClose}>
+      <Toggle checked={c.enabled} onChange={(v) => update((d) => (d.countdown.enabled = v))} label="Bật countdown" />
+      <Field label="Số suất còn lại">
+        <TextInput
+          type="number"
+          value={c.slotsLeft}
+          onChange={(e) => update((d) => (d.countdown.slotsLeft = +e.target.value))}
+        />
+      </Field>
+      <Field label="Dòng chữ mô tả">
+        <TextInput value={c.headline} onChange={(e) => update((d) => (d.countdown.headline = e.target.value))} />
+      </Field>
+      <Field label="Mốc kết thúc">
+        <div className="flex gap-2">
+          {(["endOfMonth", "fixed"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => update((d) => (d.countdown.endMode = m))}
+              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold ${
+                c.endMode === m ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"
+              }`}
+            >
+              {m === "endOfMonth" ? "Cuối tháng" : "Ngày cố định"}
+            </button>
+          ))}
+        </div>
+      </Field>
+      {c.endMode === "fixed" && (
+        <Field label="Ngày kết thúc">
+          <TextInput
+            type="datetime-local"
+            value={c.endDate}
+            onChange={(e) => update((d) => (d.countdown.endDate = e.target.value))}
+          />
+        </Field>
+      )}
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+/* ---------------------------- CONTACT ------------------------------------ */
+function ContactModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const c = config.floatingContact;
+  return (
+    <AdminModal title="Hotline & Zalo" subtitle="Nút liên hệ nổi + thanh CTA mobile" onClose={onClose}>
+      <Toggle checked={c.enabled} onChange={(v) => update((d) => (d.floatingContact.enabled = v))} label="Bật nút liên hệ nổi" />
+      <Field label="Số hotline">
+        <TextInput value={c.hotline} onChange={(e) => update((d) => (d.floatingContact.hotline = e.target.value))} />
+      </Field>
+      <Field label="Link Zalo">
+        <TextInput value={c.zalo} onChange={(e) => update((d) => (d.floatingContact.zalo = e.target.value))} />
+      </Field>
+      <Field label="Link Messenger (tùy chọn)">
+        <TextInput value={c.messenger} onChange={(e) => update((d) => (d.floatingContact.messenger = e.target.value))} />
+      </Field>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+/* ----------------------------- TRACKING / PIXEL --------------------------- */
+function PixelModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const t = config.tracking;
+  const [logs, setLogs] = useState<TestEventLog[] | null>(null);
+  return (
+    <AdminModal title="Pixel & Sự Kiện Ads" subtitle="Facebook, TikTok, GA4, GTM" onClose={onClose}>
+      <Field label="Facebook Pixel ID">
+        <TextInput value={t.facebookPixelId} onChange={(e) => update((d) => (d.tracking.facebookPixelId = e.target.value))} />
+      </Field>
+      <Field label="TikTok Pixel ID">
+        <TextInput value={t.tiktokPixelId} onChange={(e) => update((d) => (d.tracking.tiktokPixelId = e.target.value))} />
+      </Field>
+      <Field label="GA4 Measurement ID">
+        <TextInput value={t.ga4Id} onChange={(e) => update((d) => (d.tracking.ga4Id = e.target.value))} />
+      </Field>
+      <Field label="Google Tag Manager ID">
+        <TextInput value={t.gtmId} onChange={(e) => update((d) => (d.tracking.gtmId = e.target.value))} />
+      </Field>
+      <p className="mb-2 text-xs font-semibold text-neutral-700">Bật/tắt sự kiện chuyển đổi</p>
+      <Toggle checked={t.events.pageView} onChange={(v) => update((d) => (d.tracking.events.pageView = v))} label="PageView" />
+      <Toggle checked={t.events.formStart} onChange={(v) => update((d) => (d.tracking.events.formStart = v))} label="Form Start" />
+      <Toggle checked={t.events.lead} onChange={(v) => update((d) => (d.tracking.events.lead = v))} label="Lead" />
+      <Toggle
+        checked={t.events.completeRegistration}
+        onChange={(v) => update((d) => (d.tracking.events.completeRegistration = v))}
+        label="CompleteRegistration"
+      />
+      <div className="mt-4 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
+        <button
+          onClick={() => setLogs(fireTestEvent())}
+          className="w-full rounded-lg bg-neutral-900 py-2.5 text-sm font-bold text-white dark:bg-white dark:text-neutral-900"
+        >
+          Kiểm tra / Bắn sự kiện thử
+        </button>
+        <p className="mt-2 text-[11px] text-neutral-400">
+          Lưu cấu hình và tải lại trang trước khi kiểm tra để mã pixel được chèn.
+        </p>
+        {logs && (
+          <ul className="mt-3 space-y-1.5">
+            {logs.map((l) => (
+              <li key={l.channel} className="flex items-start gap-2 text-[11px]">
+                <span className={l.ok ? "text-emerald-500" : "text-red-500"}>{l.ok ? "●" : "○"}</span>
+                <span>
+                  <strong>{l.channel}</strong> — {l.detail}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+/* ------------------------- WEBMASTER / SCRIPTS ---------------------------- */
+function WebmasterModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const t = config.tracking;
+  return (
+    <AdminModal title="Webmaster & Custom Scripts" subtitle="Xác minh Google + chèn mã tùy chỉnh" onClose={onClose}>
+      <Field label="Google Search Console verification">
+        <TextInput
+          value={t.googleVerification}
+          onChange={(e) => update((d) => (d.tracking.googleVerification = e.target.value))}
+        />
+      </Field>
+      <Field label="Custom Script — Head">
+        <TextArea value={t.customHead} onChange={(e) => update((d) => (d.tracking.customHead = e.target.value))} />
+      </Field>
+      <Field label="Custom Script — Body">
+        <TextArea value={t.customBody} onChange={(e) => update((d) => (d.tracking.customBody = e.target.value))} />
+      </Field>
+      <Field label="Custom Script — Footer">
+        <TextArea value={t.customFooter} onChange={(e) => update((d) => (d.tracking.customFooter = e.target.value))} />
+      </Field>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+/* -------------------------------- SEO ------------------------------------ */
+function SeoModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const s = config.seo;
+  return (
+    <AdminModal title="SEO Google" subtitle="Meta tags & schema" onClose={onClose}>
+      <Field label="Meta Title">
+        <TextInput value={s.title} onChange={(e) => update((d) => (d.seo.title = e.target.value))} />
+      </Field>
+      <Field label="Meta Description">
+        <TextArea value={s.description} onChange={(e) => update((d) => (d.seo.description = e.target.value))} />
+      </Field>
+      <Field label="Keywords">
+        <TextInput value={s.keywords} onChange={(e) => update((d) => (d.seo.keywords = e.target.value))} />
+      </Field>
+      <Field label="OG Image URL">
+        <TextInput value={s.ogImage} onChange={(e) => update((d) => (d.seo.ogImage = e.target.value))} />
+      </Field>
+      <Field label="Schema Type">
+        <TextInput value={s.schemaType} onChange={(e) => update((d) => (d.seo.schemaType = e.target.value))} />
+      </Field>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+/* ------------------------------- AI --------------------------------------- */
+function AiModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const a = config.aiAdvisor;
+  return (
+    <AdminModal title="AI Sales Advisor" subtitle="Ma trận chấm điểm & phân hạng lead" onClose={onClose}>
+      <Toggle checked={a.enabled} onChange={(v) => update((d) => (d.aiAdvisor.enabled = v))} label="Bật gợi ý AI Sales" />
+      <Field label="Regex nhận diện thiết bị VIP">
+        <TextInput value={a.vipDeviceRegex} onChange={(e) => update((d) => (d.aiAdvisor.vipDeviceRegex = e.target.value))} />
+      </Field>
+      <Field label="Tỉnh trọng điểm (phân tách bằng |)">
+        <TextInput value={a.keyRegions} onChange={(e) => update((d) => (d.aiAdvisor.keyRegions = e.target.value))} />
+      </Field>
+      <div className="grid grid-cols-3 gap-2">
+        <Field label="Điền nhanh (<s) = bot">
+          <TextInput
+            type="number"
+            value={a.fastFillThresholdSec}
+            onChange={(e) => update((d) => (d.aiAdvisor.fastFillThresholdSec = +e.target.value))}
+          />
+        </Field>
+        <Field label="VIP: xem web (s)">
+          <TextInput
+            type="number"
+            value={a.vipTimeOnPageSec}
+            onChange={(e) => update((d) => (d.aiAdvisor.vipTimeOnPageSec = +e.target.value))}
+          />
+        </Field>
+        <Field label="VIP: cuộn (%)">
+          <TextInput
+            type="number"
+            value={a.vipScrollPercent}
+            onChange={(e) => update((d) => (d.aiAdvisor.vipScrollPercent = +e.target.value))}
+          />
+        </Field>
+      </div>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+/* ------------------------------ EMAIL ------------------------------------- */
+function EmailModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const e = config.emailAutomation;
+  const [testState, setTestState] = useState<"idle" | "testing" | "ok" | "error">("idle");
+  const [testMessage, setTestMessage] = useState("");
+  const [testTo, setTestTo] = useState("");
+  const validFrom = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.fromEmail);
+  return (
+    <AdminModal title="Tự Động Hóa Email" subtitle="Gửi email cảm ơn ngay khi có lead" onClose={onClose}>
+      <Toggle checked={e.enabled} onChange={(v) => update((d) => (d.emailAutomation.enabled = v))} label="Bật auto email" />
+      <Field label="Nhà cung cấp">
+        <div className="flex gap-2">
+          {(["resend", "gmail"] as const).map((p) => (
+            <button
+              key={p}
+              onClick={() => update((d) => (d.emailAutomation.provider = p))}
+              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold uppercase ${
+                e.provider === p ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"
+              }`}
+            >
+              {p === "gmail" ? "Gmail OAuth2" : "Resend"}
+            </button>
+          ))}
+        </div>
+      </Field>
+      <Field label="Email gửi đi (From)">
+        <TextInput value={e.fromEmail} onChange={(ev) => update((d) => (d.emailAutomation.fromEmail = ev.target.value))} />
+      </Field>
+      <p className={`mb-3 text-xs ${validFrom ? "text-emerald-600" : "text-amber-600"}`}>
+        {validFrom ? "Địa chỉ From hợp lệ." : "Cần nhập email From hợp lệ."}
+      </p>
+      <Field label="Email nhận test" hint="Chỉ dùng để gửi email kiểm tra, không lưu secret.">
+        <TextInput type="email" value={testTo} onChange={(event) => setTestTo(event.target.value)} placeholder="ban@example.com" />
+      </Field>
+      <Field label="Tiêu đề" hint="Dùng {name} {phone} {city} {ai_score}">
+        <TextInput value={e.subject} onChange={(ev) => update((d) => (d.emailAutomation.subject = ev.target.value))} />
+      </Field>
+      <Field label="Nội dung">
+        <TextArea value={e.body} onChange={(ev) => update((d) => (d.emailAutomation.body = ev.target.value))} />
+      </Field>
+      <div className="mb-3 rounded-lg bg-sky-50 px-3 py-2 text-[11px] leading-relaxed text-sky-800">
+        <strong>Resend:</strong> tạo API key tại resend.com/api-keys, xác thực domain rồi đặt <code>RESEND_API_KEY</code> trên server.<br />
+        <strong>Gmail:</strong> tạo OAuth Client trong Google Cloud, bật Gmail API và lấy refresh token; đặt <code>GMAIL_CLIENT_ID</code>, <code>GMAIL_CLIENT_SECRET</code>, <code>GMAIL_REFRESH_TOKEN</code> trên server. Runtime Cloudflare dùng Gmail API OAuth2, không dùng SMTP TCP trực tiếp.
+      </div>
+      <button
+        type="button"
+        disabled={!validFrom || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testTo) || testState === "testing"}
+        onClick={() => {
+          setTestState("testing");
+          void checkEmailConfig()
+            .then((result) => {
+              const configured = e.provider === "gmail" ? result.gmailConfigured : result.resendConfigured;
+              if (!configured) throw new Error(e.provider === "gmail" ? "Thiếu GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET hoặc GMAIL_REFRESH_TOKEN." : "Thiếu RESEND_API_KEY.");
+              return sendTestEmail({ data: { provider: e.provider, to: testTo, from: e.fromEmail, subject: "Email test từ Funnel Builder", text: "Đây là email kiểm tra cấu hình tự động hóa email." } });
+            })
+            .then((result) => {
+              setTestState(result.sent ? "ok" : "error");
+              setTestMessage(result.sent ? "Đã gửi email test thành công." : `Gửi email test thất bại: ${result.reason}`);
+            })
+            .catch((error: unknown) => {
+              setTestState("error");
+              setTestMessage(error instanceof Error ? error.message : "Không gọi được email server.");
+            });
+        }}
+        className="w-full rounded-lg border border-neutral-300 py-2.5 text-xs font-bold disabled:opacity-40"
+      >
+        {testState === "testing" ? "Đang kiểm tra..." : "Kiểm tra cấu hình email"}
+      </button>
+      {testState !== "idle" && testState !== "testing" && <p className={`mt-2 text-xs font-semibold ${testState === "ok" ? "text-emerald-600" : "text-red-600"}`}>{testMessage}</p>}
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+/* ------------------------------ WEBHOOK HUB ------------------------------- */
+function WebhookModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const list = config.webhooks;
+  const [testingId, setTestingId] = useState<string | null>(null);
+  const [results, setResults] = useState<Record<string, WebhookResult>>({});
+  return (
+    <AdminModal title="Cổng Webhook & Đa Kênh" subtitle="Gửi lead tới nhiều nơi cùng lúc" onClose={onClose}>
+      {list.length === 0 && <p className="mb-3 text-xs text-neutral-400">Chưa có endpoint nào. Thêm mới bên dưới.</p>}
+      {list.map((w, i) => (
+        <div key={w.id} className="mb-2 rounded-lg border border-neutral-200 p-2">
+          <div className="mb-2 flex items-center gap-2">
+            <TextInput
+              value={w.label}
+              placeholder="Tên"
+              onChange={(e) => update((d) => (d.webhooks[i]!.label = e.target.value))}
+            />
+            <select
+              value={w.type}
+              onChange={(e) => update((d) => (d.webhooks[i]!.type = e.target.value as typeof w.type))}
+              className="rounded-lg border border-neutral-300 px-2 py-2 text-sm"
+            >
+              <option value="make">Make/Zapier</option>
+              <option value="telegram">Telegram</option>
+              <option value="sheets">Google Sheets</option>
+              <option value="supabase">Supabase</option>
+              <option value="custom">Custom</option>
+            </select>
+            <button
+              onClick={() => update((d) => d.webhooks.splice(i, 1))}
+              className="rounded-md p-2 text-red-500 hover:bg-red-50"
+              aria-label="Xóa"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+          <TextInput
+            value={w.url}
+            placeholder="https://..."
+            onChange={(e) => update((d) => (d.webhooks[i]!.url = e.target.value))}
+          />
+          <div className="mt-2">
+            <Toggle checked={w.enabled} onChange={(v) => update((d) => (d.webhooks[i]!.enabled = v))} label="Kích hoạt" />
+          </div>
+          <button
+            type="button"
+            disabled={!w.url.trim() || testingId === w.id}
+            onClick={() => {
+              setTestingId(w.id);
+              void testWebhookEndpoint(w, config)
+                .then((result) => setResults((current) => ({ ...current, [w.id]: result })))
+                .finally(() => setTestingId(null));
+            }}
+            className="mt-2 w-full rounded-lg border border-neutral-300 py-2 text-xs font-bold disabled:opacity-40"
+          >
+            {testingId === w.id ? "Đang gửi test..." : "Gửi test endpoint"}
+          </button>
+          {results[w.id] && (
+            <p className={`mt-1 text-[11px] font-semibold ${results[w.id]!.ok ? "text-emerald-600" : "text-red-600"}`}>
+              {results[w.id]!.ok ? `OK sau ${results[w.id]!.attempts} lần thử` : `Lỗi: ${results[w.id]!.detail}`}
+            </p>
+          )}
+        </div>
+      ))}
+      <button
+        onClick={() =>
+          update((d) =>
+            d.webhooks.push({
+              id: `wh_${Date.now()}`,
+              label: "Endpoint mới",
+              url: "",
+              enabled: true,
+              type: "make",
+            }),
+          )
+        }
+        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-neutral-300 py-2.5 text-sm font-semibold text-neutral-600"
+      >
+        <Plus className="h-4 w-4" /> Thêm Webhook
+      </button>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+/* ------------------------------ ANALYTICS --------------------------------- */
+function AnalyticsModal({ onClose }: ModalProps) {
+  const [a, setA] = useState<AnalyticsState | null>(null);
+  useEffect(() => {
+    const refresh = () => setA(loadAnalytics());
+    refresh();
+    window.addEventListener(ANALYTICS_UPDATED_EVENT, refresh);
+    return () => window.removeEventListener(ANALYTICS_UPDATED_EVENT, refresh);
+  }, []);
+  const cr = a && a.visits > 0 ? ((a.leads / a.visits) * 100).toFixed(1) : "0.0";
+  return (
+    <AdminModal title="Thống Kê & Analytics" subtitle="Số liệu thời gian thực (local)" onClose={onClose}>
+      <div className="mb-3 flex justify-end">
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm("Xóa toàn bộ số liệu Analytics trên thiết bị này?")) clearAnalytics();
+          }}
+          className="rounded-lg border border-red-200 px-3 py-1.5 text-[11px] font-bold text-red-600"
+        >
+          Xóa số liệu test
+        </button>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <Stat label="Lượt truy cập" value={a?.visits ?? 0} />
+        <Stat label="Lượt đăng ký" value={a?.leads ?? 0} tone="text-emerald-600" />
+        <Stat label="Tỷ lệ CR" value={`${cr}%`} tone="text-red-600" />
+      </div>
+      <p className="mb-2 mt-4 text-xs font-semibold text-neutral-700">Nguồn traffic (UTM)</p>
+      <div className="space-y-1">
+        {a && Object.keys(a.bySourceStats).length > 0 ? (
+          Object.entries(a.bySourceStats).map(([s, stats]) => (
+            <div key={s} className="flex justify-between rounded-lg bg-neutral-100 px-3 py-1.5 text-xs dark:bg-white/5">
+              <span className="font-medium">{s}</span>
+              <span className="tabular-nums">{stats.visits} visits · {stats.leads} leads · {stats.visits ? ((stats.leads / stats.visits) * 100).toFixed(1) : "0.0"}% CR</span>
+            </div>
+          ))
+        ) : (
+          <p className="text-xs text-neutral-400">Chưa có dữ liệu.</p>
+        )}
+      </div>
+      <p className="mb-2 mt-4 text-xs font-semibold text-neutral-700">So sánh A/B</p>
+      {a && Object.keys(a.byVariant).length > 0 ? (
+        <div className="grid grid-cols-2 gap-2">
+          {Object.entries(a.byVariant).map(([v, s]) => (
+            <div key={v} className="rounded-lg border border-neutral-200 p-2 text-xs dark:border-white/10">
+              <div className="font-bold">{v}</div>
+              <div>Visits: {s.visits}</div>
+              <div>Leads: {s.leads}</div>
+              <div>CR: {s.visits ? ((s.leads / s.visits) * 100).toFixed(1) : "0"}%</div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs text-neutral-400">A/B chưa có dữ liệu. Hãy bật A/B Testing, lưu cấu hình, mở landing ở tab mới rồi tải lại Analytics.</p>
+      )}
+    </AdminModal>
+  );
+}
+
+/* ------------------------------- LEADS ------------------------------------ */
+function LeadsModal({ onClose }: ModalProps) {
+  const { config } = useSiteConfig();
+  const [leads, setLeads] = useState<LeadRecord[]>([]);
+  const [q, setQ] = useState("");
+
+  useEffect(() => setLeads(loadLeads()), []);
+
+  const cloud = config.admin.storageMode === "database" && !!config.admin.supabaseUrl;
+  const key = q.trim().toLowerCase();
+  const filtered = key
+    ? leads.filter((l) =>
+        [l.name, l.phone, l.city, l.major, l.utmSource].some((v) => (v || "").toLowerCase().includes(key)),
+      )
+    : leads;
+
+  const addTestLead = async () => {
+    const n = leads.length + 1;
+    await saveLead(
+      {
+        id: `ld_test_${Date.now()}`,
+        at: new Date().toISOString(),
+        name: `Lead thử nghiệm ${n}`,
+        phone: `09${String(Date.now()).slice(-8)}`,
+        city: "Hà Nội",
+        major: "Công nghệ ô tô điện",
+        aiScore: 72,
+        aiRank: "WARM",
+        utmSource: "test",
+      },
+      config,
+    );
+    setLeads(loadLeads());
+  };
+
+  return (
+    <AdminModal title="Quản Lý Lead (Mini-CRM)" subtitle={`${leads.length} lead đã ghi nhận`} onClose={onClose}>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span
+          className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
+            cloud ? "bg-sky-100 text-sky-700" : "bg-neutral-200 text-neutral-700"
+          }`}
+        >
+          {cloud ? "Supabase Cloud" : "LocalStorage"}
+        </span>
+        <button
+          onClick={() => exportLeadsCsv(filtered)}
+          disabled={filtered.length === 0}
+          className="flex items-center gap-1.5 rounded-lg bg-neutral-900 px-3 py-2 text-xs font-bold text-white disabled:opacity-40"
+        >
+          <Download className="h-3.5 w-3.5" /> Xuất CSV/Excel
+        </button>
+        <button
+          onClick={addTestLead}
+          className="rounded-lg border border-neutral-300 px-3 py-2 text-xs font-bold text-neutral-700"
+        >
+          + Lead thử
+        </button>
+        <button
+          onClick={() => {
+            if (window.confirm("Xoá toàn bộ lead đã lưu trên máy này?")) {
+              clearLeads();
+              setLeads([]);
+            }
+          }}
+          disabled={leads.length === 0}
+          className="ml-auto rounded-lg bg-red-50 px-3 py-2 text-xs font-bold text-red-600 disabled:opacity-40"
+        >
+          Xoá tất cả
+        </button>
+      </div>
+
+      <TextInput value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm theo tên, SĐT, tỉnh, ngành..." />
+
+      {filtered.length === 0 ? (
+        <p className="mt-4 text-xs text-neutral-400">
+          {leads.length === 0
+            ? "Chưa có lead nào. Lead sẽ xuất hiện tại đây sau khi khách gửi form."
+            : "Không tìm thấy lead phù hợp."}
+        </p>
+      ) : (
+        <div className="mt-3 overflow-x-auto rounded-xl border border-neutral-200 dark:border-white/10">
+          <table className="w-full min-w-[560px] text-left text-xs">
+            <thead className="bg-neutral-100 text-[10px] uppercase tracking-wide text-neutral-500 dark:bg-white/5">
+              <tr>
+                <th className="px-3 py-2">Họ tên</th>
+                <th className="px-3 py-2">Điện thoại</th>
+                <th className="px-3 py-2">Tỉnh/Thành</th>
+                <th className="px-3 py-2">Ngành</th>
+                <th className="px-3 py-2">Thời gian</th>
+                <th className="px-3 py-2">Nguồn</th>
+                <th className="px-3 py-2">Lưu tại</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((l) => (
+                <tr key={l.id} className="border-t border-neutral-200 dark:border-white/10">
+                  <td className="px-3 py-2 font-semibold">
+                    {l.name}
+                    {l.aiRank && (
+                      <span className="ml-1.5 rounded bg-amber-100 px-1.5 text-[10px] font-bold text-amber-700">
+                        {l.aiRank}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2 tabular-nums">{l.phone}</td>
+                  <td className="px-3 py-2">{l.city || "—"}</td>
+                  <td className="px-3 py-2">{l.major || "—"}</td>
+                  <td className="px-3 py-2 text-neutral-500">{new Date(l.at).toLocaleString("vi-VN")}</td>
+                  <td className="px-3 py-2 text-neutral-500">{l.utmSource || "direct"}</td>
+                  <td className="px-3 py-2">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        l.storage === "database" ? "bg-sky-100 text-sky-700" : "bg-neutral-200 text-neutral-700"
+                      }`}
+                    >
+                      {l.storage === "database" ? "Cloud" : "Local"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </AdminModal>
+  );
+}
+
+/* ------------------------------ STORAGE ----------------------------------- */
+function StorageModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const a = config.admin;
+  const [testing, setTesting] = useState<null | boolean>(null);
+  return (
+    <AdminModal title="Storage Mode" subtitle="Local (mặc định) hoặc Supabase Cloud" onClose={onClose}>
+      <Field label="Chế độ lưu trữ">
+        <div className="flex gap-2">
+          {(["local", "database"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => update((d) => (d.admin.storageMode = m))}
+              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold ${
+                a.storageMode === m ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"
+              }`}
+            >
+              {m === "local" ? "Local (localStorage)" : "Database (Supabase)"}
+            </button>
+          ))}
+        </div>
+      </Field>
+      {a.storageMode === "database" && (
+        <>
+          <Field label="Supabase URL">
+            <TextInput value={a.supabaseUrl} onChange={(e) => update((d) => (d.admin.supabaseUrl = e.target.value))} />
+          </Field>
+          <Field label="Supabase Anon Key">
+            <TextInput value={a.supabaseAnonKey} onChange={(e) => update((d) => (d.admin.supabaseAnonKey = e.target.value))} />
+          </Field>
+          <button
+            onClick={async () => {
+              setTesting(null);
+              setTesting(await testSupabaseConnection(a.supabaseUrl, a.supabaseAnonKey));
+            }}
+            className="mb-3 rounded-lg bg-neutral-900 px-3 py-2 text-xs font-bold text-white"
+          >
+            Kiểm tra kết nối
+          </button>
+          {testing !== null && (
+            <p className={`text-xs font-semibold ${testing ? "text-emerald-600" : "text-red-600"}`}>
+              {testing ? "Kết nối thành công." : "Không kết nối được. Kiểm tra lại URL/Key."}
+            </p>
+          )}
+        </>
+      )}
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+/* --------------------------- ADMIN LINK ----------------------------------- */
+function AdminLinkModal({ onClose }: ModalProps) {
+  const { config, update, save } = useSiteConfig();
+  const a = config.admin;
+  const [confirm, setConfirm] = useState(a.password);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const path = a.adminPath.trim().replace(/^\/+|\/+$/g, "");
+
+  function handleSave() {
+    if (!/^[a-z0-9-]{3,40}$/i.test(path)) {
+      setMsg({ ok: false, text: "Đường dẫn chỉ gồm chữ, số và dấu gạch ngang (3-40 ký tự)." });
+      return;
+    }
+    if (a.password.length < 4) {
+      setMsg({ ok: false, text: "Mật khẩu cần tối thiểu 4 ký tự." });
+      return;
+    }
+    if (a.password !== confirm) {
+      setMsg({ ok: false, text: "Hai ô mật khẩu chưa khớp nhau." });
+      return;
+    }
+    update((d) => (d.admin.adminPath = path));
+    save();
+    setMsg({ ok: true, text: `Đã lưu. Đăng nhập tại /${path} với mật khẩu mới.` });
+  }
+
+  return (
+    <AdminModal title="Đổi Link & Mật Khẩu Admin" subtitle="Bảo mật trang quản trị" onClose={onClose}>
+      <Field label="Đường dẫn admin" hint={`Truy cập tại /${path || "..."}`}>
+        <TextInput
+          value={a.adminPath}
+          onChange={(e) => {
+            setMsg(null);
+            update((d) => (d.admin.adminPath = e.target.value));
+          }}
+        />
+      </Field>
+      <Field label="Mật khẩu quản trị">
+        <TextInput
+          type="text"
+          value={a.password}
+          onChange={(e) => {
+            setMsg(null);
+            update((d) => (d.admin.password = e.target.value));
+          }}
+        />
+      </Field>
+      <Field label="Nhập lại mật khẩu">
+        <TextInput
+          type="text"
+          value={confirm}
+          onChange={(e) => {
+            setMsg(null);
+            setConfirm(e.target.value);
+          }}
+        />
+      </Field>
+
+      <div className="flex gap-2">
+        <button
+          onClick={handleSave}
+          className="flex-1 rounded-lg bg-emerald-500 py-2.5 text-sm font-bold text-white"
+        >
+          LƯU & ÁP DỤNG
+        </button>
+        <button
+          onClick={() => window.open(`/${path}`, "_blank", "noopener")}
+          className="flex-1 rounded-lg border border-neutral-300 py-2.5 text-sm font-bold dark:border-white/20"
+        >
+          Kiểm tra link
+        </button>
+      </div>
+
+      {msg && (
+        <p className={`mt-3 text-xs font-semibold ${msg.ok ? "text-emerald-600" : "text-red-500"}`}>
+          {msg.text}
+        </p>
+      )}
+
+      <p className="mt-3 text-[11px] text-neutral-400">
+        Lưu ý: đây là mật khẩu phía client cho tiện chỉnh sửa nhanh. Với dữ liệu nhạy cảm hãy dùng Supabase Row Level
+        Security.
+      </p>
+    </AdminModal>
+  );
+}
+
+/* ------------------------------ A/B TEST ---------------------------------- */
+function AbTestModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const ab = config.abTest;
+  const currentVariant = getVariant(ab.enabled, ab.split);
+  return (
+    <AdminModal title="A/B Split Testing" subtitle="Phân phối traffic giữa 2 biến thể" onClose={onClose}>
+      <Toggle checked={ab.enabled} onChange={(v) => update((d) => (d.abTest.enabled = v))} label="Bật A/B testing" />
+      <Field label={`% traffic vào Variant B: ${ab.split}%`}>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={ab.split}
+          onChange={(e) => update((d) => (d.abTest.split = +e.target.value))}
+          className="w-full"
+        />
+      </Field>
+      <div className="mb-3 rounded-lg bg-neutral-100 px-3 py-2 text-xs dark:bg-white/5">
+        Thiết bị này đang ở <strong>Variant {ab.enabled ? currentVariant : "A (A/B đang tắt)"}</strong>.
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="Nhãn Variant A">
+          <TextInput value={ab.variantALabel} onChange={(e) => update((d) => (d.abTest.variantALabel = e.target.value))} />
+        </Field>
+        <Field label="Nhãn Variant B">
+          <TextInput value={ab.variantBLabel} onChange={(e) => update((d) => (d.abTest.variantBLabel = e.target.value))} />
+        </Field>
+      </div>
+      <Field label="Headline Variant A" hint="Để trống để dùng headline gốc">
+        <TextInput value={ab.variantAHeadline} onChange={(e) => update((d) => (d.abTest.variantAHeadline = e.target.value))} />
+      </Field>
+      <Field label="Headline Variant B" hint="Để trống để dùng headline gốc">
+        <TextInput value={ab.variantBHeadline} onChange={(e) => update((d) => (d.abTest.variantBHeadline = e.target.value))} />
+      </Field>
+      <div className="grid grid-cols-2 gap-2">
+        <Field label="CTA Variant A">
+          <TextInput value={ab.variantACta} onChange={(e) => update((d) => (d.abTest.variantACta = e.target.value))} />
+        </Field>
+        <Field label="CTA Variant B">
+          <TextInput value={ab.variantBCta} onChange={(e) => update((d) => (d.abTest.variantBCta = e.target.value))} />
+        </Field>
+      </div>
+      <button
+        type="button"
+        onClick={() => {
+          resetVariant(ab.split);
+          window.sessionStorage.removeItem(`funnel_visit_counted_v2_ab_${ab.split}`);
+          window.alert("Đã reset phân bổ A/B trên thiết bị này. Mở lại landing để được chia lại nhóm.");
+        }}
+        className="mt-2 w-full rounded-lg border border-amber-300 px-3 py-2 text-xs font-bold text-amber-700"
+      >
+        Reset phân bổ A/B trên thiết bị này
+      </button>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+/* ------------------------------- CRON ------------------------------------- */
+function CronModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const a = config.admin;
+  return (
+    <AdminModal title="Cloud Cron & Backup" subtitle="Gửi backup .json định kỳ qua email" onClose={onClose}>
+      <Field label="Email nhận backup">
+        <TextInput value={a.backupEmail} onChange={(e) => update((d) => (d.admin.backupEmail = e.target.value))} />
+      </Field>
+      <Field label="Lịch chạy">
+        <div className="flex gap-2">
+          {(["off", "daily", "weekly"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => update((d) => (d.admin.cronSchedule = s))}
+              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold ${
+                a.cronSchedule === s ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300"
+              }`}
+            >
+              {s === "off" ? "Tắt" : s === "daily" ? "Hàng ngày" : "Hàng tuần"}
+            </button>
+          ))}
+        </div>
+      </Field>
+      <p className="text-[11px] text-neutral-400">
+        Cron chạy phía Supabase Edge Function / cron-job.org khi ở Database Mode. Ở Local Mode, mỗi lần LƯU sẽ tạo snapshot
+        backup tự động (giữ 10 bản gần nhất).
+      </p>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+/* --------------------------- INFO PANELS ---------------------------------- */
+function InfoModal({
+  onClose,
+  title,
+  subtitle,
+  points,
+}: ModalProps & { title: string; subtitle: string; points: string[] }) {
+  return (
+    <AdminModal title={title} subtitle={subtitle} onClose={onClose}>
+      <ul className="space-y-2">
+        {points.map((p) => (
+          <li key={p} className="flex gap-2 rounded-lg bg-neutral-100 px-3 py-2 text-xs text-neutral-700 dark:bg-white/5 dark:text-neutral-200">
+            <span className="text-emerald-500">✓</span>
+            {p}
+          </li>
+        ))}
+      </ul>
+    </AdminModal>
+  );
+}
+
+function LandingEditorModal({ onClose }: ModalProps) {
+  const { config, update, save, resetLanding } = useSiteConfig();
+  const content = config.landing;
+  const importRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const [logoError, setLogoError] = useState("");
+  const [templateType, setTemplateType] = useState("promo");
+  const updateLines = (key: "heroTrustItems" | "pains" | "galleryCaptions", value: string) =>
+    update((draft) => {
+      draft.landing[key] = value.split("\n").map((line) => line.trim()).filter(Boolean);
+    });
+  const updateJson = <K extends "stats" | "benefits" | "testimonials" | "steps" | "galleryImageUrls" | "expertImageUrls" | "majorDescriptions" | "faqs" | "majorNames" | "majorIcons" | "experts">(
+    key: K,
+    value: string,
+  ) => {
+    try {
+      const parsed = JSON.parse(value) as typeof content[K];
+      update((draft) => {
+        draft.landing[key] = parsed;
+      });
+    } catch {
+      // Keep the textarea editable until the JSON is valid.
+    }
+  };
+  function exportLanding() {
+    const blob = new Blob([JSON.stringify(content, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "landing-page-config.json";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+  function importLanding(file: File) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const imported = JSON.parse(String(reader.result)) as Partial<typeof content>;
+        const hasString = (value: unknown): value is string => typeof value === "string";
+        const hasStringArray = (value: unknown): value is string[] =>
+          Array.isArray(value) && value.every(hasString);
+        const hasObjectArray = (value: unknown): value is object[] =>
+          Array.isArray(value) && value.every((item) => item !== null && typeof item === "object");
+        if (
+          !imported ||
+          typeof imported !== "object" ||
+          !hasString(imported.brandName) ||
+          !hasString(imported.heroTitle) ||
+          !hasStringArray(imported.heroTrustItems) ||
+          !hasObjectArray(imported.sectionsArray) ||
+          !hasObjectArray(imported.stats) ||
+          !hasObjectArray(imported.benefits) ||
+          !hasObjectArray(imported.faqs)
+        ) {
+          throw new Error("invalid landing config");
+        }
+        update((draft) => {
+          draft.landing = { ...structuredClone(draft.landing), ...imported } as typeof draft.landing;
+        });
+      } catch {
+        window.alert("File landing config không hợp lệ.");
+      }
+    };
+    reader.readAsText(file);
+  }
+  function uploadLogo(file: File) {
+    setLogoError("");
+    if (!/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type)) {
+      setLogoError("Logo cần là PNG, JPG, WebP hoặc SVG.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setLogoError("Logo không được vượt quá 2MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== "string") return;
+      update((draft) => {
+        draft.landing.logoUrl = reader.result as string;
+        draft.landing.showLogo = true;
+      });
+    };
+    reader.onerror = () => setLogoError("Không thể đọc file logo.");
+    reader.readAsDataURL(file);
+  }
+  function updateSections(nextSections: typeof content.sectionsArray) {
+    update((draft) => {
+      draft.landing.sectionsArray = nextSections.map((section, order) => ({ ...section, order }));
+    });
+  }
+  function moveSection(index: number, direction: -1 | 1) {
+    const next = [...content.sectionsArray];
+    const target = index + direction;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target]!, next[index]!];
+    updateSections(next);
+  }
+  function duplicateSection(index: number) {
+    const source = content.sectionsArray[index];
+    if (!source) return;
+    const copy = {
+      id: `custom-${crypto.randomUUID?.() || Date.now()}`,
+      type: "custom",
+      label: `${source.label} (bản sao)`,
+      enabled: true,
+      order: index + 1,
+      content: {
+        heading: source.label,
+        body: `Nội dung bản sao của section ${source.label}. Chỉnh sửa nội dung tại đây.`,
+        imageUrl: "",
+        buttonLabel: "",
+        buttonHref: "#dang-ky",
+        backgroundColor: "",
+        textColor: "",
+        accentColor: "",
+      },
+    };
+    updateSections([...content.sectionsArray.slice(0, index + 1), copy, ...content.sectionsArray.slice(index + 1)]);
+  }
+  function addSection() {
+    const missing = DEFAULT_CONFIG.landing.sectionsArray.find((defaultSection) => !content.sectionsArray.some((section) => section.id === defaultSection.id));
+    if (missing) {
+      updateSections([...content.sectionsArray, structuredClone(missing)]);
+      return;
+    }
+    const templates: Record<string, { label: string; heading: string; body: string; buttonLabel: string }> = {
+      promo: { label: "Khối quảng bá", heading: "Tiêu đề khối quảng bá", body: "Mô tả ngắn cho ưu đãi hoặc chương trình.", buttonLabel: "Tìm hiểu thêm" },
+      pricing: { label: "Bảng quyền lợi", heading: "Quyền lợi chương trình", body: "Liệt kê học phí, học bổng và các quyền lợi nổi bật.", buttonLabel: "Nhận tư vấn" },
+      guarantee: { label: "Cam kết", heading: "Cam kết đồng hành", body: "Nội dung cam kết, điều kiện và thông tin minh bạch.", buttonLabel: "Xem chi tiết" },
+      cta: { label: "CTA", heading: "Sẵn sàng bắt đầu?", body: "Để lại thông tin để nhận tư vấn phù hợp.", buttonLabel: "Đăng ký ngay" },
+    };
+    const template = templates[templateType] ?? templates["promo"]!;
+    updateSections([
+      ...content.sectionsArray,
+      {
+        id: `custom-${Date.now()}`,
+        type: "custom",
+        label: template.label,
+        enabled: true,
+        order: content.sectionsArray.length,
+        content: { heading: template.heading, body: template.body, imageUrl: "", buttonLabel: template.buttonLabel, buttonHref: "#dang-ky", backgroundColor: "", textColor: "", accentColor: "" },
+      },
+    ]);
+  }
+  function updateSectionContent(id: string, patch: Partial<NonNullable<(typeof content.sectionsArray)[number]["content"]>>) {
+    update((draft) => {
+      const section = draft.landing.sectionsArray.find((item) => item.id === id);
+      if (!section) return;
+      section.content = { heading: section.label, body: "", imageUrl: "", buttonLabel: "", buttonHref: "#dang-ky", backgroundColor: "", textColor: "", accentColor: "", ...section.content, ...patch };
+      if (patch.heading) section.label = patch.heading;
+    });
+  }
+  return (
+    <AdminModal title="Sửa Giao Diện" subtitle="Nội dung và hình ảnh landing page được lưu vào cấu hình" onClose={onClose}>
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <button onClick={exportLanding} className="rounded-lg bg-neutral-900 px-2 py-2 text-xs font-bold text-white">Xuất JSON</button>
+        <button onClick={() => importRef.current?.click()} className="rounded-lg border border-neutral-300 px-2 py-2 text-xs font-bold">Nhập JSON</button>
+        <button onClick={() => { if (window.confirm("Khôi phục landing mặc định?")) resetLanding(); }} className="rounded-lg border border-amber-300 px-2 py-2 text-xs font-bold text-amber-700">Khôi phục</button>
+        <button onClick={() => save()} className="rounded-lg bg-emerald-600 px-2 py-2 text-xs font-bold text-white">Lưu ngay</button>
+        <input ref={importRef} type="file" accept="application/json,.json" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) importLanding(file); e.target.value = ""; }} />
+      </div>
+      <div className="mb-4 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
+        <p className="mb-2 text-xs font-bold">Thứ tự & trạng thái section</p>
+        <div className="space-y-1.5">
+          {content.sectionsArray.map((item, index) => (
+            <div key={item.id} className="flex items-center gap-1.5 rounded-lg bg-neutral-50 p-1.5 text-xs dark:bg-white/5">
+              <span className="min-w-0 flex-1 truncate">{item.label}</span>
+              <button onClick={() => updateSections(content.sectionsArray.map((section) => section.id === item.id ? { ...section, enabled: !section.enabled } : section))} className={`rounded px-2 py-1 ${item.enabled ? "bg-emerald-100 text-emerald-700" : "bg-neutral-200 text-neutral-500"}`}>{item.enabled ? "Bật" : "Tắt"}</button>
+              <button onClick={() => moveSection(index, -1)} disabled={index === 0} className="rounded border px-2 py-1 disabled:opacity-30" aria-label="Đưa lên">↑</button>
+              <button onClick={() => moveSection(index, 1)} disabled={index === content.sectionsArray.length - 1} className="rounded border px-2 py-1 disabled:opacity-30" aria-label="Đưa xuống">↓</button>
+              <button onClick={() => duplicateSection(index)} className="rounded border px-2 py-1" aria-label="Nhân bản">+</button>
+              <button onClick={() => updateSections(content.sectionsArray.filter((section) => section.id !== item.id))} className="rounded border border-red-200 px-2 py-1 text-red-600" aria-label="Xóa">×</button>
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
+          <select value={templateType} onChange={(event) => setTemplateType(event.target.value)} className="rounded-lg border border-neutral-300 bg-white px-2 py-2 text-xs dark:bg-neutral-800">
+            <option value="promo">Khối quảng bá</option>
+            <option value="pricing">Pricing / Quyền lợi</option>
+            <option value="guarantee">Guarantee / Cam kết</option>
+            <option value="cta">CTA</option>
+          </select>
+          <button onClick={addSection} className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-semibold text-white">+ Thêm</button>
+        </div>
+      </div>
+      {content.sectionsArray.filter((item) => item.type === "custom").map((item) => (
+        <div key={item.id} className="mb-4 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
+          <p className="mb-2 text-xs font-bold">{item.label}</p>
+          <Field label="Tiêu đề"><TextInput value={item.content?.heading || ""} onChange={(e) => updateSectionContent(item.id, { heading: e.target.value })} /></Field>
+          <Field label="Nội dung"><TextArea value={item.content?.body || ""} onChange={(e) => updateSectionContent(item.id, { body: e.target.value })} /></Field>
+          <Field label="URL hình ảnh"><TextInput type="url" value={item.content?.imageUrl || ""} onChange={(e) => updateSectionContent(item.id, { imageUrl: e.target.value })} /></Field>
+          <div className="grid grid-cols-2 gap-2"><Field label="Nhãn nút"><TextInput value={item.content?.buttonLabel || ""} onChange={(e) => updateSectionContent(item.id, { buttonLabel: e.target.value })} /></Field><Field label="Link nút"><TextInput value={item.content?.buttonHref || "#dang-ky"} onChange={(e) => updateSectionContent(item.id, { buttonHref: e.target.value })} /></Field></div>
+          <div className="grid grid-cols-3 gap-2"><Field label="Nền"><TextInput type="color" value={item.content?.backgroundColor || "#ffffff"} onChange={(e) => updateSectionContent(item.id, { backgroundColor: e.target.value })} /></Field><Field label="Màu chữ"><TextInput type="color" value={item.content?.textColor || "#171717"} onChange={(e) => updateSectionContent(item.id, { textColor: e.target.value })} /></Field><Field label="Màu tiêu đề"><TextInput type="color" value={item.content?.accentColor || "#c0392b"} onChange={(e) => updateSectionContent(item.id, { accentColor: e.target.value })} /></Field></div>
+        </div>
+      ))}
+      <Field label="Tên thương hiệu">
+        <TextInput value={content.brandName} onChange={(e) => update((d) => (d.landing.brandName = e.target.value))} />
+      </Field>
+      <div className="mb-3 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold">Logo trên header</p>
+            <p className="mt-0.5 text-[11px] text-neutral-400">Tự co giãn đẹp trên mobile, tablet và desktop.</p>
+          </div>
+          <Toggle checked={content.showLogo} onChange={(value) => update((d) => (d.landing.showLogo = value))} label="" />
+        </div>
+        <div className="mt-3 flex items-center gap-3">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-100 ring-1 ring-neutral-200 dark:bg-white/10 dark:ring-white/10">
+            {content.logoUrl ? <img src={content.logoUrl} alt="Preview logo" className="h-full w-full object-contain" /> : <GraduationCap className="h-7 w-7 text-neutral-500" />}
+          </div>
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => logoInputRef.current?.click()} className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-bold text-white">Tải logo lên</button>
+              {content.logoUrl && <button type="button" onClick={() => update((d) => (d.landing.logoUrl = ""))} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600">Xóa logo</button>}
+            </div>
+            <input ref={logoInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) uploadLogo(file); event.target.value = ""; }} />
+            {logoError && <p className="text-[11px] font-semibold text-red-600">{logoError}</p>}
+          </div>
+        </div>
+        <Field label="Hoặc dùng Logo URL">
+          <TextInput type="url" value={content.logoUrl.startsWith("data:") ? "" : content.logoUrl} onChange={(e) => update((d) => (d.landing.logoUrl = e.target.value))} placeholder="https://.../logo.png" />
+        </Field>
+      </div>
+      <Field label="Hero: nhãn trên đầu">
+        <TextInput value={content.heroEyebrow} onChange={(e) => update((d) => (d.landing.heroEyebrow = e.target.value))} />
+      </Field>
+      <Field label="Hero: tiêu đề">
+        <TextInput value={content.heroTitle} onChange={(e) => update((d) => (d.landing.heroTitle = e.target.value))} />
+      </Field>
+      <Field label="Hero: phần nhấn mạnh">
+        <TextInput value={content.heroHighlight} onChange={(e) => update((d) => (d.landing.heroHighlight = e.target.value))} />
+      </Field>
+      <Field label="Hero: mô tả">
+        <TextArea value={content.heroDescription} onChange={(e) => update((d) => (d.landing.heroDescription = e.target.value))} />
+      </Field>
+      <Field label="Hero: URL hình ảnh (để trống dùng ảnh mặc định)">
+        <TextInput type="url" value={content.heroImageUrl} onChange={(e) => update((d) => (d.landing.heroImageUrl = e.target.value))} />
+      </Field>
+      <Field label="Hero: các điểm tin tưởng (mỗi dòng một mục)">
+        <TextArea value={content.heroTrustItems.join("\n")} onChange={(e) => updateLines("heroTrustItems", e.target.value)} />
+      </Field>
+      <Field label="Nhãn CTA hero">
+        <TextInput value={content.heroCtaLabel} onChange={(e) => update((d) => (d.landing.heroCtaLabel = e.target.value))} />
+      </Field>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {(["painHeading", "benefitsHeading", "majorsHeading", "expertsHeading", "galleryHeading", "testimonialsHeading", "stepsHeading", "faqHeading", "finalCtaHeading"] as const).map((key) => (
+          <Field key={key} label={key}>
+            <TextInput value={content[key]} onChange={(e) => update((d) => (d.landing[key] = e.target.value))} />
+          </Field>
+        ))}
+      </div>
+      <Field label="Pain points (mỗi dòng một mục)">
+        <TextArea value={content.pains.join("\n")} onChange={(e) => updateLines("pains", e.target.value)} />
+      </Field>
+      <Field label="Mô tả các ngành (JSON array 8 phần tử)">
+        <TextArea value={JSON.stringify(content.majorDescriptions, null, 2)} onChange={(e) => updateJson("majorDescriptions", e.target.value)} />
+      </Field>
+      <Field label="Tên ngành (JSON array)">
+        <TextArea value={JSON.stringify(content.majorNames, null, 2)} onChange={(e) => updateJson("majorNames", e.target.value)} />
+      </Field>
+      <Field label="Icon ngành (JSON array)">
+        <TextArea value={JSON.stringify(content.majorIcons, null, 2)} onChange={(e) => updateJson("majorIcons", e.target.value)} />
+      </Field>
+      <Field label="Caption gallery (mỗi dòng một mục)">
+        <TextArea value={content.galleryCaptions.join("\n")} onChange={(e) => updateLines("galleryCaptions", e.target.value)} />
+      </Field>
+      <Field label="URL ảnh gallery (JSON array)">
+        <TextArea value={JSON.stringify(content.galleryImageUrls, null, 2)} onChange={(e) => updateJson("galleryImageUrls", e.target.value)} />
+      </Field>
+      <Field label="URL ảnh chuyên gia (JSON array)">
+        <TextArea value={JSON.stringify(content.expertImageUrls, null, 2)} onChange={(e) => updateJson("expertImageUrls", e.target.value)} />
+      </Field>
+      <Field label="Chuyên gia (JSON array gồm name, role, bio, experience)">
+        <TextArea value={JSON.stringify(content.experts, null, 2)} onChange={(e) => updateJson("experts", e.target.value)} />
+      </Field>
+      <Field label="Stats (JSON array gồm value, label)">
+        <TextArea value={JSON.stringify(content.stats, null, 2)} onChange={(e) => updateJson("stats", e.target.value)} />
+      </Field>
+      <Field label="Benefits (JSON array gồm stat, title, text)">
+        <TextArea value={JSON.stringify(content.benefits, null, 2)} onChange={(e) => updateJson("benefits", e.target.value)} />
+      </Field>
+      <Field label="Testimonials (JSON array gồm name, meta, text)">
+        <TextArea value={JSON.stringify(content.testimonials, null, 2)} onChange={(e) => updateJson("testimonials", e.target.value)} />
+      </Field>
+      <Field label="Steps (JSON array gồm number, title, description)">
+        <TextArea value={JSON.stringify(content.steps, null, 2)} onChange={(e) => updateJson("steps", e.target.value)} />
+      </Field>
+      <Field label="FAQ (JSON array gồm slug, question, answer)">
+        <TextArea value={JSON.stringify(content.faqs, null, 2)} onChange={(e) => updateJson("faqs", e.target.value)} />
+      </Field>
+      <Field label="Mô tả CTA cuối trang">
+        <TextArea value={content.finalCtaDescription} onChange={(e) => update((d) => (d.landing.finalCtaDescription = e.target.value))} />
+      </Field>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+function PagesModal({ onClose }: ModalProps) {
+  const { config, update } = useSiteConfig();
+  const [selectedId, setSelectedId] = useState(config.pages[0]?.id || "");
+  const selected = config.pages.find((page) => page.id === selectedId) || config.pages[0];
+  if (!selected) return null;
+  const normalizedSelectedPath = selected?.path.trim().replace(/^\/+|\/+$/g, "").toLowerCase() || "";
+  const pathConflict = Boolean(normalizedSelectedPath && config.pages.some((page) => page.id !== selected.id && page.path === normalizedSelectedPath));
+
+  function updatePage(id: string, patch: Partial<(typeof config.pages)[number]>) {
+    update((draft) => {
+      const page = draft.pages.find((item) => item.id === id);
+      if (page) Object.assign(page, patch);
+    });
+  }
+
+  function addPage(kind: "custom" | "thankYou") {
+    const id = `page_${Date.now()}`;
+    const path = kind === "thankYou" ? `cam-on-${Date.now()}` : `trang-${Date.now()}`;
+    update((draft) => {
+      draft.pages.push({
+        id,
+        title: kind === "thankYou" ? "Trang cảm ơn mới" : "Trang mới",
+        path,
+        kind,
+        enabled: true,
+        showInMenu: kind === "custom",
+        menuOrder: draft.pages.length,
+        heading: kind === "thankYou" ? "Cảm ơn bạn!" : "Tiêu đề trang mới",
+        description: "Nội dung trang được chỉnh sửa trong Admin.",
+        ctaLabel: "Về trang chủ",
+        ctaHref: "/",
+      });
+    });
+    setSelectedId(id);
+  }
+
+  function removePage(id: string) {
+    if (id === "home") return;
+    update((draft) => {
+      draft.pages = draft.pages.filter((page) => page.id !== id);
+    });
+    if (selectedId === id) setSelectedId("home");
+  }
+
+  return (
+    <AdminModal title="Quản Lý Đa Trang & Menu" subtitle="Tạo trang phụ, Thank You page và menu điều hướng hoạt động thật" onClose={onClose}>
+      <div className="mb-3 flex gap-2">
+        <button type="button" onClick={() => addPage("custom")} className="flex-1 rounded-lg bg-neutral-900 px-3 py-2 text-xs font-bold text-white">+ Trang mới</button>
+        <button type="button" onClick={() => addPage("thankYou")} className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-xs font-bold">+ Thank You</button>
+      </div>
+      <div className="mb-4 flex gap-1 overflow-x-auto border-b border-neutral-200 pb-2">
+        {config.pages.map((page) => (
+          <button key={page.id} type="button" onClick={() => setSelectedId(page.id)} className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold ${page.id === selected.id ? "bg-neutral-900 text-white" : "bg-neutral-100"}`}>
+            {page.title}
+          </button>
+        ))}
+      </div>
+      <Field label="Tên trang"><TextInput value={selected.title} onChange={(e) => updatePage(selected.id, { title: e.target.value })} /></Field>
+      <Field label="Đường dẫn" hint={selected.path ? `Truy cập: /${selected.path}` : "Trang chủ dùng /"}>
+        <TextInput
+          disabled={selected.kind === "landing"}
+          value={selected.path}
+          onChange={(e) => {
+            const path = e.target.value.replace(/^\/+|[^a-z0-9-]/gi, "").toLowerCase();
+            if (!path || !config.pages.some((page) => page.id !== selected.id && page.path === path)) updatePage(selected.id, { path });
+          }}
+        />
+      </Field>
+      {pathConflict && <p className="mb-3 text-xs font-semibold text-red-600">Đường dẫn này đã được dùng bởi một trang khác.</p>}
+      <Field label="Tiêu đề hiển thị"><TextInput value={selected.heading} onChange={(e) => updatePage(selected.id, { heading: e.target.value })} /></Field>
+      <Field label="Mô tả"><TextArea value={selected.description} onChange={(e) => updatePage(selected.id, { description: e.target.value })} /></Field>
+      <Field label="Nút CTA"><TextInput value={selected.ctaLabel} onChange={(e) => updatePage(selected.id, { ctaLabel: e.target.value })} /></Field>
+      <Field label="Link CTA"><TextInput value={selected.ctaHref} onChange={(e) => updatePage(selected.id, { ctaHref: e.target.value })} /></Field>
+      <Toggle checked={selected.enabled} onChange={(value) => updatePage(selected.id, { enabled: value })} label="Trang đang hoạt động" />
+      <Toggle checked={selected.showInMenu} onChange={(value) => updatePage(selected.id, { showInMenu: value })} label="Hiển thị trong menu" />
+      <Field label="Thứ tự menu"><TextInput type="number" value={selected.menuOrder} onChange={(e) => updatePage(selected.id, { menuOrder: Number(e.target.value) || 0 })} /></Field>
+      <button type="button" disabled={selected.id === "home" || pathConflict} onClick={() => removePage(selected.id)} className="w-full rounded-lg border border-red-200 py-2 text-xs font-bold text-red-600 disabled:opacity-40">Xóa trang này</button>
+      <SaveHint />
+    </AdminModal>
+  );
+}
+
+function GuideModal({ onClose }: ModalProps) {
+  const { config } = useSiteConfig();
+  const checks = [
+    { label: "Webhook đã cấu hình", ok: config.form.webhookUrl.includes("http") && !config.form.webhookUrl.includes("REPLACE") },
+    { label: "TikTok Pixel", ok: !!config.tracking.tiktokPixelId },
+    { label: "SEO title & description", ok: !!config.seo.title && !!config.seo.description },
+    { label: "Hotline/Zalo", ok: !!config.floatingContact.hotline },
+    { label: "Storage mode", ok: config.admin.storageMode === "local" || !!config.admin.supabaseUrl },
+  ];
+  return (
+    <AdminModal title="Hướng Dẫn & Health Check" subtitle="Chẩn đoán nhanh trạng thái hệ thống" onClose={onClose}>
+      <div className="mb-4 space-y-1.5">
+        {checks.map((c) => (
+          <div key={c.label} className="flex items-center justify-between rounded-lg border border-neutral-200 px-3 py-2 text-xs dark:border-white/10">
+            <span>{c.label}</span>
+            <span className={c.ok ? "font-bold text-emerald-600" : "font-bold text-amber-600"}>{c.ok ? "OK" : "Cần cấu hình"}</span>
+          </div>
+        ))}
+      </div>
+      <ol className="list-decimal space-y-1.5 pl-5 text-xs text-neutral-600 dark:text-neutral-300">
+        <li>Đăng nhập admin, chỉnh sửa các thẻ công cụ trên thanh trên cùng.</li>
+        <li>Bấm LƯU để áp dụng (localStorage) hoặc XUẤT CONFIG để tải file dán vào mã nguồn.</li>
+        <li>Kết nối Supabase trong Storage Mode để đồng bộ đa thiết bị & lưu lead cloud.</li>
+        <li>Kiểm tra form gửi về Make.com và Pixel bắn sự kiện trước khi chạy Ads.</li>
+      </ol>
+    </AdminModal>
+  );
+}
+
+/* ----------------------------- REGISTRY ----------------------------------- */
+const REGISTRY: Record<AdminModalKey, (p: ModalProps) => ReactElement | null> = {
+  editor: LandingEditorModal,
+  fomo: FomoModal,
+  analytics: AnalyticsModal,
+  pages: PagesModal,
+  abtest: AbTestModal,
+  email: EmailModal,
+  webhook: WebhookModal,
+  sections: (p) => (
+    <InfoModal
+      {...p}
+      title="Thêm Khối Giao Diện"
+      subtitle="Thư viện section chuyển đổi cao"
+      points={[
+        "Các khối có sẵn: Hero, Countdown, Pricing, Grid Icons, Testimonials, FAQ, Video, Guarantee.",
+        "Bật/tắt Countdown & Floating Contact bằng thẻ tương ứng.",
+        "Thêm section mới bằng cách tạo component trong src/components và chèn vào index.tsx.",
+      ]}
+    />
+  ),
+  theme: ThemeModal,
+  guide: GuideModal,
+  leads: LeadsModal,
+  webmaster: WebmasterModal,
+  pixel: PixelModal,
+  utm: (p) => (
+    <InfoModal
+      {...p}
+      title="UTM Intelligence Hub"
+      subtitle="Gắn nhãn nguồn traffic cho AI Sales"
+      points={[
+        "Thêm ?utm_source=..&utm_medium=..&utm_campaign=.. vào link quảng cáo.",
+        "Hệ thống tự đọc UTM, gộp vào biến traffic_ads_source gửi webhook.",
+        "AI Sales Advisor dùng nguồn UTM để chọn kịch bản tư vấn phù hợp.",
+      ]}
+    />
+  ),
+  cron: CronModal,
+  storage: StorageModal,
+  seo: SeoModal,
+  form: FormModal,
+  ai: AiModal,
+  contact: ContactModal,
+  countdown: CountdownModal,
+  adminlink: AdminLinkModal,
+  tracking: PixelModal,
+  preview: () => null,
+};
+
+function SaveHint() {
+  const { save, dirty } = useSiteConfig();
+  return (
+    <div className="sticky bottom-0 -mx-4 mt-4 border-t border-neutral-200 bg-white px-4 pb-1 pt-3 dark:border-white/10 dark:bg-neutral-900">
+      <button
+        onClick={save}
+        className={`w-full rounded-lg py-2.5 text-sm font-bold ${
+          dirty ? "bg-emerald-500 text-white" : "bg-neutral-200 text-neutral-500 dark:bg-white/10"
+        }`}
+      >
+        {dirty ? "LƯU THAY ĐỔI" : "Đã lưu"}
+      </button>
+    </div>
+  );
+}

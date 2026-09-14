@@ -1,0 +1,176 @@
+/**
+ * Conversion tracking helpers.
+ *
+ * Base code các pixel nằm trong src/routes/__root.tsx (head scripts).
+ * TikTok Pixel đã cấu hình sẵn; Facebook/Google chỉ cần điền ID thật.
+ */
+
+type AnyFn = (...args: unknown[]) => void;
+
+declare global {
+  interface Window {
+    fbq?: AnyFn;
+    ttq?: { track: AnyFn; page?: AnyFn; identify?: AnyFn };
+    gtag?: AnyFn;
+    dataLayer?: Array<Record<string, unknown>>;
+  }
+}
+
+export const GOOGLE_ADS_CONVERSION_LABEL = "AW-XXXXXXXXX/XXXXXXXXXXXXXXX";
+
+export function pushDataLayer(event: Record<string, unknown>) {
+  if (typeof window === "undefined") return;
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push(event);
+}
+
+/** Khách bắt đầu tương tác với ô input đầu tiên */
+export function trackFormStart() {
+  pushDataLayer({ event: "form_start" });
+}
+
+/** Chỉ gọi SAU khi dữ liệu đã gửi thành công về Make.com */
+export function trackLead(payload?: Record<string, unknown>) {
+  if (typeof window === "undefined") return;
+
+  pushDataLayer({
+    event: "lead_conversion",
+    nganh_hoc: payload?.["content_name"] ?? "",
+  });
+
+  try {
+    window.fbq?.("track", "Lead", payload);
+  } catch (e) {
+    console.warn("fbq lead failed", e);
+  }
+
+  try {
+    window.ttq?.track("CompleteRegistration", payload);
+    window.ttq?.track("SubmitForm", payload);
+  } catch (e) {
+    console.warn("ttq event failed", e);
+  }
+
+  try {
+    window.gtag?.("event", "conversion", {
+      send_to: GOOGLE_ADS_CONVERSION_LABEL,
+    });
+  } catch (e) {
+    console.warn("gtag conversion failed", e);
+  }
+}
+
+export interface TestEventLog {
+  channel: string;
+  ok: boolean;
+  detail: string;
+}
+
+/**
+ * Bắn một sự kiện thử tới tất cả kênh tracking đang hoạt động
+ * và trả về nhật ký trạng thái để hiển thị trong Admin.
+ */
+export function fireTestEvent(): TestEventLog[] {
+  const logs: TestEventLog[] = [];
+  if (typeof window === "undefined") return logs;
+
+  const payload = {
+    test: true,
+    content_name: "admin_test_event",
+    value: 0,
+    currency: "VND",
+  };
+
+  if (typeof window.fbq === "function") {
+    try {
+      window.fbq("trackCustom", "LovableTestEvent", payload);
+      logs.push({
+        channel: "Meta Pixel",
+        ok: true,
+        detail: "Đã gửi LovableTestEvent",
+      });
+    } catch (e) {
+      logs.push({ channel: "Meta Pixel", ok: false, detail: String(e) });
+    }
+  } else {
+    logs.push({
+      channel: "Meta Pixel",
+      ok: false,
+      detail: "Chưa nạp (thiếu Pixel ID?)",
+    });
+  }
+
+  if (window.ttq && typeof window.ttq.track === "function") {
+    try {
+      window.ttq.track("ClickButton", payload);
+      logs.push({
+        channel: "TikTok Pixel",
+        ok: true,
+        detail: "Đã gửi ClickButton",
+      });
+    } catch (e) {
+      logs.push({ channel: "TikTok Pixel", ok: false, detail: String(e) });
+    }
+  } else {
+    logs.push({
+      channel: "TikTok Pixel",
+      ok: false,
+      detail: "Chưa nạp (thiếu Pixel ID?)",
+    });
+  }
+
+  if (typeof window.gtag === "function") {
+    try {
+      window.gtag("event", "lovable_test_event", payload);
+      logs.push({
+        channel: "Google Analytics 4",
+        ok: true,
+        detail: "Đã gửi lovable_test_event",
+      });
+    } catch (e) {
+      logs.push({
+        channel: "Google Analytics 4",
+        ok: false,
+        detail: String(e),
+      });
+    }
+  } else {
+    logs.push({
+      channel: "Google Analytics 4",
+      ok: false,
+      detail: "Chưa nạp (thiếu GA4 ID?)",
+    });
+  }
+
+  if (Array.isArray(window.dataLayer)) {
+    pushDataLayer({ event: "lovable_test_event", ...payload });
+    logs.push({
+      channel: "GTM dataLayer",
+      ok: true,
+      detail: `${window.dataLayer.length} sự kiện trong hàng đợi`,
+    });
+  } else {
+    logs.push({
+      channel: "GTM dataLayer",
+      ok: false,
+      detail: "Chưa có dataLayer",
+    });
+  }
+
+  const scripts = [
+    "fb-pixel",
+    "tiktok-pixel",
+    "ga4-init",
+    "gtm-init",
+    "custom-head",
+    "custom-body",
+    "custom-footer",
+  ].filter((id) => document.getElementById(id));
+  logs.push({
+    channel: "Mã đã chèn vào trang",
+    ok: scripts.length > 0,
+    detail: scripts.length ? scripts.join(", ") : "Chưa có mã nào được chèn",
+  });
+
+  return logs;
+}
