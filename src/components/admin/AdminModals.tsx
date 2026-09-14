@@ -1422,7 +1422,14 @@ function PagesModal({ onClose }: ModalProps) {
   if (!selected) return null;
   const selectedPageId = selected.id;
   const normalizedSelectedPath = selected?.path.trim().replace(/^\/+|\/+$/g, "").toLowerCase() || "";
-  const pathConflict = Boolean(normalizedSelectedPath && config.pages.some((page) => page.id !== selected.id && page.path === normalizedSelectedPath));
+  const pathConflict = Boolean(
+    normalizedSelectedPath &&
+      config.pages.some(
+        (page) =>
+          page.id !== selected.id &&
+          page.path.trim().replace(/^\/+|\/+$/g, "").toLowerCase() === normalizedSelectedPath,
+      ),
+  );
 
   function updatePage(id: string, patch: Partial<(typeof config.pages)[number]>) {
     update((draft) => {
@@ -1494,6 +1501,26 @@ function PagesModal({ onClose }: ModalProps) {
     });
   }
 
+  function updatePageSection(sectionId: string, patch: Partial<NonNullable<(typeof config.landing.sectionsArray)[number]["content"]>>) {
+    update((draft) => {
+      const section = draft.landing.sectionsArray.find((item) => item.id === sectionId);
+      if (!section) return;
+      section.content = {
+        heading: section.label,
+        body: "",
+        imageUrl: "",
+        buttonLabel: "",
+        buttonHref: "#dang-ky",
+        backgroundColor: "",
+        textColor: "",
+        accentColor: "",
+        ...section.content,
+        ...patch,
+      };
+      if (patch.heading?.trim()) section.label = patch.heading.trim();
+    });
+  }
+
   return (
     <AdminModal title="Quản Lý Đa Trang & Menu" subtitle="Tạo trang phụ, Thank You page và menu điều hướng hoạt động thật" onClose={onClose}>
       <div className="mb-3 flex gap-2">
@@ -1534,9 +1561,17 @@ function PagesModal({ onClose }: ModalProps) {
               const section = config.landing.sectionsArray.find((item) => item.id === sectionId);
               if (!section) return null;
               return (
-                <div key={section.id} className="flex items-center gap-2 text-xs">
-                  <span className="min-w-0 flex-1 truncate">{section.label}</span>
-                  <button type="button" onClick={() => detachSectionFromPage(section.id)} className="font-bold text-red-600">Bỏ</button>
+                <div key={section.id} className="rounded-lg border border-neutral-200 p-2">
+                  <div className="mb-2 flex items-center gap-2 text-xs">
+                    <span className="min-w-0 flex-1 truncate font-bold">{section.label}</span>
+                    <button type="button" onClick={() => detachSectionFromPage(section.id)} className="font-bold text-red-600">Bỏ</button>
+                  </div>
+                  <TextInput value={section.content?.heading || section.label} onChange={(event) => updatePageSection(section.id, { heading: event.target.value })} placeholder="Tiêu đề block" />
+                  <TextArea value={section.content?.body || ""} onChange={(event) => updatePageSection(section.id, { body: event.target.value })} placeholder="Nội dung đúng vai trò của block" />
+                  <div className="mt-1 grid grid-cols-2 gap-1.5">
+                    <TextInput value={section.content?.buttonLabel || ""} onChange={(event) => updatePageSection(section.id, { buttonLabel: event.target.value })} placeholder="Nhãn CTA" />
+                    <TextInput value={section.content?.buttonHref || "#dang-ky"} onChange={(event) => updatePageSection(section.id, { buttonHref: event.target.value })} placeholder="Link CTA" />
+                  </div>
                 </div>
               );
             })}
