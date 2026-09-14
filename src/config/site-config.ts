@@ -143,6 +143,7 @@ export interface LandingConfig {
       heading: string;
       body: string;
       imageUrl: string;
+      variant?: string;
       buttonLabel: string;
       buttonHref: string;
       backgroundColor?: string;

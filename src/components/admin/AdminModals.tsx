@@ -1053,69 +1053,6 @@ const SECTION_LIBRARY: Record<string, { label: string; heading: string; body: st
   guarantee: { label: "Guarantee / Cam kết", heading: "Cam kết đồng hành", body: "Nội dung cam kết, điều kiện và thông tin minh bạch.", buttonLabel: "Xem chi tiết" },
 };
 
-function SectionLibraryModal({ onClose }: ModalProps) {
-  const { config, update } = useSiteConfig();
-  const customSections = config.landing.sectionsArray.filter((section) => section.type === "custom");
-
-  function addTemplate(type: string) {
-    const template = SECTION_LIBRARY[type] ?? SECTION_LIBRARY["hero"]!;
-    update((draft) => {
-      draft.landing.sectionsArray.push({
-        id: `library-${type}-${Date.now()}`,
-        type: "custom",
-        label: template.label,
-        enabled: true,
-        order: draft.landing.sectionsArray.length,
-        content: {
-          heading: template.heading,
-          body: template.body,
-          imageUrl: "",
-          buttonLabel: template.buttonLabel,
-          buttonHref: "#dang-ky",
-          backgroundColor: "",
-          textColor: "",
-          accentColor: "",
-        },
-      });
-    });
-  }
-
-  function toggleSection(id: string) {
-    update((draft) => {
-      const section = draft.landing.sectionsArray.find((item) => item.id === id);
-      if (section) section.enabled = !section.enabled;
-    });
-  }
-
-  return (
-    <AdminModal title="Thêm Khối Giao Diện" subtitle="Thư viện section chuyển đổi cao" onClose={onClose}>
-      <p className="mb-3 text-xs text-neutral-600">Chọn một mẫu để thêm vào landing. Sau khi thêm, chỉnh sửa nội dung trong Sửa Giao Diện rồi bấm LƯU.</p>
-      <div className="grid grid-cols-2 gap-2">
-        {Object.entries(SECTION_LIBRARY).map(([type, template]) => (
-          <button key={type} type="button" onClick={() => addTemplate(type)} className="rounded-lg border border-neutral-200 p-3 text-left transition hover:border-primary hover:bg-neutral-50">
-            <span className="block text-xs font-bold">{template.label}</span>
-            <span className="mt-1 block text-[11px] text-neutral-500">+ Thêm khối</span>
-          </button>
-        ))}
-      </div>
-      <div className="mt-4 border-t border-neutral-200 pt-3">
-        <p className="mb-2 text-xs font-bold">Section đã thêm ({customSections.length})</p>
-        {customSections.length === 0 ? (
-          <p className="text-xs text-neutral-400">Chưa có section custom.</p>
-        ) : customSections.map((section) => (
-          <div key={section.id} className="mb-1.5 flex items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 text-xs">
-            <span className="truncate pr-2">{section.label}</span>
-            <button type="button" onClick={() => toggleSection(section.id)} className={section.enabled ? "font-bold text-emerald-600" : "font-bold text-neutral-400"}>
-              {section.enabled ? "Đang bật" : "Đang tắt"}
-            </button>
-          </div>
-        ))}
-      </div>
-      <SaveHint />
-    </AdminModal>
-  );
-}
-
 function LandingEditorModal({ onClose }: ModalProps) {
   const { config, update, save, resetLanding } = useSiteConfig();
   const content = config.landing;
@@ -1482,6 +1419,7 @@ function PagesModal({ onClose }: ModalProps) {
           heading: template.heading,
           body: template.body,
           imageUrl: "",
+          variant: type,
           buttonLabel: template.buttonLabel,
           buttonHref: "#dang-ky",
           backgroundColor: "",
@@ -1638,7 +1576,6 @@ const REGISTRY: Record<AdminModalKey, (p: ModalProps) => ReactElement | null> = 
   abtest: AbTestModal,
   email: EmailModal,
   webhook: WebhookModal,
-  sections: SectionLibraryModal,
   theme: ThemeModal,
   guide: GuideModal,
   leads: LeadsModal,

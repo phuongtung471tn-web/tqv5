@@ -16,7 +16,6 @@ export type AdminModalKey =
   | "abtest"
   | "email"
   | "webhook"
-  | "sections"
   | "theme"
   | "guide"
   | "leads"
