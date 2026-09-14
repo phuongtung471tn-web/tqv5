@@ -20,6 +20,10 @@ export const LEAD_CREATED_EVENT = "funnel:lead-created";
 export const ANALYTICS_UPDATED_EVENT = "funnel:analytics-updated";
 const CLOUD_CONFIG_TABLE = "funnel_configs";
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
 /** Deep-merge dữ liệu đã lưu lên mặc định để config luôn đủ trường khi nâng cấp. */
 function mergeConfig(
   base: SiteConfig,
@@ -77,9 +81,10 @@ export function loadConfig(): SiteConfig {
   if (!isBrowser()) return structuredClone(DEFAULT_CONFIG);
   try {
     const raw = window.localStorage.getItem(CONFIG_KEY);
+    const parsed = raw ? (JSON.parse(raw) as unknown) : null;
     return mergeConfig(
       DEFAULT_CONFIG,
-      raw ? (JSON.parse(raw) as Partial<SiteConfig>) : null,
+      isRecord(parsed) ? (parsed as Partial<SiteConfig>) : null,
     );
   } catch {
     return structuredClone(DEFAULT_CONFIG);
@@ -109,8 +114,12 @@ export async function loadCloudConfig(
       },
     );
     if (!response.ok) return null;
-    const rows = (await response.json()) as { data?: Partial<SiteConfig> }[];
-    return rows[0]?.data ? mergeConfig(DEFAULT_CONFIG, rows[0].data) : null;
+    const rows = (await response.json()) as unknown;
+    if (!Array.isArray(rows) || !isRecord(rows[0])) return null;
+    const data = rows[0]["data"];
+    return isRecord(data)
+      ? mergeConfig(DEFAULT_CONFIG, data as Partial<SiteConfig>)
+      : null;
   } catch {
     return null;
   }
@@ -118,7 +127,11 @@ export async function loadCloudConfig(
 
 export function saveConfig(config: SiteConfig): void {
   if (!isBrowser()) return;
-  window.localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+  try {
+    window.localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+  } catch {
+    return;
+  }
   // Auto backup snapshot (giữ tối đa 10 bản gần nhất)
   try {
     const snaps = JSON.parse(
@@ -444,7 +457,7 @@ export function clearAnalytics(): void {
 async function syncConfigToSupabase(config: SiteConfig): Promise<void> {
   try {
     const { supabaseUrl, supabaseAnonKey } = config.admin;
-    await fetch(
+    const response = await fetch(
       `${supabaseUrl.replace(/\/$/, "")}/rest/v1/${CLOUD_CONFIG_TABLE}?on_conflict=id`,
       {
         method: "POST",
@@ -459,8 +472,11 @@ async function syncConfigToSupabase(config: SiteConfig): Promise<void> {
         ]),
       },
     );
+    if (!response.ok) {
+      console.warn(`Supabase config sync failed [${response.status}]`);
+    }
   } catch (err) {
-    console.log("[v0] Supabase sync failed:", (err as Error).message);
+    console.warn("Supabase config sync failed:", (err as Error).message);
   }
 }
 

@@ -1,12 +1,12 @@
 import { n as __toESM } from "../_runtime.mjs";
 import { n as require_jsx_runtime, r as require_react, t as QueryClientProvider } from "../_libs/react+tanstack__react-query.mjs";
-import { a as clearAnalytics, d as saveLead, f as testSupabaseConnection, h as useSiteConfig, i as SiteConfigProvider, l as loadAnalytics, m as trackVisit, n as DEFAULT_CONFIG, o as clearLeads, s as exportLeadsCsv, t as ANALYTICS_UPDATED_EVENT, u as loadLeads } from "./use-site-config-Bf44Q8nb.mjs";
+import { a as clearAnalytics, d as saveLead, f as testSupabaseConnection, h as useSiteConfig, i as SiteConfigProvider, l as loadAnalytics, m as trackVisit, n as DEFAULT_CONFIG, o as clearLeads, s as exportLeadsCsv, t as ANALYTICS_UPDATED_EVENT, u as loadLeads } from "./use-site-config-ivcknSZJ.mjs";
 import { n as useAdmin, t as AdminProvider } from "./use-admin-BM5hUDJ4.mjs";
 import { b as useRouter, c as HeadContent, d as createRouter, f as Outlet, g as Link, h as createRootRouteWithContext, l as useRouterState, m as createFileRoute, p as lazyRouteComponent, s as Scripts } from "../_libs/@tanstack/react-router+[...].mjs";
 import { A as Clock, C as KeyRound, D as Download, E as FileText, F as Bell, I as Activity, M as ChartColumn, N as BrainCircuit, O as Database, P as BookOpen, S as Link2, T as Globe, _ as Monitor, a as Tablet, b as LogOut, c as Search, d as RectangleEllipsis, f as Plus, g as Package, h as Palette, i as Tag, j as ClipboardList, k as CloudUpload, l as Save, m as Pencil, n as Trash2, o as SquareSplitHorizontal, p as Phone, r as Target, s as Smartphone, t as X, u as RotateCcw, w as GraduationCap, y as Mail } from "../_libs/lucide-react.mjs";
 import { a as resetVariant, c as testWebhookEndpoint, d as utmSource, f as webhookConfigurationWarning, i as getVariant, r as fireTestEvent, s as sendTestEmail, t as checkEmailConfig } from "./ab-1ZHA4A9t.mjs";
 import { t as QueryClient } from "../_libs/tanstack__query-core.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-CcbbK8oh.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-BWsHnEmI.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var styles_default = "/assets/styles-DMM3hCKQ.css";
@@ -3074,7 +3074,7 @@ gtag('js', new Date());
 });
 function RootShell({ children }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("html", {
-		lang: "en",
+		lang: "vi",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("head", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(HeadContent, {}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("body", { children: [children, /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Scripts, {})] })]
 	});
 }
@@ -3090,7 +3090,7 @@ function RootComponent() {
 		] }) })
 	});
 }
-var $$splitComponentImporter$2 = () => import("./routes-CS4_C92u.mjs");
+var $$splitComponentImporter$2 = () => import("./routes-B58-uFM6.mjs");
 var TITLE = "Du Học Nghề Trung Quốc 0Đ | Vừa Học Vừa Làm Lương 15-30 Triệu";
 var DESC = "Du học nghề Trung Quốc học phí 0Đ: học 20% lý thuyết - 80% thực hành, lương cứng 15-30 triệu/tháng, bằng Cao đẳng chính quy quốc tế. Đăng ký nhận lộ trình miễn phí.";
 var FAQ_JSONLD = JSON.stringify({
@@ -3168,9 +3168,9 @@ var Route$2 = createFileRoute("/")({
 	}),
 	component: lazyRouteComponent($$splitComponentImporter$2, "component")
 });
-var $$splitComponentImporter$1 = () => import("../_-tV3Y8NmY.mjs");
+var $$splitComponentImporter$1 = () => import("../_-CCkaqSP4.mjs");
 var Route$1 = createFileRoute("/$")({ component: lazyRouteComponent($$splitComponentImporter$1, "component") });
-var $$splitComponentImporter = () => import("./admin-Di-UFeru.mjs");
+var $$splitComponentImporter = () => import("./admin-DQoNSr86.mjs");
 var Route = createFileRoute("/admin")({ component: lazyRouteComponent($$splitComponentImporter, "component") });
 var rootRouteChildren = {
 	IndexRoute: Route$2.update({

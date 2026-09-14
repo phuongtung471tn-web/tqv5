@@ -1,6 +1,6 @@
 import { n as __toESM } from "../_runtime.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/use-site-config-Bf44Q8nb.js
+//#region node_modules/.nitro/vite/services/ssr/assets/use-site-config-ivcknSZJ.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var DEFAULT_CONFIG = {
@@ -496,6 +496,9 @@ var BACKUP_KEY = "funnel_backup_snapshots_v1";
 var LEAD_CREATED_EVENT = "funnel:lead-created";
 var ANALYTICS_UPDATED_EVENT = "funnel:analytics-updated";
 var CLOUD_CONFIG_TABLE = "funnel_configs";
+function isRecord(value) {
+	return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
 /** Deep-merge dữ liệu đã lưu lên mặc định để config luôn đủ trường khi nâng cấp. */
 function mergeConfig(base, override) {
 	if (!override) return structuredClone(base);
@@ -525,7 +528,8 @@ function loadConfig() {
 	if (!isBrowser()) return structuredClone(DEFAULT_CONFIG);
 	try {
 		const raw = window.localStorage.getItem(CONFIG_KEY);
-		return mergeConfig(DEFAULT_CONFIG, raw ? JSON.parse(raw) : null);
+		const parsed = raw ? JSON.parse(raw) : null;
+		return mergeConfig(DEFAULT_CONFIG, isRecord(parsed) ? parsed : null);
 	} catch {
 		return structuredClone(DEFAULT_CONFIG);
 	}
@@ -540,14 +544,20 @@ async function loadCloudConfig(config) {
 		} });
 		if (!response.ok) return null;
 		const rows = await response.json();
-		return rows[0]?.data ? mergeConfig(DEFAULT_CONFIG, rows[0].data) : null;
+		if (!Array.isArray(rows) || !isRecord(rows[0])) return null;
+		const data = rows[0]["data"];
+		return isRecord(data) ? mergeConfig(DEFAULT_CONFIG, data) : null;
 	} catch {
 		return null;
 	}
 }
 function saveConfig(config) {
 	if (!isBrowser()) return;
-	window.localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+	try {
+		window.localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+	} catch {
+		return;
+	}
 	try {
 		const snaps = JSON.parse(window.localStorage.getItem(BACKUP_KEY) || "[]");
 		snaps.unshift({
@@ -759,7 +769,7 @@ function clearAnalytics() {
 async function syncConfigToSupabase(config) {
 	try {
 		const { supabaseUrl, supabaseAnonKey } = config.admin;
-		await fetch(`${supabaseUrl.replace(/\/$/, "")}/rest/v1/${CLOUD_CONFIG_TABLE}?on_conflict=id`, {
+		const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/rest/v1/${CLOUD_CONFIG_TABLE}?on_conflict=id`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -773,8 +783,9 @@ async function syncConfigToSupabase(config) {
 				updated_at: (/* @__PURE__ */ new Date()).toISOString()
 			}])
 		});
+		if (!response.ok) console.warn(`Supabase config sync failed [${response.status}]`);
 	} catch (err) {
-		console.log("[v0] Supabase sync failed:", err.message);
+		console.warn("Supabase config sync failed:", err.message);
 	}
 }
 async function testSupabaseConnection(url, key) {

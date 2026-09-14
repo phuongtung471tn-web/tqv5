@@ -1,0 +1,1 @@
+import{t as e}from"./AdminLoginPage-gS6wpvfz.js";var t=e;export{t as component};
