@@ -1,3 +1,1 @@
-import { t as e } from "./AdminLoginPage-CePQr3-l.js";
-var t = e;
-export { t as component };
+import{t as e}from"./AdminLoginPage-CePQr3-l.js";var t=e;export{t as component};

@@ -6,12 +6,17 @@
     "directory": "../public"
   },
   "name": "phuongtung471tn-web-tqv5",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "no_bundle": true,
   "rules": [
     {
       "type": "ESModule",
-      "globs": ["**/*.mjs", "**/*.js"]
+      "globs": [
+        "**/*.mjs",
+        "**/*.js"
+      ]
     }
   ]
 }

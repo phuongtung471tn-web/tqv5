@@ -40,5 +40,4 @@ test("admin can create a secondary page and keep its section scoped", async ({
   await expect(
     page.getByRole("heading", { name: "Block chỉ dành cho trang phụ" }),
   ).toHaveCount(0);
-  },
-);
+});
