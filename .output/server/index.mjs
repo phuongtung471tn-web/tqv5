@@ -19,156 +19,163 @@ var public_assets_data_default = {
 	"/.htaccess": {
 		"type": "text/plain; charset=utf-8",
 		"etag": "\"b5b-YLBhnsRYR6S6n+WiA1SQLiwt1Zk\"",
-		"mtime": "2026-09-14T21:34:42.939Z",
+		"mtime": "2026-09-14T23:30:00.355Z",
 		"size": 2907,
 		"path": "../public/.htaccess"
 	},
 	"/favicon.ico": {
 		"type": "image/vnd.microsoft.icon",
 		"etag": "\"4f95-3RXc3p2mhEAs1WBwaIvE0Y0uu0Y\"",
-		"mtime": "2026-09-14T21:34:42.939Z",
+		"mtime": "2026-09-14T23:30:00.355Z",
 		"size": 20373,
 		"path": "../public/favicon.ico"
 	},
 	"/robots.txt": {
 		"type": "text/plain; charset=utf-8",
 		"etag": "\"a0-CKGXSIe7TSsqDTmGm/nY1t/o5d0\"",
-		"mtime": "2026-09-14T21:34:42.939Z",
+		"mtime": "2026-09-14T23:30:00.356Z",
 		"size": 160,
 		"path": "../public/robots.txt"
 	},
 	"/sitemap.xml": {
 		"type": "application/xml",
 		"etag": "\"eb-Zl0a7o2MBrn3bOnHPBC1zKyGBik\"",
-		"mtime": "2026-09-14T21:34:42.939Z",
+		"mtime": "2026-09-14T23:30:00.355Z",
 		"size": 235,
 		"path": "../public/sitemap.xml"
 	},
-	"/assets/AdminLoginPage-nlFgc5kN.js": {
+	"/assets/AdminLoginPage-CePQr3-l.js": {
 		"type": "text/javascript; charset=utf-8",
-		"etag": "\"8b6-1bVHK6RrIfTn8DWLNCTaZs0e/kA\"",
-		"mtime": "2026-09-14T21:34:42.225Z",
+		"etag": "\"8b6-3IHYKCdElE5fFuIqnmvtlIr3xRM\"",
+		"mtime": "2026-09-14T23:29:59.624Z",
 		"size": 2230,
-		"path": "../public/assets/AdminLoginPage-nlFgc5kN.js"
+		"path": "../public/assets/AdminLoginPage-CePQr3-l.js"
 	},
-	"/assets/_-Cqt3mGbZ.js": {
+	"/assets/ContentSection-ChAogh1y.js": {
 		"type": "text/javascript; charset=utf-8",
-		"etag": "\"6a8-aqxPg5W128hHTqKiuK8TgFyF/AI\"",
-		"mtime": "2026-09-14T21:34:42.225Z",
-		"size": 1704,
-		"path": "../public/assets/_-Cqt3mGbZ.js"
+		"etag": "\"f62-Qh89YnmcOnAA5bwaDf7yQTdZlzA\"",
+		"mtime": "2026-09-14T23:29:59.624Z",
+		"size": 3938,
+		"path": "../public/assets/ContentSection-ChAogh1y.js"
 	},
-	"/assets/admin-Bcl3QdvC.js": {
+	"/assets/_-CzqAuwuB.js": {
 		"type": "text/javascript; charset=utf-8",
-		"etag": "\"50-jXJXjVSFf9APSMya+GUByW2OqDk\"",
-		"mtime": "2026-09-14T21:34:42.225Z",
-		"size": 80,
-		"path": "../public/assets/admin-Bcl3QdvC.js"
+		"etag": "\"96e-RW3gcSr2ZZHfzHvNpxteNK8K/Zo\"",
+		"mtime": "2026-09-14T23:29:59.624Z",
+		"size": 2414,
+		"path": "../public/assets/_-CzqAuwuB.js"
 	},
-	"/assets/createLucideIcon-BPfP2LnL.js": {
+	"/assets/createLucideIcon-DPqBjfMm.js": {
 		"type": "text/javascript; charset=utf-8",
-		"etag": "\"75e7-ErKb/5fnyvmbLXUiEH5RBgqYs0A\"",
-		"mtime": "2026-09-14T21:34:42.225Z",
-		"size": 30183,
-		"path": "../public/assets/createLucideIcon-BPfP2LnL.js"
+		"etag": "\"7603-rBd65Z8SpqLfeDvZJjlV+GwAOgs\"",
+		"mtime": "2026-09-14T23:29:59.625Z",
+		"size": 30211,
+		"path": "../public/assets/createLucideIcon-DPqBjfMm.js"
 	},
 	"/assets/expert-1-CcX0y7YN.webp": {
 		"type": "image/webp",
 		"etag": "\"4e66-azYlRFr8uhHtsCzRdIAZMfeXlwQ\"",
-		"mtime": "2026-09-14T21:34:42.225Z",
+		"mtime": "2026-09-14T23:29:59.625Z",
 		"size": 20070,
 		"path": "../public/assets/expert-1-CcX0y7YN.webp"
 	},
 	"/assets/expert-2-WVJni1up.webp": {
 		"type": "image/webp",
 		"etag": "\"4c02-i3IyvaGuNuXwPm3g2n9ZLOvusFA\"",
-		"mtime": "2026-09-14T21:34:42.225Z",
+		"mtime": "2026-09-14T23:29:59.625Z",
 		"size": 19458,
 		"path": "../public/assets/expert-2-WVJni1up.webp"
 	},
 	"/assets/expert-3-AK2LvN4J.webp": {
 		"type": "image/webp",
 		"etag": "\"5f4e-Eqe28tVw7G7O0xNJ2HnPbVGgdQU\"",
-		"mtime": "2026-09-14T21:34:42.225Z",
+		"mtime": "2026-09-14T23:29:59.625Z",
 		"size": 24398,
 		"path": "../public/assets/expert-3-AK2LvN4J.webp"
 	},
 	"/assets/gallery-airport-BNYTV757.webp": {
 		"type": "image/webp",
 		"etag": "\"277b0-d4CzNc8Fz6iajVkqSk+l0ObjzMI\"",
-		"mtime": "2026-09-14T21:34:42.225Z",
+		"mtime": "2026-09-14T23:29:59.625Z",
 		"size": 161712,
 		"path": "../public/assets/gallery-airport-BNYTV757.webp"
 	},
 	"/assets/gallery-campus-Ccbnr8PW.webp": {
 		"type": "image/webp",
 		"etag": "\"264a0-59aOj6L82cQVeJLC2PuaG5RRNb8\"",
-		"mtime": "2026-09-14T21:34:42.226Z",
+		"mtime": "2026-09-14T23:29:59.625Z",
 		"size": 156832,
 		"path": "../public/assets/gallery-campus-Ccbnr8PW.webp"
 	},
 	"/assets/gallery-dorm-room-CN0jv29K.webp": {
 		"type": "image/webp",
 		"etag": "\"e5a4-oXAGlIQ2gEaidziQHCKkxBTtjiw\"",
-		"mtime": "2026-09-14T21:34:42.226Z",
+		"mtime": "2026-09-14T23:29:59.626Z",
 		"size": 58788,
 		"path": "../public/assets/gallery-dorm-room-CN0jv29K.webp"
 	},
 	"/assets/gallery-visa-C2KfDTnt.webp": {
 		"type": "image/webp",
 		"etag": "\"e3a6-FGjPJcD5qml/QDhBn3h6xdWM9Bg\"",
-		"mtime": "2026-09-14T21:34:42.226Z",
+		"mtime": "2026-09-14T23:29:59.626Z",
 		"size": 58278,
 		"path": "../public/assets/gallery-visa-C2KfDTnt.webp"
 	},
 	"/assets/hero-student-RoGGUFG7.webp": {
 		"type": "image/webp",
 		"etag": "\"22fc8-bnPWmJ5brukLYufWfSzNFGmqb7k\"",
-		"mtime": "2026-09-14T21:34:42.226Z",
+		"mtime": "2026-09-14T23:29:59.626Z",
 		"size": 143304,
 		"path": "../public/assets/hero-student-RoGGUFG7.webp"
 	},
-	"/assets/index-CCFuArpW.js": {
+	"/assets/index-B3SlK5vz.js": {
 		"type": "text/javascript; charset=utf-8",
-		"etag": "\"689a6-qAGlwZb+U0swsJX5Kj2dPQwszjQ\"",
-		"mtime": "2026-09-14T21:34:42.224Z",
-		"size": 428454,
-		"path": "../public/assets/index-CCFuArpW.js"
+		"etag": "\"6a274-aUF13VTR9s58zbpe9gvFqGzfneQ\"",
+		"mtime": "2026-09-14T23:29:59.623Z",
+		"size": 434804,
+		"path": "../public/assets/index-B3SlK5vz.js"
 	},
-	"/assets/invariant-Cn8tWQnF.js": {
+	"/assets/invariant-D46wnQWo.js": {
 		"type": "text/javascript; charset=utf-8",
-		"etag": "\"f50-/4J8y1bjoSPLM7a9GfmsUUix1Pc\"",
-		"mtime": "2026-09-14T21:34:42.225Z",
+		"etag": "\"f50-I3mpGQl9ZQuAQimR/wR1rytgZbs\"",
+		"mtime": "2026-09-14T23:29:59.625Z",
 		"size": 3920,
-		"path": "../public/assets/invariant-Cn8tWQnF.js"
+		"path": "../public/assets/invariant-D46wnQWo.js"
 	},
-	"/assets/link-bUFddHOF.js": {
+	"/assets/link-DVWvWKdg.js": {
 		"type": "text/javascript; charset=utf-8",
-		"etag": "\"5dc6-ffdUlPx8+0K0l7pWiJoImtCRCrM\"",
-		"mtime": "2026-09-14T21:34:42.225Z",
+		"etag": "\"5dc6-zJgO0SwNC/enJuqVhd/2qCw9HPM\"",
+		"mtime": "2026-09-14T23:29:59.625Z",
 		"size": 24006,
-		"path": "../public/assets/link-bUFddHOF.js"
+		"path": "../public/assets/link-DVWvWKdg.js"
 	},
-	"/assets/routes-nt_67Lgg.js": {
+	"/assets/routes-AutZAL8K.js": {
 		"type": "text/javascript; charset=utf-8",
-		"etag": "\"14201-FdXAThIsb26n1WjGPo6K61arkH8\"",
-		"mtime": "2026-09-14T21:34:42.225Z",
-		"size": 82433,
-		"path": "../public/assets/routes-nt_67Lgg.js"
+		"etag": "\"13a5b-IuM3lvNKku2cn8nhP9F+3lqT93I\"",
+		"mtime": "2026-09-14T23:29:59.625Z",
+		"size": 80475,
+		"path": "../public/assets/routes-AutZAL8K.js"
 	},
-	"/assets/styles-DxKbK7lP.css": {
+	"/assets/styles-DMM3hCKQ.css": {
 		"type": "text/css; charset=utf-8",
-		"etag": "\"16c97-81ChilNKjsu1Vo7GPM/BmahtrWg\"",
-		"mtime": "2026-09-14T21:34:42.227Z",
-		"size": 93335,
-		"path": "../public/assets/styles-DxKbK7lP.css"
+		"etag": "\"16e57-KL2VC8w2ViWZrerwP92yLGB0lIg\"",
+		"mtime": "2026-09-14T23:29:59.626Z",
+		"size": 93783,
+		"path": "../public/assets/styles-DMM3hCKQ.css"
 	},
-	"/assets/use-admin-B9C19UWV.js": {
+	"/assets/use-admin-B_Pi3CKv.js": {
 		"type": "text/javascript; charset=utf-8",
-		"etag": "\"63c-HPvbeVyqh2j3G+YGAHRyHYbm5Q8\"",
-		"mtime": "2026-09-14T21:34:42.225Z",
+		"etag": "\"63c-k0lzKeZJCWpitUnUl/148q3hYs0\"",
+		"mtime": "2026-09-14T23:29:59.625Z",
 		"size": 1596,
-		"path": "../public/assets/use-admin-B9C19UWV.js"
+		"path": "../public/assets/use-admin-B_Pi3CKv.js"
+	},
+	"/assets/admin-BZ2J0-fA.js": {
+		"type": "text/javascript; charset=utf-8",
+		"etag": "\"50-PcFYz3aEbOSerVpK6y5RH+q5EpI\"",
+		"mtime": "2026-09-14T23:29:59.624Z",
+		"size": 80,
+		"path": "../public/assets/admin-BZ2J0-fA.js"
 	}
 };
 //#endregion
@@ -206,11 +213,11 @@ var findRouteRules = /* @__PURE__ */ (() => {
 		return r;
 	};
 })();
-var _lazy_hnWzit = defineLazyEventHandler(() => import("./_chunks/ssr-renderer.mjs"));
+var _lazy_ebhVyK = defineLazyEventHandler(() => import("./_chunks/ssr-renderer.mjs"));
 var findRoute = /* @__PURE__ */ (() => {
 	const data = {
 		route: "/**",
-		handler: _lazy_hnWzit
+		handler: _lazy_ebhVyK
 	};
 	return ((_m, p) => {
 		return {

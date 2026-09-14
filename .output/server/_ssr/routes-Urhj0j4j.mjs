@@ -1,10 +1,11 @@
 import { n as __toESM } from "../_runtime.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
-import { c as isDuplicateLead, d as saveLead, h as useSiteConfig, p as trackConversion, r as LEAD_CREATED_EVENT, u as loadLeads } from "./use-site-config-BbUwIRRQ.mjs";
+import { c as isDuplicateLead, d as saveLead, h as useSiteConfig, p as trackConversion, r as LEAD_CREATED_EVENT, u as loadLeads } from "./use-site-config-Bf44Q8nb.mjs";
 import { p as Phone, v as MessageCircle, w as GraduationCap } from "../_libs/lucide-react.mjs";
-import { d as utmSource, i as getVariant, l as trackFormStart, n as dispatchLead, o as sendLeadEmail, u as trackLead } from "./ab-BCHQbx_f.mjs";
+import { n as ScarcityBar, t as ContentSection } from "./ContentSection-BVP0UsCM.mjs";
+import { d as utmSource, i as getVariant, l as trackFormStart, n as dispatchLead, o as sendLeadEmail, u as trackLead } from "./ab-1ZHA4A9t.mjs";
 import { n as toast, t as Toaster } from "../_libs/sonner.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-CgVqkfpg.js
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-Urhj0j4j.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var expert_1_default = "/assets/expert-1-CcX0y7YN.webp";
@@ -608,7 +609,10 @@ function LeadForm({ id = "dang-ky" }) {
 			if (payload.major) leadRecord.major = payload.major;
 			await saveLead(leadRecord, config);
 			dispatchLead(config, payload).then(({ ok, results }) => {
-				if (!ok && results.length > 0) console.warn("All webhook endpoints failed:", results);
+				if (!ok && results.length > 0) {
+					console.warn("All webhook endpoints failed:", results);
+					toast.warning("Lead đã lưu vào CRM nhưng webhook chưa nhận được", { description: "Kiểm tra cấu hình endpoint trong Admin > Cổng Webhook & Đa Kênh." });
+				} else if (results.some((result) => !result.ok)) console.warn("Some webhook endpoints failed:", results);
 			});
 			trackConversion(source, config.abTest.enabled ? variant : void 0);
 			if (config.emailAutomation.enabled && email) {
@@ -806,82 +810,6 @@ function Reveal({ children, delay = 0, className = "" }) {
 		style: { transitionDelay: `${delay}ms` },
 		className: `transition-all duration-700 ease-out ${shown ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"} ${className}`,
 		children
-	});
-}
-function endOfMonth() {
-	const now = /* @__PURE__ */ new Date();
-	return new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0).getTime();
-}
-function pad(n) {
-	return n.toString().padStart(2, "0");
-}
-/** Đếm ngược + số suất còn lại, lấy trực tiếp từ cấu hình Admin. */
-function ScarcityBar({ tone = "light" }) {
-	const { config } = useSiteConfig();
-	const c = config.countdown;
-	const [left, setLeft] = (0, import_react.useState)(null);
-	const target = c.endMode === "fixed" && c.endDate ? new Date(c.endDate).getTime() : endOfMonth();
-	const validTarget = Number.isFinite(target) ? target : endOfMonth();
-	(0, import_react.useEffect)(() => {
-		const tick = () => setLeft(Math.max(0, validTarget - Date.now()));
-		tick();
-		const id = window.setInterval(tick, 1e3);
-		return () => window.clearInterval(id);
-	}, [validTarget]);
-	if (!c.enabled) return null;
-	const d = left === null ? 0 : Math.floor(left / 864e5);
-	const h = left === null ? 0 : Math.floor(left % 864e5 / 36e5);
-	const m = left === null ? 0 : Math.floor(left % 36e5 / 6e4);
-	const s = left === null ? 0 : Math.floor(left % 6e4 / 1e3);
-	const dark = tone === "dark";
-	const box = dark ? "bg-surface-foreground/10 text-surface-foreground ring-surface-foreground/20" : "bg-card text-card-foreground ring-border";
-	const accent = dark ? "text-gold" : "text-primary";
-	const cell = dark ? "bg-surface-foreground/10" : "bg-primary/10";
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: `rounded-2xl px-4 py-3 ring-1 ${box}`,
-		"aria-live": "polite",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-			className: "text-sm font-bold",
-			children: [
-				"Chỉ còn",
-				" ",
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-					className: accent,
-					children: [c.slotsLeft.toString().padStart(2, "0"), " suất"]
-				}),
-				" ",
-				c.headline
-			]
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-			className: "mt-2 flex items-center gap-2",
-			children: [
-				{
-					v: d,
-					l: "Ngày"
-				},
-				{
-					v: h,
-					l: "Giờ"
-				},
-				{
-					v: m,
-					l: "Phút"
-				},
-				{
-					v: s,
-					l: "Giây"
-				}
-			].map((u) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: `min-w-[3.25rem] rounded-lg px-2 py-1.5 text-center ${cell}`,
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-					className: `block text-lg font-black leading-none tabular-nums ${accent}`,
-					children: left === null ? "--" : pad(u.v)
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-					className: "text-[10px] font-semibold uppercase tracking-wide opacity-70",
-					children: u.l
-				})]
-			}, u.l))
-		})]
 	});
 }
 function pick(arr, previous) {
@@ -1371,6 +1299,8 @@ function Landing() {
 	const customSections = content.sectionsArray.filter((item) => item.type === "custom" && item.enabled);
 	const links = contactLinks(config);
 	const menuPages = config.pages.filter((page) => page.enabled && page.showInMenu).sort((a, b) => a.menuOrder - b.menuOrder);
+	const secondaryPageSectionIds = new Set(config.pages.filter((page) => page.id !== "home").flatMap((page) => page.sectionIds || []));
+	const homeCustomSections = customSections.filter((section) => !secondaryPageSectionIds.has(section.id));
 	(0, import_react.useEffect)(() => initBehavior(), []);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		id: "top",
@@ -1794,34 +1724,9 @@ function Landing() {
 					]
 				})
 			}),
-			customSections.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
-				style: {
-					order: item.order + 1,
-					backgroundColor: item.content?.backgroundColor || void 0,
-					color: item.content?.textColor || void 0
-				},
-				className: "mx-auto w-full max-w-6xl px-4 py-16 sm:py-20",
-				children: [
-					item.content?.imageUrl && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-						src: item.content.imageUrl,
-						alt: "",
-						className: "mb-6 max-h-[28rem] w-full rounded-2xl object-cover"
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-						style: { color: item.content?.accentColor || void 0 },
-						className: "text-2xl font-extrabold sm:text-3xl",
-						children: item.content?.heading || item.label
-					}),
-					item.content?.body && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-						className: "mt-3 max-w-3xl whitespace-pre-line text-muted-foreground",
-						children: item.content.body
-					}),
-					item.content?.buttonLabel && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-						href: item.content.buttonHref || "#dang-ky",
-						className: "mt-6 inline-flex rounded-xl bg-primary px-5 py-3 font-bold text-primary-foreground",
-						children: item.content.buttonLabel
-					})
-				]
+			homeCustomSections.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				style: { order: item.order + 1 },
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ContentSection, { section: item })
 			}, item.id)),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("footer", {
 				style: { order: 99 },

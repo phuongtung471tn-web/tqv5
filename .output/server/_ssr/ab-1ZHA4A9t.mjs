@@ -1,7 +1,7 @@
 import { c as createServerFn, i as TSS_SERVER_FUNCTION } from "./createServerFn-CIHAFgYl.mjs";
 import { n as objectType, r as stringType, t as enumType } from "../_libs/zod.mjs";
 import { t as getServerFnById } from "../__23tanstack-start-server-fn-resolver-Cj8cTMMZ.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/ab-BCHQbx_f.js
+//#region node_modules/.nitro/vite/services/ssr/assets/ab-1ZHA4A9t.js
 var createSsrRpc = (functionId) => {
 	const url = "/_serverFn/" + functionId;
 	const serverFnMeta = { id: functionId };
@@ -174,6 +174,14 @@ function validUrl(value) {
 		return false;
 	}
 }
+function webhookConfigurationWarning(endpoint, config) {
+	const value = endpoint.url.trim();
+	if (!value) return "Chưa nhập URL endpoint";
+	if (!validUrl(value)) return "URL phải dùng HTTPS (localhost có thể dùng HTTP)";
+	if (endpoint.type === "telegram" && !value.includes("/bot")) return "URL Telegram cần có dạng /bot<TOKEN>/sendMessage?chat_id=...";
+	if (endpoint.type === "telegram" && !new URL(value).searchParams.get("chat_id")) return "URL Telegram đang thiếu chat_id";
+	if (endpoint.type === "supabase" && (!config.admin.supabaseUrl || !config.admin.supabaseAnonKey)) return "Cần cấu hình Supabase URL và anon key trong Storage trước";
+}
 async function requestWithRetry(endpoint, init) {
 	let detail = "Không thể kết nối";
 	for (let attempt = 1; attempt <= 3; attempt += 1) {
@@ -185,10 +193,14 @@ async function requestWithRetry(endpoint, init) {
 				signal: controller.signal
 			});
 			window.clearTimeout(timer);
-			if (response.ok || response.status < 500) return {
-				response,
-				attempts: attempt
-			};
+			if (response.ok || response.status < 500) {
+				if (!response.ok) detail = (await response.text().catch(() => "")).trim().slice(0, 180) || `HTTP ${response.status}`;
+				return {
+					response,
+					attempts: attempt,
+					detail
+				};
+			}
 			detail = `HTTP ${response.status}`;
 		} catch (error) {
 			window.clearTimeout(timer);
@@ -202,7 +214,8 @@ async function requestWithRetry(endpoint, init) {
 	};
 }
 function telegramBody(url, payload) {
-	const text = Object.entries(payload).map(([k, v]) => `${k}: ${String(v ?? "")}`).join("\n");
+	const escapeHtml = (value) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+	const text = Object.entries(payload).map(([k, v]) => `${escapeHtml(k)}: ${escapeHtml(String(v ?? ""))}`).join("\n");
 	const u = new URL(url);
 	const chatId = u.searchParams.get("chat_id") || "";
 	u.searchParams.delete("chat_id");
@@ -290,11 +303,12 @@ async function dispatchLead(config, payload) {
 		type: "make"
 	});
 	endpoints.push(...config.webhooks.filter((w) => w.enabled && w.url.trim()));
-	if (endpoints.length === 0) return {
+	const uniqueEndpoints = endpoints.filter((endpoint, index, all) => all.findIndex((candidate) => candidate.url.trim() === endpoint.url.trim()) === index);
+	if (uniqueEndpoints.length === 0) return {
 		ok: true,
 		results: []
 	};
-	const results = await Promise.all(endpoints.map((ep) => postOne(ep, payload, {
+	const results = await Promise.all(uniqueEndpoints.map((ep) => postOne(ep, payload, {
 		url: config.admin.supabaseUrl,
 		key: config.admin.supabaseAnonKey
 	})));
@@ -338,4 +352,4 @@ function utmSource() {
 	return new URLSearchParams(window.location.search).get("utm_source") || (document.referrer ? "referral" : "direct");
 }
 //#endregion
-export { resetVariant as a, testWebhookEndpoint as c, utmSource as d, getVariant as i, trackFormStart as l, dispatchLead as n, sendLeadEmail as o, fireTestEvent as r, sendTestEmail as s, checkEmailConfig as t, trackLead as u };
+export { resetVariant as a, testWebhookEndpoint as c, utmSource as d, webhookConfigurationWarning as f, getVariant as i, trackFormStart as l, dispatchLead as n, sendLeadEmail as o, fireTestEvent as r, sendTestEmail as s, checkEmailConfig as t, trackLead as u };

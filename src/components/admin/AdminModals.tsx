@@ -1379,6 +1379,10 @@ function PagesModal({ onClose }: ModalProps) {
     const id = `page_${Date.now()}`;
     const path = kind === "thankYou" ? `cam-on-${Date.now()}` : `trang-${Date.now()}`;
     update((draft) => {
+      const nextMenuOrder = draft.pages.reduce(
+        (maxOrder, page) => Math.max(maxOrder, page.menuOrder),
+        -1,
+      ) + 1;
       draft.pages.push({
         id,
         title: kind === "thankYou" ? "Trang cảm ơn mới" : "Trang mới",
@@ -1386,7 +1390,7 @@ function PagesModal({ onClose }: ModalProps) {
         kind,
         enabled: true,
         showInMenu: kind === "custom",
-        menuOrder: draft.pages.length,
+        menuOrder: nextMenuOrder,
         heading: kind === "thankYou" ? "Cảm ơn bạn!" : "Tiêu đề trang mới",
         description: "Nội dung trang được chỉnh sửa trong Admin.",
         ctaLabel: "Về trang chủ",
@@ -1531,6 +1535,17 @@ function PagesModal({ onClose }: ModalProps) {
 
 function GuideModal({ onClose }: ModalProps) {
   const { config } = useSiteConfig();
+  const normalizedPagePaths = config.pages.map((page) =>
+    page.path.trim().replace(/^\/+|\/+$/g, "").toLowerCase(),
+  );
+  const pagePathsAreUnique = new Set(normalizedPagePaths).size === normalizedPagePaths.length;
+  const pagePathsAreValid = config.pages.every(
+    (page) => !page.path || /^[a-z0-9-]+$/i.test(page.path.trim().replace(/^\/+|\/+$/g, "")),
+  );
+  const knownSectionIds = new Set(config.landing.sectionsArray.map((section) => section.id));
+  const pageSectionsAreValid = config.pages.every((page) =>
+    (page.sectionIds || []).every((sectionId) => knownSectionIds.has(sectionId)),
+  );
   const configuredWebhookCount = [
     config.form.webhookUrl,
     ...config.webhooks.filter((endpoint) => endpoint.enabled).map((endpoint) => endpoint.url),
@@ -1546,6 +1561,8 @@ function GuideModal({ onClose }: ModalProps) {
     { label: "SEO title & description", ok: !!config.seo.title && !!config.seo.description },
     { label: "Hotline/Zalo", ok: !!config.floatingContact.hotline },
     { label: "Storage mode", ok: config.admin.storageMode === "local" || !!config.admin.supabaseUrl },
+    { label: "Đa trang không trùng đường dẫn", ok: pagePathsAreUnique && pagePathsAreValid },
+    { label: "Section đa trang còn tồn tại", ok: pageSectionsAreValid },
   ];
   return (
     <AdminModal title="Hướng Dẫn & Health Check" subtitle="Chẩn đoán nhanh trạng thái hệ thống" onClose={onClose}>

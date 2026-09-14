@@ -1,15 +1,15 @@
 import { n as __toESM } from "../_runtime.mjs";
 import { n as require_jsx_runtime, r as require_react, t as QueryClientProvider } from "../_libs/react+tanstack__react-query.mjs";
-import { a as clearAnalytics, d as saveLead, f as testSupabaseConnection, h as useSiteConfig, i as SiteConfigProvider, l as loadAnalytics, m as trackVisit, n as DEFAULT_CONFIG, o as clearLeads, s as exportLeadsCsv, t as ANALYTICS_UPDATED_EVENT, u as loadLeads } from "./use-site-config-BbUwIRRQ.mjs";
+import { a as clearAnalytics, d as saveLead, f as testSupabaseConnection, h as useSiteConfig, i as SiteConfigProvider, l as loadAnalytics, m as trackVisit, n as DEFAULT_CONFIG, o as clearLeads, s as exportLeadsCsv, t as ANALYTICS_UPDATED_EVENT, u as loadLeads } from "./use-site-config-Bf44Q8nb.mjs";
 import { n as useAdmin, t as AdminProvider } from "./use-admin-BM5hUDJ4.mjs";
 import { b as useRouter, c as HeadContent, d as createRouter, f as Outlet, g as Link, h as createRootRouteWithContext, l as useRouterState, m as createFileRoute, p as lazyRouteComponent, s as Scripts } from "../_libs/@tanstack/react-router+[...].mjs";
 import { A as Clock, C as KeyRound, D as Download, E as FileText, F as Bell, I as Activity, M as ChartColumn, N as BrainCircuit, O as Database, P as BookOpen, S as Link2, T as Globe, _ as Monitor, a as Tablet, b as LogOut, c as Search, d as RectangleEllipsis, f as Plus, g as Package, h as Palette, i as Tag, j as ClipboardList, k as CloudUpload, l as Save, m as Pencil, n as Trash2, o as SquareSplitHorizontal, p as Phone, r as Target, s as Smartphone, t as X, u as RotateCcw, w as GraduationCap, y as Mail } from "../_libs/lucide-react.mjs";
-import { a as resetVariant, c as testWebhookEndpoint, d as utmSource, i as getVariant, r as fireTestEvent, s as sendTestEmail, t as checkEmailConfig } from "./ab-BCHQbx_f.mjs";
+import { a as resetVariant, c as testWebhookEndpoint, d as utmSource, f as webhookConfigurationWarning, i as getVariant, r as fireTestEvent, s as sendTestEmail, t as checkEmailConfig } from "./ab-1ZHA4A9t.mjs";
 import { t as QueryClient } from "../_libs/tanstack__query-core.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-CQQRpFt7.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-VCFph7IU.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
-var styles_default = "/assets/styles-DxKbK7lP.css";
+var styles_default = "/assets/styles-DMM3hCKQ.css";
 function reportLovableError(error, context = {}) {
 	if (typeof window === "undefined") return;
 	window.__lovableEvents?.captureException?.(error, {
@@ -94,11 +94,6 @@ var TOOLS = [
 		key: "webhook",
 		label: "Webhook Hub",
 		icon: Link2
-	},
-	{
-		key: "sections",
-		label: "Thêm Khối",
-		icon: Plus
 	},
 	{
 		key: "theme",
@@ -1087,11 +1082,33 @@ function WebhookModal({ onClose }) {
 	const list = config.webhooks;
 	const [testingId, setTestingId] = (0, import_react.useState)(null);
 	const [results, setResults] = (0, import_react.useState)({});
+	const enabledCount = list.filter((endpoint) => endpoint.enabled && endpoint.url.trim()).length;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AdminModal, {
 		title: "Cổng Webhook & Đa Kênh",
 		subtitle: "Gửi lead tới nhiều nơi cùng lúc",
 		onClose,
 		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "mb-3 rounded-lg bg-neutral-50 p-3 text-xs text-neutral-600",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "font-bold text-neutral-800",
+						children: "Cách vận hành"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+						className: "mt-1",
+						children: [
+							"Mỗi lead được gửi song song tới ",
+							enabledCount,
+							" endpoint đang bật. Một endpoint lỗi không làm mất lead trong Mini-CRM."
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "mt-1",
+						children: "Hãy bấm test sau khi nhập URL. Trình duyệt có thể chặn endpoint không bật CORS; khi đó nên dùng Make/Zapier làm cổng trung gian."
+					})
+				]
+			}),
 			list.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "mb-3 text-xs text-neutral-400",
 				children: "Chưa có endpoint nào. Thêm mới bên dưới."
@@ -1147,6 +1164,10 @@ function WebhookModal({ onClose }) {
 						placeholder: "https://...",
 						onChange: (e) => update((d) => d.webhooks[i].url = e.target.value)
 					}),
+					webhookConfigurationWarning(w, config) && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+						className: "mt-1 text-[11px] font-semibold text-amber-600",
+						children: ["Cảnh báo: ", webhookConfigurationWarning(w, config)]
+					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						className: "mt-2",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toggle, {
@@ -1171,6 +1192,14 @@ function WebhookModal({ onClose }) {
 					results[w.id] && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: `mt-1 text-[11px] font-semibold ${results[w.id].ok ? "text-emerald-600" : "text-red-600"}`,
 						children: results[w.id].ok ? `OK sau ${results[w.id].attempts} lần thử` : `Lỗi: ${results[w.id].detail}`
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+						className: "mt-1 text-[10px] text-neutral-400",
+						children: [
+							w.type === "telegram" && "Telegram: dùng URL Bot API kèm chat_id.",
+							w.type === "supabase" && "Supabase: dùng tên bảng trong URL, ví dụ leads.",
+							(w.type === "make" || w.type === "sheets" || w.type === "custom") && "Endpoint phải nhận POST JSON và cho phép CORS từ landing page."
+						]
 					})
 				]
 			}, w.id)),
@@ -1740,6 +1769,56 @@ function InfoModal({ onClose, title, subtitle, points }) {
 		})
 	});
 }
+var SECTION_LIBRARY = {
+	hero: {
+		label: "Hero",
+		heading: "Bắt đầu hành trình mới",
+		body: "Thông điệp chính của trang và lý do khách hàng nên hành động ngay.",
+		buttonLabel: "Nhận tư vấn"
+	},
+	countdown: {
+		label: "Countdown",
+		heading: "Ưu đãi có thời hạn",
+		body: "Tạo động lực hành động bằng thời hạn rõ ràng và minh bạch.",
+		buttonLabel: "Giữ suất ngay"
+	},
+	pricing: {
+		label: "Pricing / Quyền lợi",
+		heading: "Quyền lợi chương trình",
+		body: "Liệt kê học phí, học bổng và các quyền lợi nổi bật.",
+		buttonLabel: "Xem quyền lợi"
+	},
+	grid: {
+		label: "Grid Icons",
+		heading: "Điểm nổi bật",
+		body: "Trình bày các lợi ích chính theo dạng lưới dễ quét trên mobile.",
+		buttonLabel: "Tìm hiểu thêm"
+	},
+	testimonials: {
+		label: "Testimonials",
+		heading: "Khách hàng nói gì",
+		body: "Thêm bằng chứng xã hội, trải nghiệm thực tế và kết quả đạt được.",
+		buttonLabel: "Xem câu chuyện"
+	},
+	faq: {
+		label: "FAQ",
+		heading: "Câu hỏi thường gặp",
+		body: "Giải đáp các băn khoăn trước khi khách hàng đăng ký.",
+		buttonLabel: "Hỏi chuyên viên"
+	},
+	video: {
+		label: "Video",
+		heading: "Xem chương trình thực tế",
+		body: "Đặt video giới thiệu, phỏng vấn hoặc hướng dẫn ở vị trí nổi bật.",
+		buttonLabel: "Xem video"
+	},
+	guarantee: {
+		label: "Guarantee / Cam kết",
+		heading: "Cam kết đồng hành",
+		body: "Nội dung cam kết, điều kiện và thông tin minh bạch.",
+		buttonLabel: "Xem chi tiết"
+	}
+};
 function LandingEditorModal({ onClose }) {
 	const { config, update, save, resetLanding } = useSiteConfig();
 	const content = config.landing;
@@ -2380,8 +2459,9 @@ function PagesModal({ onClose }) {
 	const [selectedId, setSelectedId] = (0, import_react.useState)(config.pages[0]?.id || "");
 	const selected = config.pages.find((page) => page.id === selectedId) || config.pages[0];
 	if (!selected) return null;
+	const selectedPageId = selected.id;
 	const normalizedSelectedPath = selected?.path.trim().replace(/^\/+|\/+$/g, "").toLowerCase() || "";
-	const pathConflict = Boolean(normalizedSelectedPath && config.pages.some((page) => page.id !== selected.id && page.path === normalizedSelectedPath));
+	const pathConflict = Boolean(normalizedSelectedPath && config.pages.some((page) => page.id !== selected.id && page.path.trim().replace(/^\/+|\/+$/g, "").toLowerCase() === normalizedSelectedPath));
 	function updatePage(id, patch) {
 		update((draft) => {
 			const page = draft.pages.find((item) => item.id === id);
@@ -2392,6 +2472,7 @@ function PagesModal({ onClose }) {
 		const id = `page_${Date.now()}`;
 		const path = kind === "thankYou" ? `cam-on-${Date.now()}` : `trang-${Date.now()}`;
 		update((draft) => {
+			const nextMenuOrder = draft.pages.reduce((maxOrder, page) => Math.max(maxOrder, page.menuOrder), -1) + 1;
 			draft.pages.push({
 				id,
 				title: kind === "thankYou" ? "Trang cảm ơn mới" : "Trang mới",
@@ -2399,11 +2480,12 @@ function PagesModal({ onClose }) {
 				kind,
 				enabled: true,
 				showInMenu: kind === "custom",
-				menuOrder: draft.pages.length,
+				menuOrder: nextMenuOrder,
 				heading: kind === "thankYou" ? "Cảm ơn bạn!" : "Tiêu đề trang mới",
 				description: "Nội dung trang được chỉnh sửa trong Admin.",
 				ctaLabel: "Về trang chủ",
-				ctaHref: "/"
+				ctaHref: "/",
+				sectionIds: []
 			});
 		});
 		setSelectedId(id);
@@ -2414,6 +2496,57 @@ function PagesModal({ onClose }) {
 			draft.pages = draft.pages.filter((page) => page.id !== id);
 		});
 		if (selectedId === id) setSelectedId("home");
+	}
+	function addSectionToPage(type) {
+		const template = SECTION_LIBRARY[type] ?? SECTION_LIBRARY["hero"];
+		const sectionId = `page-${selectedPageId}-${type}-${Date.now()}`;
+		update((draft) => {
+			draft.landing.sectionsArray.push({
+				id: sectionId,
+				type: "custom",
+				label: template.label,
+				enabled: true,
+				order: draft.landing.sectionsArray.length,
+				content: {
+					heading: template.heading,
+					body: template.body,
+					imageUrl: "",
+					variant: type,
+					buttonLabel: template.buttonLabel,
+					buttonHref: "#dang-ky",
+					backgroundColor: "",
+					textColor: "",
+					accentColor: ""
+				}
+			});
+			const page = draft.pages.find((item) => item.id === selectedPageId);
+			if (page) page.sectionIds = [...page.sectionIds || [], sectionId];
+		});
+	}
+	function detachSectionFromPage(sectionId) {
+		update((draft) => {
+			const page = draft.pages.find((item) => item.id === selectedPageId);
+			if (page) page.sectionIds = (page.sectionIds || []).filter((id) => id !== sectionId);
+		});
+	}
+	function updatePageSection(sectionId, patch) {
+		update((draft) => {
+			const section = draft.landing.sectionsArray.find((item) => item.id === sectionId);
+			if (!section) return;
+			section.content = {
+				heading: section.label,
+				body: "",
+				imageUrl: "",
+				buttonLabel: "",
+				buttonHref: "#dang-ky",
+				backgroundColor: "",
+				textColor: "",
+				accentColor: "",
+				...section.content,
+				...patch
+			};
+			if (patch.heading?.trim()) section.label = patch.heading.trim();
+		});
 	}
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AdminModal, {
 		title: "Quản Lý Đa Trang & Menu",
@@ -2512,6 +2645,67 @@ function PagesModal({ onClose }) {
 					onChange: (e) => updatePage(selected.id, { menuOrder: Number(e.target.value) || 0 })
 				})
 			}),
+			selected.kind !== "landing" && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Field, {
+				label: "Section hiển thị trên trang",
+				hint: "Tạo mới và gắn section ngay tại đây, hoặc quản lý nội dung trong Thêm Khối Giao Diện.",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "space-y-1.5 rounded-lg border border-neutral-200 p-2",
+					children: [(selected.sectionIds || []).length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-xs text-neutral-400",
+						children: "Chưa gắn section nào vào trang này."
+					}), (selected.sectionIds || []).map((sectionId) => {
+						const section = config.landing.sectionsArray.find((item) => item.id === sectionId);
+						if (!section) return null;
+						return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "rounded-lg border border-neutral-200 p-2",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "mb-2 flex items-center gap-2 text-xs",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "min-w-0 flex-1 truncate font-bold",
+										children: section.label
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+										type: "button",
+										onClick: () => detachSectionFromPage(section.id),
+										className: "font-bold text-red-600",
+										children: "Bỏ"
+									})]
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									value: section.content?.heading || section.label,
+									onChange: (event) => updatePageSection(section.id, { heading: event.target.value }),
+									placeholder: "Tiêu đề block"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
+									value: section.content?.body || "",
+									onChange: (event) => updatePageSection(section.id, { body: event.target.value }),
+									placeholder: "Nội dung đúng vai trò của block"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "mt-1 grid grid-cols-2 gap-1.5",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+										value: section.content?.buttonLabel || "",
+										onChange: (event) => updatePageSection(section.id, { buttonLabel: event.target.value }),
+										placeholder: "Nhãn CTA"
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+										value: section.content?.buttonHref || "#dang-ky",
+										onChange: (event) => updatePageSection(section.id, { buttonHref: event.target.value }),
+										placeholder: "Link CTA"
+									})]
+								})
+							]
+						}, section.id);
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "mt-2 grid grid-cols-2 gap-1.5",
+					children: Object.entries(SECTION_LIBRARY).map(([type, template]) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						type: "button",
+						onClick: () => addSectionToPage(type),
+						className: "rounded-lg border border-dashed border-neutral-300 px-2 py-1.5 text-left text-[11px] font-semibold hover:border-primary",
+						children: ["+ ", template.label]
+					}, type))
+				})]
+			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 				type: "button",
 				disabled: selected.id === "home" || pathConflict,
@@ -2525,10 +2719,21 @@ function PagesModal({ onClose }) {
 }
 function GuideModal({ onClose }) {
 	const { config } = useSiteConfig();
+	const normalizedPagePaths = config.pages.map((page) => page.path.trim().replace(/^\/+|\/+$/g, "").toLowerCase());
+	const pagePathsAreUnique = new Set(normalizedPagePaths).size === normalizedPagePaths.length;
+	const pagePathsAreValid = config.pages.every((page) => !page.path || /^[a-z0-9-]+$/i.test(page.path.trim().replace(/^\/+|\/+$/g, "")));
+	const knownSectionIds = new Set(config.landing.sectionsArray.map((section) => section.id));
+	const pageSectionsAreValid = config.pages.every((page) => (page.sectionIds || []).every((sectionId) => knownSectionIds.has(sectionId)));
+	const configuredWebhookCount = [config.form.webhookUrl, ...config.webhooks.filter((endpoint) => endpoint.enabled).map((endpoint) => endpoint.url)].filter((url) => url.trim() && url.startsWith("http") && !url.includes("REPLACE")).length;
+	const configuredWebhookUrls = [config.form.webhookUrl, ...config.webhooks.filter((endpoint) => endpoint.enabled).map((endpoint) => endpoint.url)].filter((url) => url.trim() && url.startsWith("http") && !url.includes("REPLACE"));
 	const checks = [
 		{
-			label: "Webhook đã cấu hình",
-			ok: config.form.webhookUrl.includes("http") && !config.form.webhookUrl.includes("REPLACE")
+			label: "Có ít nhất một webhook hoạt động",
+			ok: configuredWebhookCount > 0
+		},
+		{
+			label: "Không có endpoint trùng URL",
+			ok: new Set(configuredWebhookUrls).size === configuredWebhookCount
 		},
 		{
 			label: "TikTok Pixel",
@@ -2545,6 +2750,14 @@ function GuideModal({ onClose }) {
 		{
 			label: "Storage mode",
 			ok: config.admin.storageMode === "local" || !!config.admin.supabaseUrl
+		},
+		{
+			label: "Đa trang không trùng đường dẫn",
+			ok: pagePathsAreUnique && pagePathsAreValid
+		},
+		{
+			label: "Section đa trang còn tồn tại",
+			ok: pageSectionsAreValid
 		}
 	];
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AdminModal, {
@@ -2566,7 +2779,7 @@ function GuideModal({ onClose }) {
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Đăng nhập admin, chỉnh sửa các thẻ công cụ trên thanh trên cùng." }),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Bấm LƯU để áp dụng (localStorage) hoặc XUẤT CONFIG để tải file dán vào mã nguồn." }),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Kết nối Supabase trong Storage Mode để đồng bộ đa thiết bị & lưu lead cloud." }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Kiểm tra form gửi về Make.com và Pixel bắn sự kiện trước khi chạy Ads." })
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Vào Cổng Webhook & Đa Kênh, bấm test từng endpoint và chỉ chạy Ads khi các kênh cần thiết trả về OK." })
 			]
 		})]
 	});
@@ -2579,16 +2792,6 @@ var REGISTRY = {
 	abtest: AbTestModal,
 	email: EmailModal,
 	webhook: WebhookModal,
-	sections: (p) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(InfoModal, {
-		...p,
-		title: "Thêm Khối Giao Diện",
-		subtitle: "Thư viện section chuyển đổi cao",
-		points: [
-			"Các khối có sẵn: Hero, Countdown, Pricing, Grid Icons, Testimonials, FAQ, Video, Guarantee.",
-			"Bật/tắt Countdown & Floating Contact bằng thẻ tương ứng.",
-			"Thêm section mới bằng cách tạo component trong src/components và chèn vào index.tsx."
-		]
-	}),
 	theme: ThemeModal,
 	guide: GuideModal,
 	leads: LeadsModal,
@@ -2884,7 +3087,7 @@ function RootComponent() {
 		] }) })
 	});
 }
-var $$splitComponentImporter$2 = () => import("./routes-CgVqkfpg.mjs");
+var $$splitComponentImporter$2 = () => import("./routes-Urhj0j4j.mjs");
 var TITLE = "Du Học Nghề Trung Quốc 0Đ | Vừa Học Vừa Làm Lương 15-30 Triệu";
 var DESC = "Du học nghề Trung Quốc học phí 0Đ: học 20% lý thuyết - 80% thực hành, lương cứng 15-30 triệu/tháng, bằng Cao đẳng chính quy quốc tế. Đăng ký nhận lộ trình miễn phí.";
 var FAQ_JSONLD = JSON.stringify({
@@ -2962,9 +3165,9 @@ var Route$2 = createFileRoute("/")({
 	}),
 	component: lazyRouteComponent($$splitComponentImporter$2, "component")
 });
-var $$splitComponentImporter$1 = () => import("../_-Dgc_L1X9.mjs");
+var $$splitComponentImporter$1 = () => import("../_-tV3Y8NmY.mjs");
 var Route$1 = createFileRoute("/$")({ component: lazyRouteComponent($$splitComponentImporter$1, "component") });
-var $$splitComponentImporter = () => import("./admin-HXEhvanJ.mjs");
+var $$splitComponentImporter = () => import("./admin-Di-UFeru.mjs");
 var Route = createFileRoute("/admin")({ component: lazyRouteComponent($$splitComponentImporter, "component") });
 var rootRouteChildren = {
 	IndexRoute: Route$2.update({

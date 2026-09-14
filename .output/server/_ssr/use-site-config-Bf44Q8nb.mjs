@@ -1,6 +1,6 @@
 import { n as __toESM } from "../_runtime.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/use-site-config-BbUwIRRQ.js
+//#region node_modules/.nitro/vite/services/ssr/assets/use-site-config-Bf44Q8nb.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var DEFAULT_CONFIG = {
@@ -24,7 +24,8 @@ var DEFAULT_CONFIG = {
 		heading: "",
 		description: "",
 		ctaLabel: "",
-		ctaHref: "#dang-ky"
+		ctaHref: "#dang-ky",
+		sectionIds: []
 	}, {
 		id: "thank-you",
 		title: "Cảm ơn",
@@ -36,7 +37,8 @@ var DEFAULT_CONFIG = {
 		heading: "Cảm ơn bạn đã đăng ký!",
 		description: "Thông tin đã được ghi nhận. Tư vấn viên sẽ liên hệ với bạn trong thời gian sớm nhất.",
 		ctaLabel: "Về trang chủ",
-		ctaHref: "/"
+		ctaHref: "/",
+		sectionIds: []
 	}],
 	tracking: {
 		facebookPixelId: "",

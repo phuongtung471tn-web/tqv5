@@ -212,6 +212,12 @@ function Landing() {
   const customSections = content.sectionsArray.filter((item) => item.type === "custom" && item.enabled);
   const links = contactLinks(config);
   const menuPages = config.pages.filter((page) => page.enabled && page.showInMenu).sort((a, b) => a.menuOrder - b.menuOrder);
+  const secondaryPageSectionIds = new Set(
+    config.pages
+      .filter((page) => page.id !== "home")
+      .flatMap((page) => page.sectionIds || []),
+  );
+  const homeCustomSections = customSections.filter((section) => !secondaryPageSectionIds.has(section.id));
   useEffect(() => initBehavior(), []);
 
 
@@ -506,7 +512,7 @@ function Landing() {
         </div>
       </section>
 
-      {customSections.map((item) => (
+      {homeCustomSections.map((item) => (
         <div key={item.id} style={{ order: item.order + 1 }}>
           <ContentSection section={item} />
         </div>
