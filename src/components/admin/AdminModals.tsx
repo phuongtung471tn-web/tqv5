@@ -3266,7 +3266,9 @@ function GuideModal({ onClose }: ModalProps) {
     .trim()
     .replace(/^\/+|\/+$/g, "")
     .toLowerCase();
-  const hasCustomAdminPath = Boolean(normalizedAdminPath && normalizedAdminPath !== "admin");
+  const hasCustomAdminPath = Boolean(
+    normalizedAdminPath && normalizedAdminPath !== "admin",
+  );
   const hasSupabaseConfig =
     !!config.admin.supabaseUrl.trim() && !!config.admin.supabaseAnonKey.trim();
   const cronEnabled = config.admin.cronSchedule !== "off";
@@ -3373,7 +3375,8 @@ function GuideModal({ onClose }: ModalProps) {
   const passedChecks = checks.filter((check) => check.ok).length;
   const healthScore = Math.round((passedChecks / totalChecks) * 100);
   const featureScore = Math.round(
-    (storageChecks.filter((check) => check.ok).length / storageChecks.length) * 10,
+    (storageChecks.filter((check) => check.ok).length / storageChecks.length) *
+      10,
   );
   return (
     <AdminModal
@@ -3431,10 +3434,12 @@ function GuideModal({ onClose }: ModalProps) {
       </div>
       <ul className="mb-4 list-disc space-y-1 pl-5 text-xs text-neutral-600 dark:text-neutral-300">
         <li>
-          Storage Mode: quyết định nơi lưu config/lead (local hoặc Supabase cloud).
+          Storage Mode: quyết định nơi lưu config/lead (local hoặc Supabase
+          cloud).
         </li>
         <li>
-          Cloud Cron & Backup: cấu hình lịch sao lưu định kỳ khi chạy Database Mode.
+          Cloud Cron & Backup: cấu hình lịch sao lưu định kỳ khi chạy Database
+          Mode.
         </li>
         <li>
           Đổi Link Admin: giảm rủi ro truy cập trái phép vào trang quản trị.
@@ -3449,14 +3454,15 @@ function GuideModal({ onClose }: ModalProps) {
           mã nguồn.
         </li>
         <li>
-          Kết nối Supabase trong Storage Mode để đồng bộ đa thiết bị & lưu lead cloud.
+          Kết nối Supabase trong Storage Mode để đồng bộ đa thiết bị & lưu lead
+          cloud.
         </li>
         <li>
           Bật Cron chỉ khi đã có Supabase URL + anon key + email backup hợp lệ.
         </li>
         <li>
-          Sau khi hoàn tất cấu hình, bấm LƯU và kiểm tra lại trạng thái Debug tester
-          phải đạt tối thiểu 8/10.
+          Sau khi hoàn tất cấu hình, bấm LƯU và kiểm tra lại trạng thái Debug
+          tester phải đạt tối thiểu 8/10.
         </li>
       </ol>
     </AdminModal>
