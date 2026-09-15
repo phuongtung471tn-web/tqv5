@@ -84,20 +84,9 @@ npm run build    # tạo bản build production
 Dùng khi muốn cấu hình & lead đồng bộ nhiều thiết bị thay vì chỉ localStorage.
 
 1. Tạo project tại [supabase.com](https://supabase.com).
-2. Trong SQL Editor, tạo bảng:
-   ```sql
-   create table if not exists site_config (
-     id int primary key,
-     data jsonb,
-     updated_at timestamptz default now()
-   );
-   create table if not exists leads (
-     id uuid primary key default gen_random_uuid(),
-     created_at timestamptz default now(),
-     name text, phone text, email text, city text, major text,
-     ai_score int, ai_rank text, utm_source text, variant text
-   );
-   ```
+2. Trong SQL Editor, chạy `supabase/funnel_configs.sql` và `supabase/visitor_tracking.sql`.
+   Nếu cần nhập tay, tối thiểu tạo các bảng `funnel_configs`, `leads`, `visitor_sessions`
+   với các cột tracking/CRM tương ứng để Database Mode lưu được lead + phiên truy cập.
 3. Bật RLS và thêm policy phù hợp (hoặc dùng service role qua webhook server-side).
 4. Vào **Admin → ⚙️ Storage Mode**: dán `Supabase URL` + `anon key`, đổi sang **Database**, bấm **Kiểm tra kết nối** rồi **LƯU**.
 

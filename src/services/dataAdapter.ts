@@ -11,6 +11,7 @@ import {
   type SiteConfig,
   type StorageMode,
 } from "@/config/site-config";
+import type { VisitorBehaviorPayload } from "@/types/visitor-tracking";
 
 const CONFIG_KEY = "funnel_site_config_v1";
 const LEADS_KEY = "funnel_leads_v1";
@@ -232,6 +233,12 @@ export interface LeadRecord {
   saleAdvice?: string;
   deviceTechInfo?: string;
   trafficAdsSource?: string;
+  networkProvider?: string;
+  networkLabel?: string;
+  currentSession?: number;
+  visitsToday?: number;
+  visitsMonth?: number;
+  visitorBehaviorPayload?: VisitorBehaviorPayload;
   utmMedium?: string;
   utmCampaign?: string;
   utmContent?: string;
@@ -323,8 +330,25 @@ async function pushLeadToSupabase(
           major: lead.major ?? null,
           ai_score: lead.aiScore ?? null,
           ai_rank: lead.aiRank ?? null,
+          risk_level: lead.riskLevel ?? null,
+          risk_reasons: lead.riskReasons ?? null,
+          recommended_action: lead.recommendedAction ?? null,
+          behavior_summary: lead.behaviorSummary ?? null,
+          sale_advice: lead.saleAdvice ?? null,
+          device_tech_info: lead.deviceTechInfo ?? null,
+          traffic_ads_source: lead.trafficAdsSource ?? null,
+          network_provider: lead.networkProvider ?? null,
+          network_label: lead.networkLabel ?? null,
+          current_session: lead.currentSession ?? null,
+          visits_today: lead.visitsToday ?? null,
+          visits_month: lead.visitsMonth ?? null,
           utm_source: lead.utmSource ?? null,
+          utm_medium: lead.utmMedium ?? null,
+          utm_campaign: lead.utmCampaign ?? null,
+          utm_content: lead.utmContent ?? null,
+          ttclid: lead.ttclid ?? null,
           variant: lead.variant ?? null,
+          visitor_behavior_payload: lead.visitorBehaviorPayload ?? null,
           created_at: lead.at,
         },
       ]),
@@ -353,6 +377,11 @@ export function exportLeadsCsv(leads: LeadRecord[]): void {
     "saleAdvice",
     "deviceTechInfo",
     "trafficAdsSource",
+    "networkProvider",
+    "networkLabel",
+    "currentSession",
+    "visitsToday",
+    "visitsMonth",
     "utmSource",
     "utmMedium",
     "utmCampaign",
