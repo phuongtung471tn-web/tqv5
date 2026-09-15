@@ -105,6 +105,11 @@ export interface FloatingContactConfig {
 
 export interface TrafficStatsConfig {
   enabled: boolean;
+  showOnSecondaryPages: boolean;
+  variant: "compact" | "detailed";
+  showAttribution: boolean;
+  fallbackNetworkLabel: string;
+  fallbackLocationLabel: string;
 }
 
 export interface FooterConfig {
@@ -634,6 +639,11 @@ export const DEFAULT_CONFIG: SiteConfig = {
   },
   trafficStats: {
     enabled: true,
+    showOnSecondaryPages: false,
+    variant: "detailed",
+    showAttribution: true,
+    fallbackNetworkLabel: "Mạng băng thông rộng · Việt Nam",
+    fallbackLocationLabel: "Việt Nam",
   },
   footer: {
     logoUrl: "",

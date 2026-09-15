@@ -3,6 +3,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useSiteConfig } from "@/lib/use-site-config";
 import { AdminLoginPage } from "@/components/admin/AdminLoginPage";
 import { ContentSection } from "@/components/ContentSection";
+import { FooterStats } from "@/components/FooterStats";
 
 export const Route = createFileRoute("/$")({
   component: CatchAll,
@@ -72,6 +73,13 @@ function CatchAll() {
             <ContentSection key={section.id} section={section} />
           ))}
         </div>
+        {config.trafficStats.enabled && config.trafficStats.showOnSecondaryPages && (
+          <footer className="border-t border-border bg-background py-10">
+            <div className="mx-auto max-w-6xl px-4">
+              <FooterStats />
+            </div>
+          </footer>
+        )}
       </main>
     );
   }

@@ -1,3 +1,10 @@
+import {
+  lookupNetworkInfo,
+  readDeviceProfile,
+  readEffectiveConnectionType,
+  readTrackingSource,
+} from "@/lib/visitor-diagnostics";
+
 /**
  * Micro-Behavioral Analytics + Cyber Fraud Defense.
  *
@@ -100,44 +107,12 @@ function writeJSON(key: string, value: unknown) {
 /* ---------------- device parsing ---------------- */
 
 export function detectDevice() {
-  if (!isBrowser())
-    return { model: "Unknown", os: "Unknown", browser: "Unknown" };
-  const ua = navigator.userAgent;
-  let os = "Unknown";
-  if (/Windows NT/.test(ua)) os = "Windows";
-  else if (/Android/.test(ua)) os = "Android";
-  else if (/iPhone|iPad|iPod/.test(ua)) os = /iPad/.test(ua) ? "iPadOS" : "iOS";
-  else if (/Mac OS X/.test(ua)) os = "macOS";
-  else if (/Linux/.test(ua)) os = "Linux";
-
-  let browser = "Khác";
-  if (/Edg\//.test(ua)) browser = "Edge";
-  else if (/OPR\/|Opera/.test(ua)) browser = "Opera";
-  else if (/Chrome\//.test(ua) && !/Edg\//.test(ua)) browser = "Chrome";
-  else if (/Safari\//.test(ua) && /Version\//.test(ua)) browser = "Safari";
-  else if (/Firefox\//.test(ua)) browser = "Firefox";
-  if (/FBAN|FBAV/.test(ua)) browser = "Facebook In-App";
-  if (/TikTok|BytedanceWebview/i.test(ua)) browser = "TikTok In-App";
-  if (/Zalo/i.test(ua)) browser = "Zalo In-App";
-
-  let model = os;
-  const android = ua.match(/Android\s[\d.]+;\s([^;)]+)/);
-  if (android?.[1]) model = android[1].replace(/Build\/.*/, "").trim();
-  else if (/iPhone/.test(ua)) {
-    const w = Math.max(screen.width, screen.height);
-    const dpr = window.devicePixelRatio || 2;
-    if (w >= 932) model = "iPhone Pro Max (15/16)";
-    else if (w >= 926) model = "iPhone Pro Max (12/13/14)";
-    else if (w >= 896) model = "iPhone XR/11/XS Max";
-    else if (w >= 852) model = "iPhone 14/15/16 Pro";
-    else if (w >= 844) model = "iPhone 12/13/14";
-    else if (w >= 812) model = "iPhone X/XS/11 Pro";
-    else model = dpr >= 3 ? "iPhone Plus" : "iPhone SE/8";
-  } else if (/iPad/.test(ua)) model = "iPad";
-  else if (os === "Windows") model = "PC Windows";
-  else if (os === "macOS") model = "Mac";
-
-  return { model, os, browser };
+  const device = readDeviceProfile();
+  return {
+    model: device.model,
+    os: [device.osName, device.osVersion].filter(Boolean).join(" "),
+    browser: [device.browserName, device.browserVersion].filter(Boolean).join(" "),
+  };
 }
 
 export function isHeadless() {
@@ -154,37 +129,20 @@ export function isHeadless() {
 
 export function getConnectionType() {
   if (!isBrowser()) return "";
-  const c = (
-    navigator as Navigator & { connection?: { effectiveType?: string } }
-  ).connection;
-  return c?.effectiveType ? c.effectiveType.toUpperCase() : "";
+  return readEffectiveConnectionType();
 }
 
 /* ---------------- UTM ---------------- */
 
 function utm() {
-  if (!isBrowser())
-    return { source: "", medium: "", campaign: "", content: "", ttclid: "" };
-  const stored = readJSON<Record<string, string>>("lp_utm", {});
-  const p = new URLSearchParams(window.location.search);
-  const pick = (k: string) => p.get(k) || stored[k] || "";
-  const data = {
-    source: pick("utm_source"),
-    medium: pick("utm_medium"),
-    campaign: pick("utm_campaign"),
-    content: pick("utm_content"),
-    ttclid: pick("ttclid"),
+  const source = readTrackingSource();
+  return {
+    source: source.source,
+    medium: source.medium,
+    campaign: source.campaign,
+    content: source.content,
+    ttclid: source.ttclid,
   };
-  if (p.toString()) {
-    writeJSON("lp_utm", {
-      utm_source: data.source,
-      utm_medium: data.medium,
-      utm_campaign: data.campaign,
-      utm_content: data.content,
-      ttclid: data.ttclid,
-    });
-  }
-  return data;
 }
 
 /* ---------------- traffic stats (footer widget) ---------------- */
@@ -317,35 +275,13 @@ export function initBehavior() {
     .catch(() => {});
 
   // IP + city (không chặn UI)
-  fetch("https://ipwho.is/")
-    .then((r) => r.json())
-    .then(
-      (j: {
-        ip?: string;
-        city?: string;
-        connection?: { isp?: string; org?: string };
-        security?: {
-          vpn?: boolean;
-          proxy?: boolean;
-          tor?: boolean;
-          hosting?: boolean;
-        };
-      }) => {
-        if (j?.ip) {
-          state.ip = j.ip;
-          state.city = j.city || "";
-          state.networkProvider = j.connection?.isp || j.connection?.org || "";
-          state.networkFlags = [
-            j.security?.vpn && "VPN",
-            j.security?.proxy && "Proxy",
-            j.security?.tor && "Tor",
-            j.security?.hosting && "Hosting",
-          ].filter((flag): flag is string => Boolean(flag));
-          bumpIpVisits(j.ip);
-        }
-      },
-    )
-    .catch(() => {});
+  void lookupNetworkInfo().then((network) => {
+    state.ip = network.ipAddress;
+    state.city = network.city;
+    state.networkProvider = network.isp;
+    state.networkFlags = network.networkFlags;
+    if (network.ipAddress) bumpIpVisits(network.ipAddress);
+  });
 
   return () => {
     events.forEach(([n, h]) => window.removeEventListener(n, h));
@@ -400,7 +336,7 @@ export function collectBehavior(form: {
   major: string;
 }): BehaviorData {
   const now = Date.now();
-  const dev = detectDevice();
+  const dev = readDeviceProfile();
   const u = utm();
   const focus =
     Object.entries(state.sectionTime).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "";
@@ -423,8 +359,8 @@ export function collectBehavior(form: {
     is_headless_browser: isHeadless(),
     submission_count_same_ip: submissionCount,
     device_model_name: dev.model,
-    operating_system: dev.os,
-    browser: dev.browser,
+    operating_system: [dev.osName, dev.osVersion].filter(Boolean).join(" "),
+    browser: [dev.browserName, dev.browserVersion].filter(Boolean).join(" "),
     connection_type: getConnectionType(),
     network_provider: state.networkProvider,
     network_flags: state.networkFlags,
