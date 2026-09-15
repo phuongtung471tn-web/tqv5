@@ -310,6 +310,10 @@ function ThemeModal({ onClose }: ModalProps) {
           onChange={(e) => update((d) => (d.theme.fontBody = e.target.value))}
         />
       </Field>
+      <p className="text-[11px] text-neutral-400">
+        Màu và font này được áp dụng chung cho trang chủ, trang phụ và các khối
+        nội dung.
+      </p>
       <SaveHint />
     </AdminModal>
   );
@@ -571,12 +575,117 @@ function PixelModal({ onClose }: ModalProps) {
 function WebmasterModal({ onClose }: ModalProps) {
   const { config, update } = useSiteConfig();
   const t = config.tracking;
+  const [logs, setLogs] = useState<TestEventLog[] | null>(null);
   return (
     <AdminModal
       title="Webmaster & Custom Scripts"
-      subtitle="Xác minh Google + chèn mã tùy chỉnh"
+      subtitle="Pixel, tracking, xác minh Google và mã tùy chỉnh"
       onClose={onClose}
     >
+      <div className="mb-4 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
+        <p className="mb-3 text-xs font-bold">Pixel & sự kiện quảng cáo</p>
+        <Field label="Facebook Pixel ID">
+          <TextInput
+            value={t.facebookPixelId}
+            onChange={(e) =>
+              update((d) => (d.tracking.facebookPixelId = e.target.value))
+            }
+          />
+        </Field>
+        <Field label="TikTok Pixel ID">
+          <TextInput
+            value={t.tiktokPixelId}
+            onChange={(e) =>
+              update((d) => (d.tracking.tiktokPixelId = e.target.value))
+            }
+          />
+        </Field>
+        <Field
+          label="TikTok Events API Access Token"
+          hint="Chỉ lưu để backend dùng; không nhúng token vào browser."
+        >
+          <TextInput
+            type="password"
+            value={t.tiktokAccessToken}
+            autoComplete="new-password"
+            onChange={(e) =>
+              update((d) => (d.tracking.tiktokAccessToken = e.target.value))
+            }
+          />
+        </Field>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="GA4 Measurement ID">
+            <TextInput
+              value={t.ga4Id}
+              placeholder="G-XXXXXXXXXX"
+              onChange={(e) =>
+                update((d) => (d.tracking.ga4Id = e.target.value))
+              }
+            />
+          </Field>
+          <Field label="Google Tag Manager ID">
+            <TextInput
+              value={t.gtmId}
+              placeholder="GTM-XXXXXXX"
+              onChange={(e) =>
+                update((d) => (d.tracking.gtmId = e.target.value))
+              }
+            />
+          </Field>
+        </div>
+        <p className="mb-2 mt-3 text-[11px] font-semibold text-neutral-600">
+          Sự kiện được phép ghi nhận
+        </p>
+        <div className="grid gap-1 sm:grid-cols-2">
+          {(
+            [
+              ["pageView", "PageView"],
+              ["formStart", "Form Start"],
+              ["lead", "Lead"],
+              ["completeRegistration", "CompleteRegistration"],
+              ["click", "Click CTA / liên hệ"],
+              ["scroll", "Scroll depth"],
+            ] as const
+          ).map(([key, label]) => (
+            <Toggle
+              key={key}
+              checked={t.events[key] !== false}
+              onChange={(value) =>
+                update((draft) => {
+                  draft.tracking.events[key] = value;
+                })
+              }
+              label={label}
+            />
+          ))}
+        </div>
+        <p className="mt-3 text-[11px] text-neutral-400">
+          Webhook nhận UTM, hành vi form, click, scroll và trạng thái chuyển đổi
+          sau khi CRM lưu lead thành công. Dùng Webmaster làm nơi kiểm tra Pixel
+          và tracking duy nhất.
+        </p>
+        <button
+          type="button"
+          onClick={() => setLogs(fireTestEvent())}
+          className="mt-3 w-full rounded-lg bg-neutral-900 py-2.5 text-xs font-bold text-white dark:bg-white dark:text-neutral-900"
+        >
+          Kiểm tra sự kiện Pixel / Ads
+        </button>
+        {logs && (
+          <ul className="mt-3 space-y-1 text-[11px]">
+            {logs.map((log) => (
+              <li key={log.channel} className="flex gap-2">
+                <span className={log.ok ? "text-emerald-500" : "text-red-500"}>
+                  {log.ok ? "OK" : "Lỗi"}
+                </span>
+                <span>
+                  <strong>{log.channel}</strong>: {log.detail}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <Field label="Google Search Console verification">
         <TextInput
           value={t.googleVerification}

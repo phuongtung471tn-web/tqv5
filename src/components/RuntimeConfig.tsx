@@ -187,7 +187,17 @@ export function RuntimeConfig() {
         "--font-sans",
         `"${config.theme.fontBody}", system-ui, sans-serif`,
       );
-  }, [config.theme.primary, config.theme.gold, config.theme.fontBody]);
+    if (config.theme.fontHeading)
+      root.style.setProperty(
+        "--font-display",
+        `"${config.theme.fontHeading}", system-ui, sans-serif`,
+      );
+  }, [
+    config.theme.primary,
+    config.theme.gold,
+    config.theme.fontBody,
+    config.theme.fontHeading,
+  ]);
 
   // Analytics: ghi nhận 1 lượt truy cập/phiên + gán biến thể A/B
   useEffect(() => {
