@@ -11,7 +11,6 @@ import {
   CloudUpload,
   Database,
   Search,
-  BrainCircuit,
   KeyRound,
   Save,
   Package,
@@ -50,7 +49,6 @@ const TOOLS: Tool[] = [
   { key: "cron", label: "Cloud Cron & Backup", icon: CloudUpload },
   { key: "storage", label: "Storage Mode", icon: Database },
   { key: "seo", label: "SEO Google", icon: Search },
-  { key: "ai", label: "AI Sales Advisor", icon: BrainCircuit },
   { key: "adminlink", label: "Đổi Link Admin", icon: KeyRound },
 ];
 

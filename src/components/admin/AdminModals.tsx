@@ -1088,6 +1088,99 @@ function WebhookModal({ onClose }: ModalProps) {
           bật CORS; khi đó nên dùng Make/Zapier làm cổng trung gian.
         </p>
       </div>
+      <div className="mb-3 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
+        <p className="mb-1 text-xs font-bold text-neutral-800">
+          AI Sales Advisor & kịch bản gọi
+        </p>
+        <p className="mb-3 text-[11px] text-neutral-500">
+          AI dùng hành vi tracking đã thu thập để chấm điểm, phân loại và gợi ý
+          cách gọi. Kết quả được gửi cùng payload webhook và lưu trong Mini-CRM.
+        </p>
+        <Toggle
+          checked={config.aiAdvisor.enabled}
+          onChange={(value) =>
+            update((draft) => (draft.aiAdvisor.enabled = value))
+          }
+          label="Bật AI Sales Advisor"
+        />
+        {config.aiAdvisor.enabled && (
+          <div className="mt-3 space-y-3">
+            <Field label="Regex thiết bị ưu tiên">
+              <TextInput
+                value={config.aiAdvisor.vipDeviceRegex}
+                onChange={(event) =>
+                  update(
+                    (draft) =>
+                      (draft.aiAdvisor.vipDeviceRegex = event.target.value),
+                  )
+                }
+              />
+            </Field>
+            <Field label="Tỉnh trọng điểm, phân tách bằng |">
+              <TextInput
+                value={config.aiAdvisor.keyRegions}
+                onChange={(event) =>
+                  update(
+                    (draft) =>
+                      (draft.aiAdvisor.keyRegions = event.target.value),
+                  )
+                }
+              />
+            </Field>
+            <div className="grid grid-cols-3 gap-2">
+              <Field label="Điền nhanh (s)">
+                <TextInput
+                  type="number"
+                  min="1"
+                  value={config.aiAdvisor.fastFillThresholdSec}
+                  onChange={(event) =>
+                    update(
+                      (draft) =>
+                        (draft.aiAdvisor.fastFillThresholdSec = Math.max(
+                          1,
+                          Number(event.target.value) || 1,
+                        )),
+                    )
+                  }
+                />
+              </Field>
+              <Field label="VIP: thời gian (s)">
+                <TextInput
+                  type="number"
+                  min="1"
+                  value={config.aiAdvisor.vipTimeOnPageSec}
+                  onChange={(event) =>
+                    update(
+                      (draft) =>
+                        (draft.aiAdvisor.vipTimeOnPageSec = Math.max(
+                          1,
+                          Number(event.target.value) || 1,
+                        )),
+                    )
+                  }
+                />
+              </Field>
+              <Field label="VIP: cuộn (%)">
+                <TextInput
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={config.aiAdvisor.vipScrollPercent}
+                  onChange={(event) =>
+                    update(
+                      (draft) =>
+                        (draft.aiAdvisor.vipScrollPercent = Math.min(
+                          100,
+                          Math.max(1, Number(event.target.value) || 1),
+                        )),
+                    )
+                  }
+                />
+              </Field>
+            </div>
+          </div>
+        )}
+      </div>
       {list.length === 0 && (
         <p className="mb-3 text-xs text-neutral-400">
           Chưa có endpoint nào. Thêm mới bên dưới.
