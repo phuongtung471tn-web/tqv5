@@ -727,6 +727,9 @@ function WebmasterModal({ onClose }: ModalProps) {
 function SeoModal({ onClose }: ModalProps) {
   const { config, update } = useSiteConfig();
   const s = config.seo;
+  const faviconInputRef = useRef<HTMLInputElement>(null);
+  const titleLength = s.title.length;
+  const descriptionLength = s.description.length;
   return (
     <AdminModal
       title="SEO Google"
@@ -739,12 +742,22 @@ function SeoModal({ onClose }: ModalProps) {
           onChange={(e) => update((d) => (d.seo.title = e.target.value))}
         />
       </Field>
+      <p
+        className={`text-[11px] ${titleLength > 60 ? "text-amber-600" : "text-neutral-400"}`}
+      >
+        Meta Title: {titleLength}/60 ký tự
+      </p>
       <Field label="Meta Description">
         <TextArea
           value={s.description}
           onChange={(e) => update((d) => (d.seo.description = e.target.value))}
         />
       </Field>
+      <p
+        className={`text-[11px] ${descriptionLength > 160 ? "text-amber-600" : "text-neutral-400"}`}
+      >
+        Meta Description: {descriptionLength}/160 ký tự
+      </p>
       <Field label="Keywords">
         <TextInput
           value={s.keywords}
@@ -756,6 +769,42 @@ function SeoModal({ onClose }: ModalProps) {
           value={s.ogImage}
           onChange={(e) => update((d) => (d.seo.ogImage = e.target.value))}
         />
+      </Field>
+      <Field
+        label="Favicon URL hoặc ảnh tải lên"
+        hint="Dùng .ico/.png/.svg; ảnh tải lên tối đa 512KB."
+      >
+        <div className="space-y-2">
+          <TextInput
+            value={s.faviconUrl}
+            placeholder="/favicon.ico hoặc https://..."
+            onChange={(e) => update((d) => (d.seo.faviconUrl = e.target.value))}
+          />
+          <input
+            ref={faviconInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file || file.size > 512 * 1024) return;
+              const reader = new FileReader();
+              reader.onload = () => {
+                if (typeof reader.result === "string")
+                  update((d) => (d.seo.faviconUrl = reader.result as string));
+              };
+              reader.readAsDataURL(file);
+              e.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => faviconInputRef.current?.click()}
+            className="rounded-lg border border-neutral-300 px-3 py-2 text-xs font-bold"
+          >
+            Chọn favicon
+          </button>
+        </div>
       </Field>
       <Field label="Schema Type">
         <TextInput

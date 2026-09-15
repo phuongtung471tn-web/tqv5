@@ -69,6 +69,7 @@ export interface SeoConfig {
   description: string;
   keywords: string;
   ogImage: string;
+  faviconUrl: string;
   schemaType: string;
 }
 
@@ -297,6 +298,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
     keywords:
       "du học nghề trung quốc, học bổng trung quốc, du học vừa học vừa làm",
     ogImage: "/og-image.jpg",
+    faviconUrl: "/favicon.ico",
     schemaType: "EducationalOrganization",
   },
   theme: {

@@ -56,6 +56,31 @@ function setMeta(name: string, content: string) {
   el.content = content;
 }
 
+function setProperty(property: string, content: string) {
+  if (!content) return;
+  let el = document.querySelector<HTMLMetaElement>(
+    `meta[property="${property}"]`,
+  );
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute("property", property);
+    document.head.appendChild(el);
+  }
+  el.content = content;
+}
+
+function setLink(rel: string, href: string, type?: string) {
+  if (!href) return;
+  let el = document.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
+  if (!el) {
+    el = document.createElement("link");
+    el.rel = rel;
+    document.head.appendChild(el);
+  }
+  el.href = href;
+  if (type) el.type = type;
+}
+
 /**
  * Áp dụng cấu hình động lên trang thật: Pixel/GA4/GTM, mã xác thực
  * webmaster, custom scripts, màu & font theme, chia biến thể A/B và
@@ -66,6 +91,12 @@ export function RuntimeConfig() {
   const t = config.tracking;
   const clickTracking = t.events.click;
   const scrollTracking = t.events.scroll;
+  const seoTitle = config.seo.title;
+  const seoDescription = config.seo.description;
+  const seoKeywords = config.seo.keywords;
+  const seoOgImage = config.seo.ogImage;
+  const seoFaviconUrl = config.seo.faviconUrl;
+  const seoSchemaType = config.seo.schemaType;
 
   // Pixel & tracking
   useEffect(() => {
@@ -197,6 +228,50 @@ export function RuntimeConfig() {
     config.theme.gold,
     config.theme.fontBody,
     config.theme.fontHeading,
+  ]);
+
+  useEffect(() => {
+    if (seoTitle) document.title = seoTitle;
+    setMeta("description", seoDescription);
+    setMeta("keywords", seoKeywords);
+    setProperty("og:title", seoTitle);
+    setProperty("og:description", seoDescription);
+    setProperty("og:type", "website");
+    setProperty(
+      "og:image",
+      /^https?:\/\//i.test(seoOgImage)
+        ? seoOgImage
+        : `${window.location.origin}${seoOgImage.startsWith("/") ? seoOgImage : `/${seoOgImage}`}`,
+    );
+    setMeta("twitter:title", seoTitle);
+    setMeta("twitter:description", seoDescription);
+    setLink("canonical", window.location.href.split("#")[0] || "/");
+    setLink(
+      "icon",
+      seoFaviconUrl,
+      seoFaviconUrl.endsWith(".ico") ? "image/x-icon" : undefined,
+    );
+    let schema = document.getElementById("runtime-seo-schema");
+    if (!schema) {
+      schema = document.createElement("script");
+      schema.id = "runtime-seo-schema";
+      schema.type = "application/ld+json";
+      document.head.appendChild(schema);
+    }
+    schema.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": seoSchemaType || "WebPage",
+      name: seoTitle,
+      description: seoDescription,
+      url: window.location.href.split("#")[0],
+    });
+  }, [
+    seoTitle,
+    seoDescription,
+    seoKeywords,
+    seoOgImage,
+    seoFaviconUrl,
+    seoSchemaType,
   ]);
 
   // Analytics: ghi nhận 1 lượt truy cập/phiên + gán biến thể A/B
