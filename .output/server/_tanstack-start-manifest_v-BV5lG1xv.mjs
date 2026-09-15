@@ -1,4 +1,4 @@
-//#region node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-CWnx-AcK.js
+//#region node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-BV5lG1xv.js
 var tsrStartManifest = () => ({ routes: {
 	__root__: {
 		filePath: "/home/runner/work/tqv5/tqv5/src/routes/__root.tsx",
@@ -8,7 +8,7 @@ var tsrStartManifest = () => ({ routes: {
 			"/admin"
 		],
 		preloads: [
-			"/assets/index-quDLKngu.js",
+			"/assets/index-BHn-TpZa.js",
 			"/assets/createLucideIcon-BP9wCaMk.js",
 			"/assets/invariant-Deh0CqWL.js",
 			"/assets/link-BxDvH3NQ.js",
@@ -17,13 +17,13 @@ var tsrStartManifest = () => ({ routes: {
 		scripts: [{ attrs: {
 			type: "module",
 			async: !0,
-			src: "/assets/index-quDLKngu.js"
+			src: "/assets/index-BHn-TpZa.js"
 		} }]
 	},
 	"/": {
 		filePath: "/home/runner/work/tqv5/tqv5/src/routes/index.tsx",
 		children: void 0,
-		preloads: ["/assets/routes-CHR_cu9a.js", "/assets/ContentSection-B7WyZdYf.js"]
+		preloads: ["/assets/routes-CpZ0QIPZ.js", "/assets/ContentSection-B7WyZdYf.js"]
 	},
 	"/$": {
 		filePath: "/home/runner/work/tqv5/tqv5/src/routes/$.tsx",

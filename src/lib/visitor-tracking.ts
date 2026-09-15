@@ -168,7 +168,11 @@ function writeSessionMarker(value: string) {
 
 function makeId(prefix: string) {
   if (!isBrowser()) return `${prefix}-ssr`;
-  return `${prefix}-${crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`}`;
+  if (crypto.randomUUID) return `${prefix}-${crypto.randomUUID()}`;
+  const seed = Array.from(crypto.getRandomValues(new Uint32Array(2)))
+    .map((value) => value.toString(16))
+    .join("");
+  return `${prefix}-${Date.now()}-${seed}`;
 }
 
 function dayKey() {

@@ -6,7 +6,7 @@ import { b as useRouter, c as HeadContent, d as createRouter, f as Outlet, g as 
 import { A as ClipboardList, C as FileText, D as Database, E as Download, N as BookOpen, P as Bell, S as Globe, T as EyeOff, _ as Mail, a as Tablet, b as KeyRound, c as Search, f as Pencil, i as Trash2, j as ChartColumn, k as CloudUpload, l as RotateCcw, m as Monitor, o as SquareSplitHorizontal, p as Package, r as Upload, s as Smartphone, t as X, u as Plus, w as Eye, x as GraduationCap, y as Link2 } from "../_libs/lucide-react.mjs";
 import { a as resetVariant, c as testWebhookEndpoint, f as utmSource, i as getVariant, p as webhookConfigurationWarning, r as fireTestEvent, s as sendTestEmail, t as checkEmailConfig, u as trackInteraction } from "./ab-DUIDkaDP.mjs";
 import { t as QueryClient } from "../_libs/tanstack__query-core.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-SrRrtPLG.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-CYggyTHc.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var styles_default = "/assets/styles-BmdfIvze.css";
@@ -3919,7 +3919,7 @@ function RootComponent() {
 		] }) })
 	});
 }
-var $$splitComponentImporter$2 = () => import("./routes-7zEQCwhw.mjs");
+var $$splitComponentImporter$2 = () => import("./routes-jLUCGl6v.mjs");
 var TITLE = "Du Học Nghề Trung Quốc 0Đ | Vừa Học Vừa Làm Lương 15-30 Triệu";
 var DESC = "Du học nghề Trung Quốc học phí 0Đ: học 20% lý thuyết - 80% thực hành, lương cứng 15-30 triệu/tháng, bằng Cao đẳng chính quy quốc tế. Đăng ký nhận lộ trình miễn phí.";
 var FAQ_JSONLD = JSON.stringify({

@@ -5,7 +5,7 @@ import { F as Activity, M as CalendarDays, O as Cpu, d as Phone, g as MapPin, h 
 import { n as ScarcityBar, t as ContentSection } from "./ContentSection-BnvvopOE.mjs";
 import { d as trackLead, f as utmSource, i as getVariant, l as trackFormStart, n as dispatchLead, o as sendLeadEmail } from "./ab-DUIDkaDP.mjs";
 import { n as toast, t as Toaster } from "../_libs/sonner.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-7zEQCwhw.js
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-jLUCGl6v.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var expert_1_default = "/assets/expert-1-CcX0y7YN.webp";
@@ -124,7 +124,9 @@ function writeSessionMarker(value) {
 }
 function makeId(prefix) {
 	if (!isBrowser()) return `${prefix}-ssr`;
-	return `${prefix}-${crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`}`;
+	if (crypto.randomUUID) return `${prefix}-${crypto.randomUUID()}`;
+	const seed = Array.from(crypto.getRandomValues(/* @__PURE__ */ new Uint32Array(2))).map((value) => value.toString(16)).join("");
+	return `${prefix}-${Date.now()}-${seed}`;
 }
 function dayKey() {
 	return (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
