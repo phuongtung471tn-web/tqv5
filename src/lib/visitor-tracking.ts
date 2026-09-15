@@ -148,7 +148,11 @@ function ensureIdentity() {
   } catch {
     /* ignore quota */
   }
-  return { sessionId: device.sessionId, fingerprint: device.fingerprint, device };
+  return {
+    sessionId: device.sessionId,
+    fingerprint: device.fingerprint,
+    device,
+  };
 }
 
 function readSupabaseConfig(config: SiteConfig): SupabaseConfig | null {
@@ -169,7 +173,7 @@ function supabaseHeaders(key: string) {
   return {
     "Content-Type": "application/json",
     apikey: key,
-    Authorization: `******
+    Authorization: "Bearer " + key,
     Prefer: "resolution=merge-duplicates,return=minimal",
   };
 }
@@ -237,7 +241,7 @@ async function countSupabaseSessions(
     {
       headers: {
         apikey: supabase.key,
-        Authorization: `******
+        Authorization: "Bearer " + supabase.key,
       },
     },
   );
@@ -282,7 +286,9 @@ function readStoredNetwork() {
   if (!isBrowser()) return defaultNetwork();
   try {
     const raw = window.localStorage.getItem(VISITOR_NETWORK_KEY);
-    return raw ? ({ ...defaultNetwork(), ...JSON.parse(raw) } as NetworkInfo) : defaultNetwork();
+    return raw
+      ? ({ ...defaultNetwork(), ...JSON.parse(raw) } as NetworkInfo)
+      : defaultNetwork();
   } catch {
     return defaultNetwork();
   }
@@ -301,7 +307,10 @@ function normalizeStorageMode(mode: TrackingStorageMode | undefined) {
   return mode === "database" ? "database" : "local";
 }
 
-async function hydrateVisitorMetrics(config: SiteConfig, device: DeviceProfile) {
+async function hydrateVisitorMetrics(
+  config: SiteConfig,
+  device: DeviceProfile,
+) {
   const localMetrics = persistLocalSession(device);
   const supabase = readSupabaseConfig(config);
   if (!supabase) {
@@ -314,11 +323,20 @@ async function hydrateVisitorMetrics(config: SiteConfig, device: DeviceProfile) 
     };
   }
   try {
-    const synced = await syncSessionToSupabase(supabase, device, trackingState.network);
+    const synced = await syncSessionToSupabase(
+      supabase,
+      device,
+      trackingState.network,
+    );
     if (!synced) throw new Error("sync failed");
     const [today, month] = await Promise.all([
       countSupabaseSessions(supabase, device.fingerprint, "day_key", dayKey()),
-      countSupabaseSessions(supabase, device.fingerprint, "month_key", monthKey()),
+      countSupabaseSessions(
+        supabase,
+        device.fingerprint,
+        "month_key",
+        monthKey(),
+      ),
     ]);
     return {
       currentSession: 1,

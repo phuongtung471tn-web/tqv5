@@ -4,7 +4,10 @@ import { useSiteConfig } from "@/lib/use-site-config";
 import { getVariant, utmSource } from "@/lib/ab";
 import { trackVisit } from "@/services/dataAdapter";
 import { trackInteraction } from "@/lib/tracking";
-import { initVisitorTracking, refreshVisitorTracking } from "@/lib/visitor-tracking";
+import {
+  initVisitorTracking,
+  refreshVisitorTracking,
+} from "@/lib/visitor-tracking";
 
 /** Chèn một thẻ <script> nội tuyến một lần duy nhất. */
 function injectInline(
@@ -292,17 +295,11 @@ export function RuntimeConfig() {
     }
   }, [config.abTest.enabled, config.abTest.split]);
 
-  useEffect(() => initVisitorTracking(config), []);
+  useEffect(() => initVisitorTracking(config), [config]);
 
   useEffect(() => {
     void refreshVisitorTracking(config);
-  }, [
-    config.admin.storageMode,
-    config.admin.supabaseUrl,
-    config.admin.supabaseAnonKey,
-    config.trafficStats.fallbackLocationLabel,
-    config.trafficStats.fallbackNetworkLabel,
-  ]);
+  }, [config]);
 
   return null;
 }

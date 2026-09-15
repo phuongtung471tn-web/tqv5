@@ -65,8 +65,7 @@ function buildAppleModel() {
 function inferDeviceKind(userAgent: string): DeviceKind {
   if (/HeadlessChrome|Puppeteer|Playwright|PhantomJS/i.test(userAgent))
     return "bot";
-  if (/iPad|Tablet|Nexus 7|Nexus 10|SM-T|Tab/i.test(userAgent))
-    return "tablet";
+  if (/iPad|Tablet|Nexus 7|Nexus 10|SM-T|Tab/i.test(userAgent)) return "tablet";
   if (/Mobi|iPhone|Android/i.test(userAgent)) return "mobile";
   if (userAgent) return "desktop";
   return "unknown";
@@ -157,10 +156,9 @@ export function readTrackingSource(): TrackingSource {
     return { source: "", medium: "", campaign: "", content: "", ttclid: "" };
   let stored: Record<string, string> = {};
   try {
-    stored = JSON.parse(window.localStorage.getItem("lp_utm") || "{}") as Record<
-      string,
-      string
-    >;
+    stored = JSON.parse(
+      window.localStorage.getItem("lp_utm") || "{}",
+    ) as Record<string, string>;
   } catch {
     stored = {};
   }
@@ -231,9 +229,12 @@ export function readDeviceProfile(seed?: {
   ].join("|");
   const fingerprint = seed?.fingerprint || stringHash(fingerprintBase);
   const sessionId =
-    seed?.sessionId || `vs_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    seed?.sessionId ||
+    `vs_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
   const osDisplay = [os.name, os.version].filter(Boolean).join(" ");
-  const browserDisplay = [browser.name, browser.version].filter(Boolean).join(" ");
+  const browserDisplay = [browser.name, browser.version]
+    .filter(Boolean)
+    .join(" ");
   return {
     sessionId,
     fingerprint,
@@ -283,8 +284,9 @@ function buildNetworkLabels(network: {
   isp?: string;
 }) {
   const locationLabel =
-    [network.city, network.region, network.country].filter(Boolean).join(", ") ||
-    DEFAULT_LOCATION_LABEL;
+    [network.city, network.region, network.country]
+      .filter(Boolean)
+      .join(", ") || DEFAULT_LOCATION_LABEL;
   const provider = network.isp || "Mạng băng thông rộng";
   return {
     label: `${provider} · ${network.country || "Việt Nam"}`,

@@ -73,13 +73,14 @@ function CatchAll() {
             <ContentSection key={section.id} section={section} />
           ))}
         </div>
-        {config.trafficStats.enabled && config.trafficStats.showOnSecondaryPages && (
-          <footer className="border-t border-border bg-background py-10">
-            <div className="mx-auto max-w-6xl px-4">
-              <FooterStats />
-            </div>
-          </footer>
-        )}
+        {config.trafficStats.enabled &&
+          config.trafficStats.showOnSecondaryPages && (
+            <footer className="border-t border-border bg-background py-10">
+              <div className="mx-auto max-w-6xl px-4">
+                <FooterStats />
+              </div>
+            </footer>
+          )}
       </main>
     );
   }

@@ -1578,7 +1578,9 @@ function LeadsModal({ onClose }: ModalProps) {
                     )}
                     {(l.deviceProfile || l.networkLabel) && (
                       <p className="mt-1 max-w-[240px] break-words text-[10px] font-medium text-neutral-500">
-                        {[l.deviceProfile, l.networkLabel].filter(Boolean).join(" · ")}
+                        {[l.deviceProfile, l.networkLabel]
+                          .filter(Boolean)
+                          .join(" · ")}
                       </p>
                     )}
                   </td>
@@ -1592,7 +1594,8 @@ function LeadsModal({ onClose }: ModalProps) {
                     {l.utmSource || "direct"}
                     {(l.visitsToday || l.visitsMonth) && (
                       <p className="mt-1 text-[10px]">
-                        Hôm nay {l.visitsToday ?? 0} · Tháng {l.visitsMonth ?? 0}
+                        Hôm nay {l.visitsToday ?? 0} · Tháng{" "}
+                        {l.visitsMonth ?? 0}
                       </p>
                     )}
                   </td>

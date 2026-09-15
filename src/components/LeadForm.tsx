@@ -240,10 +240,13 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
     const { score: aiScore, rank: aiRank } = assessment;
     const variant = getVariant(config.abTest.enabled, config.abTest.split);
     const source = utmSource();
-    const deviceProfile = visitor.device.modelDisplay || behavior.device_model_name;
-    const networkLabel = visitor.network.label || config.trafficStats.fallbackNetworkLabel;
+    const deviceProfile =
+      visitor.device.modelDisplay || behavior.device_model_name;
+    const networkLabel =
+      visitor.network.label || config.trafficStats.fallbackNetworkLabel;
     const locationLabel =
-      visitor.network.locationLabel || config.trafficStats.fallbackLocationLabel;
+      visitor.network.locationLabel ||
+      config.trafficStats.fallbackLocationLabel;
     const visitMetrics = visitor.metrics;
     const attributionSummary = [
       visitor.source.source || behavior.utm_source || "direct",

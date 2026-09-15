@@ -111,7 +111,9 @@ export function detectDevice() {
   return {
     model: device.model,
     os: [device.osName, device.osVersion].filter(Boolean).join(" "),
-    browser: [device.browserName, device.browserVersion].filter(Boolean).join(" "),
+    browser: [device.browserName, device.browserVersion]
+      .filter(Boolean)
+      .join(" "),
   };
 }
 
