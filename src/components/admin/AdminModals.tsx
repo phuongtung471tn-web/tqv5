@@ -1925,6 +1925,13 @@ function LandingEditorModal({ onClose }: ModalProps) {
       </div>
       <div className="mb-4 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
         <p className="mb-2 text-xs font-bold">Thứ tự & trạng thái section</p>
+        <Toggle
+          checked={config.trafficStats.enabled}
+          onChange={(value) =>
+            update((draft) => (draft.trafficStats.enabled = value))
+          }
+          label="Hiển thị khối thống kê truy cập ở chân trang"
+        />
         <div className="space-y-1.5">
           {content.sectionsArray.map((item, index) => (
             <div

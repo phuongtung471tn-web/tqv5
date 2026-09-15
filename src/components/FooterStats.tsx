@@ -1,60 +1,59 @@
 import { useEffect, useState } from "react";
-import { bumpVisitCounters, detectDevice, getIpSnapshot } from "@/lib/behavior";
+import { Activity, CalendarDays, Cpu, MapPin, Wifi } from "lucide-react";
+import {
+  bumpVisitCounters,
+  detectDevice,
+  getConnectionType,
+  getIpSnapshot,
+} from "@/lib/behavior";
 
 /**
- * Widget thống kê traffic realtime ở chân trang.
- * Số người online là chỉ số tương đối (12–38) dao động nhẹ theo thời gian;
- * lượt truy cập ngày/tháng lưu ở localStorage của chính thiết bị.
+ * Khối thống kê minh bạch: số truy cập chỉ tính trên thiết bị hiện tại.
+ * Không hiển thị IP và không giả lập số người online bằng số ngẫu nhiên.
  */
 export function FooterStats() {
-  const [online, setOnline] = useState(24);
   const [visits, setVisits] = useState({ today: 0, month: 0 });
-  const [device, setDevice] = useState("");
-  const [ip, setIp] = useState({ ip: "", city: "", visitsToday: 0 });
+  const [device, setDevice] = useState<ReturnType<typeof detectDevice> | null>(
+    null,
+  );
+  const [connection, setConnection] = useState("");
+  const [location, setLocation] = useState("");
 
   useEffect(() => {
     setVisits(bumpVisitCounters());
-    const dev = detectDevice();
-    setDevice(`${dev.model} · ${dev.os}`);
-    setOnline(12 + Math.floor(Math.random() * 27));
+    setDevice(detectDevice());
+    setConnection(getConnectionType());
 
-    const drift = window.setInterval(() => {
-      setOnline((v) => {
-        const next =
-          v +
-          (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 2));
-        return Math.min(38, Math.max(12, next));
-      });
-    }, 4000);
-
-    const poll = window.setInterval(() => setIp(getIpSnapshot()), 1500);
+    const refreshLocation = () => setLocation(getIpSnapshot().city);
+    refreshLocation();
+    const poll = window.setInterval(refreshLocation, 1500);
     return () => {
-      window.clearInterval(drift);
       window.clearInterval(poll);
     };
   }, []);
 
-  const suspicious = ip.visitsToday > 5;
+  const deviceValue = device
+    ? [device.model, device.os, device.browser].filter(Boolean).join(" · ")
+    : "Đang nhận diện...";
+  const connectionValue =
+    [connection, location && `Khu vực: ${location}`]
+      .filter(Boolean)
+      .join(" · ") || "Chưa xác định";
 
   const items = [
-    { icon: "🔴", label: "Đang online", value: `${online} người` },
+    { icon: Activity, label: "Phiên hiện tại", value: "1 phiên" },
     {
-      icon: "📅",
-      label: "Truy cập hôm nay",
+      icon: CalendarDays,
+      label: "Truy cập hôm nay trên thiết bị",
       value: visits.today.toLocaleString("vi-VN"),
     },
     {
-      icon: "📆",
-      label: "Truy cập tháng này",
+      icon: CalendarDays,
+      label: "Truy cập tháng này trên thiết bị",
       value: visits.month.toLocaleString("vi-VN"),
     },
-    {
-      icon: "⚡",
-      label: "Thiết bị của bạn",
-      value: device
-        ? `${device}${ip.ip ? ` · IP ${ip.ip}` : ""}`
-        : "Đang nhận diện...",
-    },
+    { icon: Cpu, label: "Thiết bị nhận diện", value: deviceValue },
+    { icon: Wifi, label: "Kết nối & khu vực", value: connectionValue },
   ];
 
   return (
@@ -62,18 +61,18 @@ export function FooterStats() {
       aria-label="Thống kê lưu lượng truy cập"
       className="rounded-2xl bg-card/80 p-4 ring-1 ring-border backdrop-blur"
     >
-      <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <dl className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {items.map((it) => (
           <div
             key={it.label}
-            className="rounded-xl bg-background/70 px-3.5 py-3 ring-1 ring-border/70"
+            className="min-w-0 rounded-xl bg-background/70 px-3.5 py-3 ring-1 ring-border/70"
           >
             <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              <span aria-hidden="true">{it.icon}</span>
+              <it.icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               {it.label}
             </dt>
             <dd
-              className="mt-1 truncate text-sm font-bold text-foreground"
+              className="mt-1 min-h-10 break-words text-sm font-bold text-foreground"
               title={it.value}
             >
               {it.value}
@@ -81,14 +80,11 @@ export function FooterStats() {
           </div>
         ))}
       </dl>
-      {suspicious && (
-        <p
-          role="status"
-          className="mt-3 rounded-xl bg-destructive/10 px-3.5 py-2.5 text-sm font-bold text-destructive ring-1 ring-destructive/30"
-        >
-          🛡️ Cảnh báo: Phát hiện lưu lượng cao từ IP này!
-        </p>
-      )}
+      <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        Dữ liệu truy cập được lưu cục bộ trên thiết bị này; khu vực chỉ hiển thị
+        khi dịch vụ định vị IP phản hồi.
+      </p>
     </aside>
   );
 }

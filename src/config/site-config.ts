@@ -100,6 +100,10 @@ export interface FloatingContactConfig {
   animateMessenger?: boolean;
 }
 
+export interface TrafficStatsConfig {
+  enabled: boolean;
+}
+
 export interface FormField {
   name: string;
   label: string;
@@ -201,6 +205,7 @@ export interface SiteConfig {
   fomo: FomoConfig;
   countdown: CountdownConfig;
   floatingContact: FloatingContactConfig;
+  trafficStats: TrafficStatsConfig;
   form: FormConfig;
   aiAdvisor: AiAdvisorConfig;
   webhooks: WebhookEndpoint[];
@@ -605,6 +610,9 @@ export const DEFAULT_CONFIG: SiteConfig = {
     messenger: "",
     animateHotline: true,
     animateMessenger: true,
+  },
+  trafficStats: {
+    enabled: true,
   },
   form: {
     headline: "Đăng ký nhận tư vấn miễn phí",

@@ -138,7 +138,7 @@ export function isHeadless() {
   );
 }
 
-function connectionType() {
+export function getConnectionType() {
   if (!isBrowser()) return "";
   const c = (
     navigator as Navigator & { connection?: { effectiveType?: string } }
@@ -386,7 +386,7 @@ export function collectBehavior(form: {
     device_model_name: dev.model,
     operating_system: dev.os,
     browser: dev.browser,
-    connection_type: connectionType(),
+    connection_type: getConnectionType(),
     start_battery_level: state.startBattery,
     current_battery_level: state.currentBattery,
     battery_drain:

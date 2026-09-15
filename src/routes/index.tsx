@@ -645,9 +645,11 @@ function Landing() {
         style={{ order: 99 }}
         className="border-t border-border bg-background py-12"
       >
-        <div className="mx-auto mb-10 max-w-6xl px-4">
-          <FooterStats />
-        </div>
+        {config.trafficStats.enabled && (
+          <div className="mx-auto mb-10 max-w-6xl px-4">
+            <FooterStats />
+          </div>
+        )}
         <div className="mx-auto max-w-6xl px-4 text-sm text-muted-foreground">
           <p className="font-bold text-foreground">{content.brandName}</p>
           {(links.hasHotline || FOOTER.email) && (
