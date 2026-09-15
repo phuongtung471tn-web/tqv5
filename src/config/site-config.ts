@@ -59,6 +59,8 @@ export interface TrackingConfig {
     formStart: boolean;
     lead: boolean;
     completeRegistration: boolean;
+    click?: boolean;
+    scroll?: boolean;
   };
 }
 
@@ -284,6 +286,8 @@ export const DEFAULT_CONFIG: SiteConfig = {
       formStart: true,
       lead: true,
       completeRegistration: true,
+      click: true,
+      scroll: true,
     },
   },
   seo: {

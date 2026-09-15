@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useSiteConfig } from "@/lib/use-site-config";
 import { getVariant, utmSource } from "@/lib/ab";
 import { trackVisit } from "@/services/dataAdapter";
+import { trackInteraction } from "@/lib/tracking";
 
 /** Chèn một thẻ <script> nội tuyến một lần duy nhất. */
 function injectInline(
@@ -63,14 +64,22 @@ function setMeta(name: string, content: string) {
 export function RuntimeConfig() {
   const { config } = useSiteConfig();
   const t = config.tracking;
+  const clickTracking = t.events.click;
+  const scrollTracking = t.events.scroll;
 
   // Pixel & tracking
   useEffect(() => {
+    const existingFbq = typeof window.fbq === "function";
     if (t.facebookPixelId) {
-      injectInline(
-        "fb-pixel",
-        `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${t.facebookPixelId}');${t.events.pageView ? "fbq('track','PageView');" : ""}`,
-      );
+      if (existingFbq) {
+        window.fbq?.("init", t.facebookPixelId);
+        if (t.events.pageView) window.fbq?.("track", "PageView");
+      } else {
+        injectInline(
+          "fb-pixel",
+          `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${t.facebookPixelId}');${t.events.pageView ? "fbq('track','PageView');" : ""}`,
+        );
+      }
     }
     if (t.tiktokPixelId) {
       injectInline(
@@ -109,6 +118,63 @@ export function RuntimeConfig() {
     t.customFooter,
     t.events.pageView,
   ]);
+
+  useEffect(() => {
+    const canTrack = (key: "click" | "scroll") =>
+      (key === "click" ? clickTracking : scrollTracking) !== false;
+    const onClick = (event: MouseEvent) => {
+      if (!canTrack("click")) return;
+      const target = event.target as Element | null;
+      const action = target?.closest("a, button") as HTMLElement | null;
+      if (!action) return;
+      const href = action.getAttribute("href") || "";
+      const label = (
+        action.textContent ||
+        action.getAttribute("aria-label") ||
+        ""
+      )
+        .trim()
+        .replace(/\s+/g, " ")
+        .slice(0, 100);
+      const isContact =
+        href.startsWith("tel:") ||
+        /zalo|messenger/i.test(href) ||
+        /zalo|messenger|hotline|gọi/i.test(label);
+      const isFormCta =
+        href.startsWith("#dang-ky") || /đăng ký|tư vấn/i.test(label);
+      if (!isContact && !isFormCta) return;
+      trackInteraction(isContact ? "contact_click" : "cta_click", {
+        action_label: label || "unlabeled",
+        destination: href || "button",
+        contact_type: isContact
+          ? href.startsWith("tel:")
+            ? "hotline"
+            : /messenger/i.test(href) || /messenger/i.test(label)
+              ? "messenger"
+              : "zalo"
+          : undefined,
+      });
+    };
+    const milestones = new Set<number>();
+    const onScroll = () => {
+      if (!canTrack("scroll")) return;
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      if (total <= 0) return;
+      const percent = Math.min(100, Math.round((window.scrollY / total) * 100));
+      for (const milestone of [25, 50, 75, 90]) {
+        if (percent >= milestone && !milestones.has(milestone)) {
+          milestones.add(milestone);
+          trackInteraction("scroll_depth", { percent });
+        }
+      }
+    };
+    document.addEventListener("click", onClick, true);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      document.removeEventListener("click", onClick, true);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [clickTracking, scrollTracking]);
 
   // Theme động (màu & font)
   useEffect(() => {

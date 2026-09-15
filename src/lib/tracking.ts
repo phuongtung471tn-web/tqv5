@@ -25,13 +25,43 @@ export function pushDataLayer(event: Record<string, unknown>) {
 }
 
 /** Khách bắt đầu tương tác với ô input đầu tiên */
-export function trackFormStart() {
+export function trackFormStart(enabled = true) {
+  if (!enabled) return;
   pushDataLayer({ event: "form_start" });
 }
 
-/** Chỉ gọi SAU khi dữ liệu đã gửi thành công về Make.com */
-export function trackLead(payload?: Record<string, unknown>) {
+export function trackInteraction(
+  eventName: string,
+  payload: Record<string, unknown> = {},
+) {
   if (typeof window === "undefined") return;
+  const event = { event: eventName, ...payload };
+  pushDataLayer(event);
+
+  try {
+    window.fbq?.("trackCustom", eventName, payload);
+  } catch (e) {
+    console.warn(`fbq ${eventName} failed`, e);
+  }
+  try {
+    window.ttq?.track("ClickButton", { event_name: eventName, ...payload });
+  } catch (e) {
+    console.warn(`ttq ${eventName} failed`, e);
+  }
+  try {
+    window.gtag?.("event", eventName, payload);
+  } catch (e) {
+    console.warn(`gtag ${eventName} failed`, e);
+  }
+}
+
+/** Chỉ gọi SAU khi dữ liệu đã gửi thành công về Make.com */
+export function trackLead(
+  payload?: Record<string, unknown>,
+  events?: { lead?: boolean; completeRegistration?: boolean },
+) {
+  if (typeof window === "undefined") return;
+  if (events?.lead === false) return;
 
   pushDataLayer({
     event: "lead_conversion",
@@ -45,7 +75,9 @@ export function trackLead(payload?: Record<string, unknown>) {
   }
 
   try {
-    window.ttq?.track("CompleteRegistration", payload);
+    if (events?.completeRegistration !== false) {
+      window.ttq?.track("CompleteRegistration", payload);
+    }
     window.ttq?.track("SubmitForm", payload);
   } catch (e) {
     console.warn("ttq event failed", e);

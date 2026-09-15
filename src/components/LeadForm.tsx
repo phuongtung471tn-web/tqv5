@@ -176,7 +176,7 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
     if (startedRef.current) return;
     startedRef.current = true;
     markFormStart();
-    trackFormStart();
+    trackFormStart(config.tracking.events.formStart);
   };
 
   async function onSubmit(e: React.FormEvent) {
@@ -326,7 +326,10 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
       }
 
       // Chỉ bắn tracking SAU khi dữ liệu đã gửi thành công
-      trackLead({ content_name: form.major || "Du hoc nghe Trung Quoc" });
+      trackLead(
+        { content_name: form.major || "Du hoc nghe Trung Quoc" },
+        config.tracking.events,
+      );
       setForm(EMPTY);
       setStatus("done");
       toast.success("Đăng ký thành công!", {
