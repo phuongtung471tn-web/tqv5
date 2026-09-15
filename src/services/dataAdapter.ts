@@ -185,6 +185,9 @@ export interface LeadRecord {
   major?: string;
   aiScore?: number;
   aiRank?: string;
+  riskLevel?: "low" | "review" | "high" | "unrated";
+  riskReasons?: string[];
+  recommendedAction?: string;
   utmSource?: string;
   variant?: string;
   /** Nơi bản ghi được lưu: máy khách hay đám mây. */

@@ -231,10 +231,8 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
       city: form.province,
       major: form.major,
     });
-    const { score: aiScore, rank: aiRank } = scoreLead(
-      behavior,
-      config.aiAdvisor,
-    );
+    const assessment = scoreLead(behavior, config.aiAdvisor);
+    const { score: aiScore, rank: aiRank } = assessment;
     const variant = getVariant(config.abTest.enabled, config.abTest.split);
     const source = utmSource();
 
@@ -252,8 +250,11 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
       ab_variant: variant,
       ai_score: aiScore,
       ai_rank: aiRank,
+      lead_risk_level: assessment.riskLevel,
+      lead_risk_reasons: assessment.reasons,
+      recommended_action: assessment.recommendedAction,
       // 4 biến gộp bổ sung (không làm đứt kết nối Make.com hiện có)
-      sale_advice: generateSaleAdvice(behavior),
+      sale_advice: generateSaleAdvice(behavior, assessment),
       behavior_summary: generateBehaviorSummary(behavior),
       device_tech_info: generateDeviceTechInfo(behavior),
       traffic_ads_source: generateTrafficAdsSource(behavior),
@@ -268,6 +269,9 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
         phone: payload.phone,
         aiScore,
         aiRank,
+        riskLevel: assessment.riskLevel,
+        riskReasons: assessment.reasons,
+        recommendedAction: assessment.recommendedAction,
         utmSource: source,
         variant,
       };

@@ -39,6 +39,16 @@ export type BehaviorData = {
   ttclid: string;
 };
 
+export type LeadRiskLevel = "low" | "review" | "high" | "unrated";
+
+export type LeadAssessment = {
+  score: number;
+  rank: string;
+  riskLevel: LeadRiskLevel;
+  reasons: string[];
+  recommendedAction: string;
+};
+
 const isBrowser = () => typeof window !== "undefined";
 
 const state = {
@@ -414,23 +424,59 @@ export function collectBehavior(form: {
 export function scoreLead(
   data: BehaviorData,
   cfg?: {
+    enabled?: boolean;
     vipDeviceRegex?: string;
     keyRegions?: string;
     fastFillThresholdSec?: number;
     vipTimeOnPageSec?: number;
     vipScrollPercent?: number;
   },
-): { score: number; rank: string } {
+): LeadAssessment {
+  if (cfg?.enabled === false) {
+    return {
+      score: 0,
+      rank: "Chưa chấm AI",
+      riskLevel: "unrated",
+      reasons: ["AI Sales Advisor đang tắt trong cấu hình Admin"],
+      recommendedAction: "Tư vấn theo quy trình thông thường",
+    };
+  }
   const fastFill = cfg?.fastFillThresholdSec ?? 4;
   const vipTime = cfg?.vipTimeOnPageSec ?? 80;
   const vipScroll = cfg?.vipScrollPercent ?? 70;
 
-  if (
-    data.is_headless_browser ||
-    data.form_fill_duration_seconds < fastFill ||
-    data.submission_count_same_ip > 1
-  ) {
-    return { score: 5, rank: "Bot / Ảo" };
+  const reasons: string[] = [];
+  if (data.is_headless_browser) {
+    reasons.push("Trình duyệt tự động/headless được nhận diện");
+  }
+  if (data.form_fill_duration_seconds < fastFill) {
+    reasons.push(`Thời gian điền form dưới ${fastFill} giây`);
+  }
+  if (data.submission_count_same_ip > 1) {
+    reasons.push(
+      `IP đã ghi nhận ${data.submission_count_same_ip} lần gửi trong ngày`,
+    );
+  }
+  const locationMismatch = Boolean(
+    data.location_city &&
+    data.form_city &&
+    !data.location_city.toLowerCase().includes(data.form_city.toLowerCase()) &&
+    !data.form_city.toLowerCase().includes(data.location_city.toLowerCase()),
+  );
+  if (locationMismatch && data.is_copy_paste) {
+    reasons.push(
+      "Khu vực IP khác tỉnh khai báo kèm thao tác copy số điện thoại",
+    );
+  }
+
+  if (data.is_headless_browser) {
+    return {
+      score: 5,
+      rank: "Bot / Ảo",
+      riskLevel: "high",
+      reasons,
+      recommendedAction: "Không tự động gọi; kiểm tra lead và nguồn quảng cáo",
+    };
   }
 
   let score = 45;
@@ -469,10 +515,34 @@ export function scoreLead(
         : score >= 50
           ? "Tiềm năng"
           : "Cần nuôi dưỡng";
-  return { score, rank };
+  const riskLevel: LeadRiskLevel =
+    data.submission_count_same_ip > 1 ||
+    (locationMismatch && data.is_copy_paste)
+      ? "high"
+      : data.form_fill_duration_seconds < fastFill
+        ? "review"
+        : "low";
+  return {
+    score,
+    rank,
+    riskLevel,
+    reasons,
+    recommendedAction:
+      riskLevel === "high"
+        ? "Xác minh thủ công trước khi gửi báo giá hoặc chạy lại quảng cáo"
+        : riskLevel === "review"
+          ? "Ưu tiên xác minh qua Zalo trước khi gọi"
+          : "Gọi tư vấn theo kịch bản phù hợp nhu cầu",
+  };
 }
 
-export function generateSaleAdvice(data: BehaviorData): string {
+export function generateSaleAdvice(
+  data: BehaviorData,
+  assessment: LeadAssessment = scoreLead(data),
+): string {
+  if (assessment.riskLevel === "unrated") {
+    return `ℹ️ [CHƯA CHẤM AI] ${assessment.recommendedAction}.`;
+  }
   const advice: string[] = [];
   const isHighEndDevice =
     /iPhone (13|14|15|16) Pro|Pro Max|Galaxy S(22|23|24|25)|Fold|Flip/i.test(
@@ -480,25 +550,16 @@ export function generateSaleAdvice(data: BehaviorData): string {
     );
   const h = new Date().getHours();
   const isNightTime = h >= 22 || h <= 6;
-  const isLocationMismatch = Boolean(
-    data.location_city &&
-    data.form_city &&
-    !data.location_city.toLowerCase().includes(data.form_city.toLowerCase()) &&
-    !data.form_city.toLowerCase().includes(data.location_city.toLowerCase()),
-  );
   const isKeyRegion =
     /Nghệ An|Hà Tĩnh|Quảng Bình|Thanh Hóa|Quảng Ninh|Hải Phòng/i.test(
       data.form_city,
     );
 
-  if (data.form_fill_duration_seconds < 4 || data.is_headless_browser) {
-    return "🚨 [LEAD ẢO / BOT SPAM] Điền Form quá nhanh (<4s) hoặc dùng trình duyệt giả lập. KHÔNG GỌI, kiểm tra Zalo trước!";
+  if (assessment.riskLevel === "high") {
+    return `⚠️ [CẦN XÁC MINH] ${assessment.reasons.join("; ")}. ${assessment.recommendedAction}.`;
   }
-  if (data.submission_count_same_ip > 1) {
-    return `🚨 [CẢNH BÁO SPAM IP] IP này đã bấm gửi ${data.submission_count_same_ip} lần trong ngày. Nghi vấn đối thủ phá Ads hoặc trùng thông tin!`;
-  }
-  if (isLocationMismatch && data.is_copy_paste) {
-    return `⚠️ [NGHI VẤN ĐỐI THỦ DÒ GIÁ] Khai ở ${data.form_city} nhưng IP tại ${data.location_city} + Copy/Paste SĐT. Xác minh kỹ, tuyệt đối không gửi báo giá chi tiết sớm!`;
+  if (assessment.riskLevel === "review") {
+    return `🟡 [TÍN HIỆU YẾU] ${assessment.reasons.join("; ")}. ${assessment.recommendedAction}.`;
   }
 
   if (

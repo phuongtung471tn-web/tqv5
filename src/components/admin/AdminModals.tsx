@@ -1203,6 +1203,22 @@ function LeadsModal({ onClose }: ModalProps) {
                         {l.aiRank}
                       </span>
                     )}
+                    {l.riskLevel && l.riskLevel !== "low" && (
+                      <span
+                        title={
+                          l.riskReasons?.join("; ") ||
+                          l.recommendedAction ||
+                          "Cần kiểm tra thêm"
+                        }
+                        className={`ml-1.5 rounded px-1.5 text-[10px] font-bold ${
+                          l.riskLevel === "high"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}
+                      >
+                        {l.riskLevel === "high" ? "CẦN XÁC MINH" : "XEM LẠI"}
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-2 tabular-nums">{l.phone}</td>
                   <td className="px-3 py-2">{l.city || "—"}</td>
