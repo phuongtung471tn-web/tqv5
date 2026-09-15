@@ -146,6 +146,22 @@ function stringHash(value: string) {
   return `fp_${Math.abs(hash).toString(36)}`;
 }
 
+function createSessionId() {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
+    return `vs_${crypto.randomUUID()}`;
+  }
+  const entropy = [
+    Date.now().toString(36),
+    typeof performance !== "undefined"
+      ? Math.round(performance.now() * 1000).toString(36)
+      : "0",
+  ].join("_");
+  return `vs_${stringHash(entropy)}_${entropy}`;
+}
+
 export function readEffectiveConnectionType() {
   if (!isBrowser()) return "";
   return readNavigator().connection?.effectiveType?.toUpperCase() || "";
@@ -228,9 +244,7 @@ export function readDeviceProfile(seed?: {
     String(nav.hardwareConcurrency || 0),
   ].join("|");
   const fingerprint = seed?.fingerprint || stringHash(fingerprintBase);
-  const sessionId =
-    seed?.sessionId ||
-    `vs_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  const sessionId = seed?.sessionId || createSessionId();
   const osDisplay = [os.name, os.version].filter(Boolean).join(" ");
   const browserDisplay = [browser.name, browser.version]
     .filter(Boolean)
