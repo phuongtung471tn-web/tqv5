@@ -62,7 +62,7 @@ test("admin guide health modal shows readiness summary and checklist", async ({
   await expect(
     page.getByText("Checklist giá trị sau khi hoàn tất"),
   ).toBeVisible();
-  await expect(page.getByText("Nâng cấp đề xuất:", { exact: false })).toHaveCount(
-    8,
-  );
+  await expect(
+    page.getByText("Nâng cấp đề xuất:", { exact: false }),
+  ).toHaveCount(8);
 });

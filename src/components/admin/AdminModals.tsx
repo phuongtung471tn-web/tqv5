@@ -3277,7 +3277,9 @@ function GuideModal({ onClose }: ModalProps) {
     config.tracking.ga4Id,
     config.tracking.gtmId,
   ].filter((value) => value.trim()).length;
-  const trackingEventsEnabled = Object.values(config.tracking.events).some(Boolean);
+  const trackingEventsEnabled = Object.values(config.tracking.events).some(
+    Boolean,
+  );
   const primaryWebhookReady =
     !!config.form.webhookUrl.trim() && isHttpUrl(config.form.webhookUrl.trim());
   const normalizedPagePaths = config.pages.map((page) =>
@@ -3331,20 +3333,25 @@ function GuideModal({ onClose }: ModalProps) {
     {
       label: "Lead có đầu ra nhận dữ liệu",
       ok: primaryWebhookReady || configuredWebhookCount > 0,
-      purpose: "Ngăn form gửi thành công nhưng dữ liệu không tới đội sale hoặc hệ CRM.",
-      action: "Nhập Webhook chính hợp lệ hoặc bật ít nhất một endpoint đang nhận lead.",
+      purpose:
+        "Ngăn form gửi thành công nhưng dữ liệu không tới đội sale hoặc hệ CRM.",
+      action:
+        "Nhập Webhook chính hợp lệ hoặc bật ít nhất một endpoint đang nhận lead.",
     },
     {
       label: "Webhook không bị trùng hoặc cấu hình sai",
       ok: new Set(configuredWebhookUrls).size === configuredWebhookCount,
-      purpose: "Tránh gửi lead lặp, đo sai chuyển đổi và làm đội vận hành xử lý trùng dữ liệu.",
+      purpose:
+        "Tránh gửi lead lặp, đo sai chuyển đổi và làm đội vận hành xử lý trùng dữ liệu.",
       action: "Loại bỏ URL trùng nhau và test lại từng endpoint quan trọng.",
     },
     {
       label: "Tracking đang đủ tối thiểu để đo hiệu quả",
       ok: activeTrackingChannels > 0 && trackingEventsEnabled,
-      purpose: "Giúp biết nguồn quảng cáo nào ra lead và phát hiện điểm rơi chuyển đổi.",
-      action: "Điền ít nhất một Pixel, GA4 hoặc GTM và giữ các event cốt lõi ở trạng thái bật.",
+      purpose:
+        "Giúp biết nguồn quảng cáo nào ra lead và phát hiện điểm rơi chuyển đổi.",
+      action:
+        "Điền ít nhất một Pixel, GA4 hoặc GTM và giữ các event cốt lõi ở trạng thái bật.",
     },
     {
       label: "SEO cốt lõi đủ để trang hiển thị đúng",
@@ -3352,14 +3359,18 @@ function GuideModal({ onClose }: ModalProps) {
         !!config.seo.title.trim() &&
         !!config.seo.description.trim() &&
         !!config.seo.ogImage.trim(),
-      purpose: "Giữ chất lượng hiển thị trên Google, Facebook và tránh snippet rỗng.",
-      action: "Điền title, description và ảnh OG rõ ràng cho chiến dịch đang chạy.",
+      purpose:
+        "Giữ chất lượng hiển thị trên Google, Facebook và tránh snippet rỗng.",
+      action:
+        "Điền title, description và ảnh OG rõ ràng cho chiến dịch đang chạy.",
     },
     {
       label: "Kênh liên hệ nhanh đang sẵn sàng",
       ok: contactReady,
-      purpose: "Đảm bảo khách có đường liên hệ ngay khi chưa kịp điền form hoặc cần tư vấn gấp.",
-      action: "Bật hotline, Zalo hoặc Messenger với thông tin hợp lệ nếu muốn nhận lead tức thì.",
+      purpose:
+        "Đảm bảo khách có đường liên hệ ngay khi chưa kịp điền form hoặc cần tư vấn gấp.",
+      action:
+        "Bật hotline, Zalo hoặc Messenger với thông tin hợp lệ nếu muốn nhận lead tức thì.",
     },
     {
       label: "Lưu trữ và backup phù hợp chế độ vận hành",
@@ -3367,8 +3378,10 @@ function GuideModal({ onClose }: ModalProps) {
         storageReady &&
         (config.admin.cronSchedule === "off" ||
           isEmailLike(config.admin.backupEmail)),
-      purpose: "Giảm nguy cơ mất cấu hình, mất lead và hỗ trợ đồng bộ khi nhiều người cùng vận hành.",
-      action: "Nếu dùng database hãy điền Supabase; nếu bật cron backup hãy thêm email nhận backup.",
+      purpose:
+        "Giảm nguy cơ mất cấu hình, mất lead và hỗ trợ đồng bộ khi nhiều người cùng vận hành.",
+      action:
+        "Nếu dùng database hãy điền Supabase; nếu bật cron backup hãy thêm email nhận backup.",
     },
     {
       label: "Admin có đường dẫn và mật khẩu an toàn cơ bản",
@@ -3376,20 +3389,26 @@ function GuideModal({ onClose }: ModalProps) {
         /^[a-z0-9-]+$/i.test(adminPath) &&
         config.admin.password.trim().length >= 6 &&
         config.admin.password !== DEFAULT_CONFIG.admin.password,
-      purpose: "Giảm truy cập nhầm hoặc rủi ro giữ nguyên thông tin đăng nhập mặc định.",
-      action: "Đổi admin path rõ ràng và thay mật khẩu mặc định bằng mật khẩu riêng từ 6 ký tự trở lên.",
+      purpose:
+        "Giảm truy cập nhầm hoặc rủi ro giữ nguyên thông tin đăng nhập mặc định.",
+      action:
+        "Đổi admin path rõ ràng và thay mật khẩu mặc định bằng mật khẩu riêng từ 6 ký tự trở lên.",
     },
     {
       label: "Đa trang không trùng đường dẫn",
       ok: pagePathsAreUnique && pagePathsAreValid,
-      purpose: "Ngăn va chạm route khiến menu, quảng cáo hoặc index SEO dẫn sai nội dung.",
-      action: "Chuẩn hóa slug từng trang bằng chữ, số, dấu gạch ngang và tránh trùng nhau.",
+      purpose:
+        "Ngăn va chạm route khiến menu, quảng cáo hoặc index SEO dẫn sai nội dung.",
+      action:
+        "Chuẩn hóa slug từng trang bằng chữ, số, dấu gạch ngang và tránh trùng nhau.",
     },
     {
       label: "Section đa trang còn tồn tại đúng phạm vi",
       ok: pageSectionsAreValid,
-      purpose: "Đảm bảo section đã gán cho từng trang vẫn còn tồn tại và hiển thị đúng vị trí.",
-      action: "Gỡ section đã xóa khỏi từng trang hoặc tạo lại section còn thiếu.",
+      purpose:
+        "Đảm bảo section đã gán cho từng trang vẫn còn tồn tại và hiển thị đúng vị trí.",
+      action:
+        "Gỡ section đã xóa khỏi từng trang hoặc tạo lại section còn thiếu.",
     },
   ];
   const passedCount = checks.filter((check) => check.ok).length;
@@ -3401,23 +3420,20 @@ function GuideModal({ onClose }: ModalProps) {
           label: "Sẵn sàng vận hành",
           description:
             "Các điểm cốt lõi đã ổn. Có thể chạy ads, nhận lead và theo dõi hiệu quả mượt hơn.",
-          tone:
-            "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300",
+          tone: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300",
         }
       : score >= 75
         ? {
             label: "Hoạt động tốt nhưng còn mục nên tối ưu",
             description:
               "Hệ thống đã dùng được, nhưng nên xử lý hết cảnh báo để tránh sai số hoặc thất thoát lead.",
-            tone:
-              "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300",
+            tone: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300",
           }
         : {
             label: "Cần hoàn thiện thêm trước khi đẩy mạnh vận hành",
             description:
               "Một số cấu hình nền tảng còn thiếu; nên xử lý trước để website chạy đúng vai trò và mục đích sinh ra.",
-            tone:
-              "border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300",
+            tone: "border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300",
           };
   const valueChecklist = [
     {
@@ -3431,11 +3447,13 @@ function GuideModal({ onClose }: ModalProps) {
       done: activeTrackingChannels > 0 && trackingEventsEnabled,
     },
     {
-      label: "Giúp đội vận hành biết ngay mục nào cần sửa trước khi chạy chiến dịch.",
+      label:
+        "Giúp đội vận hành biết ngay mục nào cần sửa trước khi chạy chiến dịch.",
       done: score >= 75,
     },
     {
-      label: "Xác nhận website đang dùng đúng vai trò: hút lead, tư vấn nhanh và đo hiệu quả.",
+      label:
+        "Xác nhận website đang dùng đúng vai trò: hút lead, tư vấn nhanh và đo hiệu quả.",
       done: score === 100,
     },
   ];
@@ -3453,18 +3471,35 @@ function GuideModal({ onClose }: ModalProps) {
           <p className="mt-1 text-sm font-medium">{readiness.description}</p>
         </div>
         <div className="grid grid-cols-3 gap-2">
-          <Stat label="Điểm health" value={`${score}/100`} tone="text-primary" />
+          <Stat
+            label="Điểm health"
+            value={`${score}/100`}
+            tone="text-primary"
+          />
           <Stat label="Mục đạt" value={passedCount} tone="text-emerald-600" />
-          <Stat label="Mục cần xử lý" value={pendingCount} tone="text-amber-600" />
+          <Stat
+            label="Mục cần xử lý"
+            value={pendingCount}
+            tone="text-amber-600"
+          />
         </div>
         <div className="rounded-xl border border-neutral-200 p-3 text-xs dark:border-white/10">
           <p className="font-bold text-neutral-900 dark:text-neutral-100">
             Tính năng này sinh ra để làm gì?
           </p>
           <ul className="mt-2 space-y-1.5 text-neutral-600 dark:text-neutral-300">
-            <li>• Rà soát nhanh toàn bộ điểm dễ làm website chạy sai vai trò hoặc thất thoát lead.</li>
-            <li>• Cảnh báo ngay cấu hình ảnh hưởng tới đo lường, đa trang, liên hệ và backup.</li>
-            <li>• Xác nhận mức độ sẵn sàng trước khi chạy quảng cáo hoặc bàn giao vận hành.</li>
+            <li>
+              • Rà soát nhanh toàn bộ điểm dễ làm website chạy sai vai trò hoặc
+              thất thoát lead.
+            </li>
+            <li>
+              • Cảnh báo ngay cấu hình ảnh hưởng tới đo lường, đa trang, liên hệ
+              và backup.
+            </li>
+            <li>
+              • Xác nhận mức độ sẵn sàng trước khi chạy quảng cáo hoặc bàn giao
+              vận hành.
+            </li>
           </ul>
         </div>
         <div className="space-y-2">
@@ -3493,7 +3528,8 @@ function GuideModal({ onClose }: ModalProps) {
                 </span>
               </div>
               <p className="mt-2 text-neutral-500 dark:text-neutral-400">
-                <span className="font-semibold">Nâng cấp đề xuất:</span> {c.action}
+                <span className="font-semibold">Nâng cấp đề xuất:</span>{" "}
+                {c.action}
               </p>
             </div>
           ))}
@@ -3505,7 +3541,9 @@ function GuideModal({ onClose }: ModalProps) {
           <ul className="mt-2 space-y-1.5 text-xs text-neutral-600 dark:text-neutral-300">
             {valueChecklist.map((item) => (
               <li key={item.label}>
-                <span className={item.done ? "text-emerald-600" : "text-amber-600"}>
+                <span
+                  className={item.done ? "text-emerald-600" : "text-amber-600"}
+                >
                   {item.done ? "☑" : "☐"}
                 </span>{" "}
                 {item.label}
@@ -3514,11 +3552,25 @@ function GuideModal({ onClose }: ModalProps) {
           </ul>
         </div>
         <ol className="list-decimal space-y-1.5 pl-5 text-xs text-neutral-600 dark:text-neutral-300">
-          <li>Đăng nhập admin, mở đúng công cụ cần chỉnh và cập nhật cấu hình còn thiếu.</li>
-          <li>Bấm LƯU để áp dụng ngay, sau đó XUẤT CONFIG nếu cần đồng bộ lại mã nguồn.</li>
-          <li>Nếu dùng nhiều thiết bị hoặc cần lưu cloud, cấu hình Storage Mode trước khi chạy thật.</li>
-          <li>Vào Cổng Webhook & Đa Kênh để test endpoint; chỉ chạy traffic khi các kênh quan trọng báo OK.</li>
-          <li>Khi điểm health đạt 100/100, xem như xác nhận vận hành thành công.</li>
+          <li>
+            Đăng nhập admin, mở đúng công cụ cần chỉnh và cập nhật cấu hình còn
+            thiếu.
+          </li>
+          <li>
+            Bấm LƯU để áp dụng ngay, sau đó XUẤT CONFIG nếu cần đồng bộ lại mã
+            nguồn.
+          </li>
+          <li>
+            Nếu dùng nhiều thiết bị hoặc cần lưu cloud, cấu hình Storage Mode
+            trước khi chạy thật.
+          </li>
+          <li>
+            Vào Cổng Webhook & Đa Kênh để test endpoint; chỉ chạy traffic khi
+            các kênh quan trọng báo OK.
+          </li>
+          <li>
+            Khi điểm health đạt 100/100, xem như xác nhận vận hành thành công.
+          </li>
         </ol>
       </div>
     </AdminModal>

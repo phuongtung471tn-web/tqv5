@@ -1,6 +1,6 @@
 import { n as __toESM } from "../_runtime.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/use-admin-BM5hUDJ4.js
+//#region node_modules/.nitro/vite/services/ssr/assets/use-admin-D0sSGca6.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var AUTH_KEY = "funnel_admin_authed_v1";
@@ -18,12 +18,14 @@ var DEFAULT_DEVICE_SIZES = {
 		height: 780
 	}
 };
+var PREVIEW_KEY = "funnel_admin_preview_enabled_v1";
 var AdminContext = (0, import_react.createContext)(null);
 function AdminProvider({ children }) {
 	const [authed, setAuthed] = (0, import_react.useState)(false);
 	const [activeModal, setActiveModal] = (0, import_react.useState)(null);
 	const [device, setDevice] = (0, import_react.useState)("desktop");
 	const [deviceSizes, setDeviceSizes] = (0, import_react.useState)(DEFAULT_DEVICE_SIZES);
+	const [previewEnabled, setPreviewEnabledState] = (0, import_react.useState)(true);
 	(0, import_react.useEffect)(() => {
 		try {
 			setAuthed(window.sessionStorage.getItem(AUTH_KEY) === "1");
@@ -32,6 +34,8 @@ function AdminProvider({ children }) {
 				...DEFAULT_DEVICE_SIZES,
 				...JSON.parse(savedSizes)
 			});
+			const savedPreview = window.localStorage.getItem(PREVIEW_KEY);
+			if (savedPreview !== null) setPreviewEnabledState(savedPreview === "1");
 		} catch {}
 	}, []);
 	const setDeviceSize = (0, import_react.useCallback)((view, size) => {
@@ -50,6 +54,12 @@ function AdminProvider({ children }) {
 		setDeviceSizes(DEFAULT_DEVICE_SIZES);
 		try {
 			window.localStorage.removeItem("funnel_admin_device_sizes_v1");
+		} catch {}
+	}, []);
+	const setPreviewEnabled = (0, import_react.useCallback)((enabled) => {
+		setPreviewEnabledState(enabled);
+		try {
+			window.localStorage.setItem(PREVIEW_KEY, enabled ? "1" : "0");
 		} catch {}
 	}, []);
 	const login = (0, import_react.useCallback)((password, expected) => {
@@ -80,7 +90,9 @@ function AdminProvider({ children }) {
 		setDevice,
 		deviceSizes,
 		setDeviceSize,
-		resetDeviceSizes
+		resetDeviceSizes,
+		previewEnabled,
+		setPreviewEnabled
 	}), [
 		authed,
 		login,
@@ -89,7 +101,9 @@ function AdminProvider({ children }) {
 		device,
 		deviceSizes,
 		setDeviceSize,
-		resetDeviceSizes
+		resetDeviceSizes,
+		previewEnabled,
+		setPreviewEnabled
 	]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AdminContext.Provider, {
 		value,
