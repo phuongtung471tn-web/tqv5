@@ -174,8 +174,8 @@ export async function testWebhookEndpoint(
 }
 
 /**
- * Gửi lead đi mọi kênh. Trả về danh sách kết quả; coi là thành công khi
- * có ít nhất một kênh nhận được dữ liệu (hoặc không cấu hình kênh nào).
+ * Gửi lead đi mọi kênh. Khi đã cấu hình nhiều kênh, chỉ coi là thành công
+ * khi tất cả kênh đều nhận được dữ liệu; không cấu hình kênh nào vẫn hợp lệ.
  */
 export async function dispatchLead(
   config: SiteConfig,
@@ -212,5 +212,5 @@ export async function dispatchLead(
       }),
     ),
   );
-  return { ok: results.some((r) => r.ok), results };
+  return { ok: results.every((r) => r.ok), results };
 }

@@ -280,7 +280,15 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
         riskLevel: assessment.riskLevel,
         riskReasons: assessment.reasons,
         recommendedAction: assessment.recommendedAction,
+        behaviorSummary: payload.behavior_summary,
+        saleAdvice: payload.sale_advice,
+        deviceTechInfo: payload.device_tech_info,
+        trafficAdsSource: payload.traffic_ads_source,
         utmSource: source,
+        utmMedium: payload.utm_medium,
+        utmCampaign: payload.utm_campaign,
+        utmContent: payload.utm_content,
+        ttclid: payload.ttclid,
         variant,
       };
       if (payload.email) leadRecord.email = payload.email;
@@ -288,18 +296,20 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
       if (payload.major) leadRecord.major = payload.major;
       await saveLead(leadRecord, config);
 
-      // Đồng bộ webhook sau khi CRM đã lưu thành công. Webhook lỗi không làm mất lead.
-      void dispatchLead(config, payload).then(({ ok, results }) => {
-        if (!ok && results.length > 0) {
-          console.warn("All webhook endpoints failed:", results);
-          toast.warning("Lead đã lưu vào CRM nhưng webhook chưa nhận được", {
-            description:
-              "Kiểm tra cấu hình endpoint trong Admin > Cổng Webhook & Đa Kênh.",
-          });
-        } else if (results.some((result) => !result.ok)) {
-          console.warn("Some webhook endpoints failed:", results);
-        }
-      });
+      // Chờ toàn bộ endpoint đã bật nhận lead trước khi xác nhận chuyển đổi.
+      const delivery = await dispatchLead(config, payload);
+      if (!delivery.ok) {
+        const failed = delivery.results
+          .filter((result) => !result.ok)
+          .map((result) => result.label)
+          .join(", ");
+        console.warn("Webhook delivery incomplete:", delivery.results);
+        throw new Error(
+          failed
+            ? `Webhook chưa nhận được dữ liệu: ${failed}`
+            : "Webhook chưa được cấu hình hoặc chưa phản hồi.",
+        );
+      }
 
       // Ghi nhận chuyển đổi cho Analytics Dashboard + A/B comparison.
       trackConversion(source, config.abTest.enabled ? variant : undefined);

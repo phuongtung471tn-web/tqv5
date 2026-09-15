@@ -188,6 +188,14 @@ export interface LeadRecord {
   riskLevel?: "low" | "review" | "high" | "unrated";
   riskReasons?: string[];
   recommendedAction?: string;
+  behaviorSummary?: string;
+  saleAdvice?: string;
+  deviceTechInfo?: string;
+  trafficAdsSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmContent?: string;
+  ttclid?: string;
   utmSource?: string;
   variant?: string;
   /** Nơi bản ghi được lưu: máy khách hay đám mây. */
@@ -298,7 +306,18 @@ export function exportLeadsCsv(leads: LeadRecord[]): void {
     "major",
     "aiScore",
     "aiRank",
+    "riskLevel",
+    "riskReasons",
+    "recommendedAction",
+    "behaviorSummary",
+    "saleAdvice",
+    "deviceTechInfo",
+    "trafficAdsSource",
     "utmSource",
+    "utmMedium",
+    "utmCampaign",
+    "utmContent",
+    "ttclid",
     "variant",
   ];
   const rows = leads.map((l) =>
