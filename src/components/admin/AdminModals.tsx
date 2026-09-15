@@ -1972,6 +1972,92 @@ function LandingEditorModal({ onClose }: ModalProps) {
           }}
         />
       </div>
+      <div className="mb-4 space-y-3 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
+        <p className="text-xs font-bold">CTA & liên hệ trang chủ</p>
+        <Toggle
+          checked={config.countdown.enabled}
+          onChange={(value) =>
+            update((draft) => (draft.countdown.enabled = value))
+          }
+          label="Hiển thị Countdown"
+        />
+        {config.countdown.enabled && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Số suất còn lại">
+              <TextInput
+                type="number"
+                min="0"
+                value={config.countdown.slotsLeft}
+                onChange={(event) =>
+                  update(
+                    (draft) =>
+                      (draft.countdown.slotsLeft = Math.max(
+                        0,
+                        Number(event.target.value) || 0,
+                      )),
+                  )
+                }
+              />
+            </Field>
+            <Field label="Mô tả Countdown">
+              <TextInput
+                value={config.countdown.headline}
+                onChange={(event) =>
+                  update(
+                    (draft) => (draft.countdown.headline = event.target.value),
+                  )
+                }
+              />
+            </Field>
+          </div>
+        )}
+        <Toggle
+          checked={config.floatingContact.enabled}
+          onChange={(value) =>
+            update((draft) => (draft.floatingContact.enabled = value))
+          }
+          label="Hiển thị Hotline / Zalo / Messenger"
+        />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Số hotline">
+            <TextInput
+              type="tel"
+              value={config.floatingContact.hotline}
+              onChange={(event) =>
+                update(
+                  (draft) =>
+                    (draft.floatingContact.hotline = event.target.value),
+                )
+              }
+            />
+          </Field>
+          <Field label="Link hoặc số Zalo">
+            <TextInput
+              value={config.floatingContact.zalo}
+              onChange={(event) =>
+                update(
+                  (draft) => (draft.floatingContact.zalo = event.target.value),
+                )
+              }
+            />
+          </Field>
+          <Field label="Link Messenger">
+            <TextInput
+              value={config.floatingContact.messenger}
+              onChange={(event) =>
+                update(
+                  (draft) =>
+                    (draft.floatingContact.messenger = event.target.value),
+                )
+              }
+            />
+          </Field>
+        </div>
+        <p className="text-[11px] text-neutral-400">
+          Countdown và liên hệ dùng chung một nguồn cấu hình với CTA, footer và
+          tracking. Bấm LƯU trên thanh Admin để áp dụng.
+        </p>
+      </div>
       <div className="mb-4 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
         <p className="mb-2 text-xs font-bold">Thứ tự & trạng thái section</p>
         <Toggle

@@ -16,8 +16,6 @@ import {
   Search,
   FormInput,
   BrainCircuit,
-  Phone,
-  Clock,
   KeyRound,
   Tag,
   Save,
@@ -62,8 +60,6 @@ const TOOLS: Tool[] = [
   { key: "seo", label: "SEO Google", icon: Search },
   { key: "form", label: "Form & Webhook", icon: FormInput },
   { key: "ai", label: "AI Sales Advisor", icon: BrainCircuit },
-  { key: "contact", label: "Hotline & Zalo", icon: Phone },
-  { key: "countdown", label: "Countdown", icon: Clock },
   { key: "adminlink", label: "Đổi Link Admin", icon: KeyRound },
   { key: "tracking", label: "Tracking", icon: Tag },
 ];
