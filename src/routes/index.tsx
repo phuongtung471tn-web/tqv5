@@ -261,7 +261,43 @@ function Landing() {
   const homeCustomSections = customSections.filter(
     (section) => !secondaryPageSectionIds.has(section.id),
   );
-  useEffect(() => initBehavior(), []);
+  const heroSlides = useMemo(() => {
+    const configured =
+      content.heroMediaMode === "slider"
+        ? content.heroSliderImages.filter(Boolean)
+        : [content.heroImageUrl].filter(Boolean);
+    return configured.length > 0
+      ? configured
+      : [content.heroImageUrl || heroImg];
+  }, [content.heroImageUrl, content.heroMediaMode, content.heroSliderImages]);
+  const [heroSlideIndex, setHeroSlideIndex] = useState(0);
+
+  useEffect(
+    () =>
+      initBehavior({
+        storageMode: config.admin.storageMode,
+        supabaseUrl: config.admin.supabaseUrl,
+        supabaseAnonKey: config.admin.supabaseAnonKey,
+      }),
+    [
+      config.admin.storageMode,
+      config.admin.supabaseAnonKey,
+      config.admin.supabaseUrl,
+    ],
+  );
+
+  useEffect(() => {
+    setHeroSlideIndex(0);
+  }, [content.heroMediaMode, heroSlides.length]);
+
+  useEffect(() => {
+    if (content.heroMediaMode !== "slider" || heroSlides.length <= 1) return;
+    const timer = window.setInterval(
+      () => setHeroSlideIndex((current) => (current + 1) % heroSlides.length),
+      Math.max(2500, content.heroSliderIntervalMs || 4500),
+    );
+    return () => window.clearInterval(timer);
+  }, [content.heroMediaMode, content.heroSliderIntervalMs, heroSlides.length]);
 
   return (
     <div id="top" className="flex min-h-screen flex-col bg-background">
@@ -327,15 +363,27 @@ function Landing() {
         style={sectionStyle("hero")}
         className="surface-panel relative overflow-hidden"
       >
-        <img
-          src={content.heroImageUrl || heroImg}
-          alt="Học viên Việt Nam thực hành lắp ráp ô tô điện tại trung tâm đào tạo nghề Trung Quốc"
-          width={1600}
-          height={1104}
-          fetchPriority="high"
-          decoding="async"
-          className="absolute inset-0 h-full w-full object-cover opacity-25"
-        />
+        <div className="absolute inset-0">
+          {heroSlides.map((slide, index) => (
+            <img
+              key={`${slide}-${index}`}
+              src={slide || heroImg}
+              alt="Học viên Việt Nam thực hành lắp ráp ô tô điện tại trung tâm đào tạo nghề Trung Quốc"
+              width={1600}
+              height={1104}
+              fetchPriority={index === 0 ? "high" : undefined}
+              decoding="async"
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+                content.heroMediaMode === "slider"
+                  ? index === heroSlideIndex
+                    ? "opacity-30"
+                    : "opacity-0"
+                  : "opacity-25"
+              }`}
+            />
+          ))}
+        </div>
+        <div className="absolute inset-0 bg-surface/68" />
         <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-24">
           <div className="text-surface-foreground">
             <span className="inline-flex items-center gap-2 rounded-full bg-gold px-3 py-1.5 text-xs font-extrabold uppercase tracking-wide text-gold-foreground">
@@ -377,6 +425,18 @@ function Landing() {
           </div>
         </div>
       </section>
+
+      {config.trafficStats.enabled &&
+        config.trafficStats.position === "afterHero" && (
+          <section className="border-b border-border bg-background py-8 sm:py-10">
+            <div className="mx-auto max-w-6xl px-4">
+              <FooterStats
+                title={config.trafficStats.title}
+                helperText={config.trafficStats.helperText}
+              />
+            </div>
+          </section>
+        )}
 
       {/* Stats */}
       <section
@@ -657,11 +717,12 @@ function Landing() {
         style={{ order: 99 }}
         className="border-t border-border bg-background py-12"
       >
-        {config.trafficStats.enabled && (
-          <div className="mx-auto mb-10 max-w-6xl px-4">
-            <FooterStats />
-          </div>
-        )}
+        {config.trafficStats.enabled &&
+          config.trafficStats.position === "footer" && (
+            <div className="mx-auto mb-10 max-w-6xl px-4">
+              <FooterStats />
+            </div>
+          )}
         <div className="mx-auto max-w-6xl px-4 text-sm text-muted-foreground">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">

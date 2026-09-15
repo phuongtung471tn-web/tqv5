@@ -2,15 +2,10 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { trackFormStart, trackLead } from "@/lib/tracking";
 import {
-  collectBehavior,
-  generateBehaviorSummary,
-  generateDeviceTechInfo,
-  generateSaleAdvice,
-  generateTrafficAdsSource,
+  buildVisitorBehaviorPayload,
   markCopyPaste,
   markFormStart,
   markIndustrySwitch,
-  scoreLead,
 } from "@/lib/behavior";
 import { getVariant, utmSource } from "@/lib/ab";
 import { useSiteConfig } from "@/lib/use-site-config";
@@ -229,12 +224,14 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
     setError("");
     setStatus("sending");
 
-    // Micro-behavioral analytics + 4 chuỗi dữ liệu gộp
-    const behavior = collectBehavior({
-      city: form.province,
-      major: form.major,
-    });
-    const assessment = scoreLead(behavior, config.aiAdvisor);
+    const { behavior, assessment, visitorBehaviorPayload } =
+      buildVisitorBehaviorPayload(
+        {
+          city: form.province,
+          major: form.major,
+        },
+        config.aiAdvisor,
+      );
     const { score: aiScore, rank: aiRank } = assessment;
     const variant = getVariant(config.abTest.enabled, config.abTest.split);
     const source = utmSource();
@@ -249,7 +246,7 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
         typeof window !== "undefined"
           ? window.location.href
           : "Landing Page UTM",
-      created_at: new Date().toISOString(),
+      created_at: visitorBehaviorPayload.submittedAt,
       ab_variant: variant,
       ai_score: aiScore,
       ai_rank: aiRank,
@@ -260,12 +257,30 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
       utm_medium: behavior.utm_medium,
       utm_campaign: behavior.utm_campaign,
       utm_content: behavior.utm_content,
+      utm_term: behavior.utm_term,
       ttclid: behavior.ttclid,
-      // 4 biến gộp bổ sung (không làm đứt kết nối Make.com hiện có)
-      sale_advice: generateSaleAdvice(behavior, assessment),
-      behavior_summary: generateBehaviorSummary(behavior),
-      device_tech_info: generateDeviceTechInfo(behavior),
-      traffic_ads_source: generateTrafficAdsSource(behavior),
+      visits_today: behavior.visits_today,
+      visits_month: behavior.visits_month,
+      current_session: behavior.current_session,
+      device_manufacturer: behavior.device_manufacturer,
+      device_family: behavior.device_family,
+      device_model_name: behavior.device_model_name,
+      operating_system: [
+        behavior.operating_system,
+        behavior.operating_system_version,
+      ]
+        .filter(Boolean)
+        .join(" "),
+      browser: [behavior.browser, behavior.browser_version]
+        .filter(Boolean)
+        .join(" "),
+      network_provider: behavior.network_provider,
+      network_label: behavior.network_label,
+      sale_advice: visitorBehaviorPayload.saleAdvice,
+      behavior_summary: visitorBehaviorPayload.behaviorSummary,
+      device_tech_info: visitorBehaviorPayload.deviceTechInfo,
+      traffic_ads_source: visitorBehaviorPayload.trafficAdsSource,
+      visitor_behavior_payload: visitorBehaviorPayload,
     };
 
     try {
@@ -275,6 +290,9 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
         at: payload.created_at,
         name: payload.full_name,
         phone: payload.phone,
+        email: payload.email || undefined,
+        city: payload.city || undefined,
+        major: payload.major || undefined,
         aiScore,
         aiRank,
         riskLevel: assessment.riskLevel,
@@ -284,6 +302,12 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
         saleAdvice: payload.sale_advice,
         deviceTechInfo: payload.device_tech_info,
         trafficAdsSource: payload.traffic_ads_source,
+        networkProvider: payload.network_provider || undefined,
+        networkLabel: payload.network_label || undefined,
+        visitsToday: payload.visits_today,
+        visitsMonth: payload.visits_month,
+        currentSession: payload.current_session,
+        visitorBehaviorPayload,
         utmSource: source,
         utmMedium: payload.utm_medium,
         utmCampaign: payload.utm_campaign,
@@ -291,9 +315,6 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
         ttclid: payload.ttclid,
         variant,
       };
-      if (payload.email) leadRecord.email = payload.email;
-      if (payload.city) leadRecord.city = payload.city;
-      if (payload.major) leadRecord.major = payload.major;
       await saveLead(leadRecord, config);
 
       // Chờ toàn bộ endpoint đã bật nhận lead trước khi xác nhận chuyển đổi.

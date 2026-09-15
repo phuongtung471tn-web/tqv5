@@ -9,6 +9,7 @@ import {
   clearLeads,
   clearAnalytics,
   ANALYTICS_UPDATED_EVENT,
+  LEAD_CREATED_EVENT,
   exportLeadsCsv,
   loadAnalytics,
   loadLeads,
@@ -1446,7 +1447,12 @@ function LeadsModal({ onClose }: ModalProps) {
   const [leads, setLeads] = useState<LeadRecord[]>([]);
   const [q, setQ] = useState("");
 
-  useEffect(() => setLeads(loadLeads()), []);
+  useEffect(() => {
+    const refresh = () => setLeads(loadLeads());
+    refresh();
+    window.addEventListener(LEAD_CREATED_EVENT, refresh);
+    return () => window.removeEventListener(LEAD_CREATED_EVENT, refresh);
+  }, []);
 
   const cloud =
     config.admin.storageMode === "database" && !!config.admin.supabaseUrl;
@@ -1554,28 +1560,46 @@ function LeadsModal({ onClose }: ModalProps) {
                   className="border-t border-neutral-200 dark:border-white/10"
                 >
                   <td className="px-3 py-2 font-semibold">
-                    {l.name}
-                    {l.aiRank && (
-                      <span className="ml-1.5 rounded bg-amber-100 px-1.5 text-[10px] font-bold text-amber-700">
-                        {l.aiRank}
-                      </span>
-                    )}
-                    {l.riskLevel && l.riskLevel !== "low" && (
-                      <span
-                        title={
-                          l.riskReasons?.join("; ") ||
-                          l.recommendedAction ||
-                          "Cần kiểm tra thêm"
-                        }
-                        className={`ml-1.5 rounded px-1.5 text-[10px] font-bold ${
-                          l.riskLevel === "high"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {l.riskLevel === "high" ? "CẦN XÁC MINH" : "XEM LẠI"}
-                      </span>
-                    )}
+                    <div className="min-w-0">
+                      <div className="break-words">{l.name}</div>
+                      {l.aiRank && (
+                        <span className="ml-1.5 rounded bg-amber-100 px-1.5 text-[10px] font-bold text-amber-700">
+                          {l.aiRank}
+                        </span>
+                      )}
+                      {l.riskLevel && l.riskLevel !== "low" && (
+                        <span
+                          title={
+                            l.riskReasons?.join("; ") ||
+                            l.recommendedAction ||
+                            "Cần kiểm tra thêm"
+                          }
+                          className={`ml-1.5 rounded px-1.5 text-[10px] font-bold ${
+                            l.riskLevel === "high"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {l.riskLevel === "high" ? "CẦN XÁC MINH" : "XEM LẠI"}
+                        </span>
+                      )}
+                      <div className="mt-1 space-y-1 text-[11px] font-normal leading-relaxed text-neutral-500">
+                        {l.deviceTechInfo && (
+                          <p className="break-words">{l.deviceTechInfo}</p>
+                        )}
+                        {l.networkLabel && (
+                          <p className="break-words">{l.networkLabel}</p>
+                        )}
+                        {l.trafficAdsSource && (
+                          <p className="break-words">{l.trafficAdsSource}</p>
+                        )}
+                        {l.saleAdvice && (
+                          <p className="break-words text-neutral-700 dark:text-neutral-200">
+                            {l.saleAdvice}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-3 py-2 tabular-nums">{l.phone}</td>
                   <td className="px-3 py-2">{l.city || "—"}</td>
@@ -1584,7 +1608,13 @@ function LeadsModal({ onClose }: ModalProps) {
                     {new Date(l.at).toLocaleString("vi-VN")}
                   </td>
                   <td className="px-3 py-2 text-neutral-500">
-                    {l.utmSource || "direct"}
+                    <div className="space-y-1">
+                      <div>{l.utmSource || "direct"}</div>
+                      <div className="text-[11px] leading-relaxed">
+                        Phiên {l.currentSession || 1} · Hôm nay{" "}
+                        {l.visitsToday || 0} · Tháng {l.visitsMonth || 0}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-3 py-2">
                     <span
@@ -2013,8 +2043,11 @@ function LandingEditorModal({ onClose }: ModalProps) {
   const content = config.landing;
   const importRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const heroImageInputRef = useRef<HTMLInputElement>(null);
+  const heroSliderInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const [logoError, setLogoError] = useState("");
+  const [heroMediaError, setHeroMediaError] = useState("");
   const [templateType, setTemplateType] = useState("promo");
   const updateLines = (
     key: "heroTrustItems" | "pains" | "galleryCaptions",
@@ -2033,6 +2066,7 @@ function LandingEditorModal({ onClose }: ModalProps) {
       | "testimonials"
       | "steps"
       | "galleryImageUrls"
+      | "heroSliderImages"
       | "expertImageUrls"
       | "majorDescriptions"
       | "faqs"
@@ -2102,6 +2136,18 @@ function LandingEditorModal({ onClose }: ModalProps) {
     };
     reader.readAsText(file);
   }
+  function readImageDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () =>
+        typeof reader.result === "string"
+          ? resolve(reader.result)
+          : reject(new Error("invalid image"));
+      reader.onerror = () => reject(new Error("read failed"));
+      reader.readAsDataURL(file);
+    });
+  }
+
   function uploadLogo(file: File) {
     setLogoError("");
     if (!/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type)) {
@@ -2123,6 +2169,50 @@ function LandingEditorModal({ onClose }: ModalProps) {
     reader.onerror = () => setLogoError("Không thể đọc file logo.");
     reader.readAsDataURL(file);
   }
+  function uploadHeroImage(file: File) {
+    setHeroMediaError("");
+    if (!/^image\/(png|jpeg|webp)$/.test(file.type)) {
+      setHeroMediaError("Ảnh hero cần là PNG, JPG hoặc WebP.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setHeroMediaError("Ảnh hero không được vượt quá 2MB.");
+      return;
+    }
+    readImageDataUrl(file)
+      .then((image) => {
+        update((draft) => {
+          draft.landing.heroMediaMode = "image";
+          draft.landing.heroImageUrl = image;
+        });
+      })
+      .catch(() => setHeroMediaError("Không thể đọc ảnh hero."));
+  }
+
+  function uploadHeroSlider(files: FileList) {
+    setHeroMediaError("");
+    const selected = Array.from(files).filter(
+      (file) =>
+        /^image\/(png|jpeg|webp)$/.test(file.type) &&
+        file.size <= 2 * 1024 * 1024,
+    );
+    if (selected.length === 0) {
+      setHeroMediaError("Vui lòng chọn PNG/JPG/WebP tối đa 2MB.");
+      return;
+    }
+    Promise.all(selected.map((file) => readImageDataUrl(file)))
+      .then((images) => {
+        update((draft) => {
+          draft.landing.heroMediaMode = "slider";
+          draft.landing.heroSliderImages = images;
+          if (!draft.landing.heroImageUrl) {
+            draft.landing.heroImageUrl = images[0] || "";
+          }
+        });
+      })
+      .catch(() => setHeroMediaError("Không thể đọc slider hero."));
+  }
+
   function uploadGallery(files: FileList) {
     const selected = Array.from(files).filter(
       (file) =>
@@ -2462,8 +2552,46 @@ function LandingEditorModal({ onClose }: ModalProps) {
           onChange={(value) =>
             update((draft) => (draft.trafficStats.enabled = value))
           }
-          label="Hiển thị khối thống kê truy cập ở chân trang"
+          label="Bật khối thống kê truy cập"
         />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Vị trí hiển thị">
+            <select
+              value={config.trafficStats.position}
+              onChange={(event) =>
+                update(
+                  (draft) =>
+                    (draft.trafficStats.position = event.target
+                      .value as typeof config.trafficStats.position),
+                )
+              }
+              className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-neutral-900"
+            >
+              <option value="footer">Chân trang</option>
+              <option value="afterHero">Ngay sau Hero</option>
+            </select>
+          </Field>
+          <Field label="Tiêu đề khối thống kê">
+            <TextInput
+              value={config.trafficStats.title}
+              onChange={(event) =>
+                update(
+                  (draft) => (draft.trafficStats.title = event.target.value),
+                )
+              }
+            />
+          </Field>
+        </div>
+        <Field label="Mô tả hỗ trợ">
+          <TextArea
+            value={config.trafficStats.helperText}
+            onChange={(event) =>
+              update(
+                (draft) => (draft.trafficStats.helperText = event.target.value),
+              )
+            }
+          />
+        </Field>
         <div className="space-y-1.5">
           {content.sectionsArray.map((item, index) => (
             <div
@@ -2747,12 +2875,98 @@ function LandingEditorModal({ onClose }: ModalProps) {
           }
         />
       </Field>
-      <Field label="Hero: URL hình ảnh (để trống dùng ảnh mặc định)">
+      <Field label="Hero: chế độ nền">
+        <select
+          value={content.heroMediaMode}
+          onChange={(e) =>
+            update(
+              (d) =>
+                (d.landing.heroMediaMode = e.target
+                  .value as typeof content.heroMediaMode),
+            )
+          }
+          className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-neutral-900"
+        >
+          <option value="image">Ảnh tĩnh</option>
+          <option value="slider">Slider nền</option>
+        </select>
+      </Field>
+      <Field label="Hero: URL ảnh tĩnh (để trống dùng ảnh mặc định)">
         <TextInput
           type="url"
           value={content.heroImageUrl}
           onChange={(e) =>
             update((d) => (d.landing.heroImageUrl = e.target.value))
+          }
+        />
+      </Field>
+      <div className="mb-3 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
+        <p className="text-xs font-bold">Tải media cho Hero</p>
+        <p className="mt-1 text-[11px] text-neutral-400">
+          Ảnh tĩnh hoặc nhiều ảnh slider, tối đa 2MB mỗi tệp, responsive trên
+          mobile/tablet/desktop.
+        </p>
+        <input
+          ref={heroImageInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) uploadHeroImage(file);
+            event.target.value = "";
+          }}
+        />
+        <input
+          ref={heroSliderInputRef}
+          type="file"
+          multiple
+          accept="image/png,image/jpeg,image/webp"
+          className="hidden"
+          onChange={(event) => {
+            if (event.target.files) uploadHeroSlider(event.target.files);
+            event.target.value = "";
+          }}
+        />
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            onClick={() => heroImageInputRef.current?.click()}
+            className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-bold text-white"
+          >
+            Upload ảnh tĩnh
+          </button>
+          <button
+            onClick={() => heroSliderInputRef.current?.click()}
+            className="rounded-lg border border-neutral-300 px-3 py-2 text-xs font-bold text-neutral-700 dark:border-white/10 dark:text-white"
+          >
+            Upload slider hero
+          </button>
+        </div>
+        {heroMediaError && (
+          <p className="mt-2 text-[11px] font-medium text-red-500">
+            {heroMediaError}
+          </p>
+        )}
+      </div>
+      <Field label="Hero: danh sách ảnh slider (JSON array)">
+        <TextArea
+          value={JSON.stringify(content.heroSliderImages, null, 2)}
+          onChange={(e) => updateJson("heroSliderImages", e.target.value)}
+        />
+      </Field>
+      <Field label="Hero: thời gian chuyển slide (ms)">
+        <TextInput
+          type="number"
+          min="2500"
+          value={content.heroSliderIntervalMs}
+          onChange={(e) =>
+            update(
+              (d) =>
+                (d.landing.heroSliderIntervalMs = Math.max(
+                  2500,
+                  Number(e.target.value) || 2500,
+                )),
+            )
           }
         />
       </Field>

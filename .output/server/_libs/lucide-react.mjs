@@ -565,26 +565,6 @@ var Lock = createLucideIcon("lock", [["rect", {
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var LogOut = createLucideIcon("log-out", [
-	["path", {
-		d: "m16 17 5-5-5-5",
-		key: "1bji2h"
-	}],
-	["path", {
-		d: "M21 12H9",
-		key: "dn1m92"
-	}],
-	["path", {
-		d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4",
-		key: "1uf3rs"
-	}]
-]);
-/**
-* @license lucide-react v0.575.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
 var Mail = createLucideIcon("mail", [["path", {
 	d: "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7",
 	key: "132q7q"
@@ -724,26 +704,6 @@ var RotateCcw = createLucideIcon("rotate-ccw", [["path", {
 	d: "M3 3v5h5",
 	key: "1xhq8a"
 }]]);
-/**
-* @license lucide-react v0.575.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
-var Save = createLucideIcon("save", [
-	["path", {
-		d: "M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z",
-		key: "1c8476"
-	}],
-	["path", {
-		d: "M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7",
-		key: "1ydtos"
-	}],
-	["path", {
-		d: "M7 3v4a1 1 0 0 0 1 1h7",
-		key: "t51u73"
-	}]
-]);
 /**
 * @license lucide-react v0.575.0 - ISC
 *

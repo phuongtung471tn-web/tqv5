@@ -105,6 +105,9 @@ export interface FloatingContactConfig {
 
 export interface TrafficStatsConfig {
   enabled: boolean;
+  position: "footer" | "afterHero";
+  title: string;
+  helperText: string;
 }
 
 export interface FooterConfig {
@@ -173,7 +176,10 @@ export interface LandingConfig {
   heroTitle: string;
   heroHighlight: string;
   heroDescription: string;
+  heroMediaMode: "image" | "slider";
   heroImageUrl: string;
+  heroSliderImages: string[];
+  heroSliderIntervalMs: number;
   galleryImageUrls: string[];
   expertImageUrls: string[];
   heroTrustItems: string[];
@@ -389,7 +395,10 @@ export const DEFAULT_CONFIG: SiteConfig = {
     heroHighlight: "công nhân lặp đi lặp lại?",
     heroDescription:
       "Du học nghề Trung Quốc: học phí 0Đ, vừa học vừa làm lương 15-30 triệu/tháng, ra trường có bằng Cao đẳng chính quy quốc tế và tay nghề công nghệ cao.",
+    heroMediaMode: "image",
     heroImageUrl: "",
+    heroSliderImages: [],
+    heroSliderIntervalMs: 4500,
     galleryImageUrls: ["", "", "", ""],
     expertImageUrls: ["", "", ""],
     heroTrustItems: [
@@ -634,6 +643,10 @@ export const DEFAULT_CONFIG: SiteConfig = {
   },
   trafficStats: {
     enabled: true,
+    position: "footer",
+    title: "Thống kê truy cập thông minh",
+    helperText:
+      "Dữ liệu truy cập được gom từ cùng một kho tracking để đồng bộ giữa Analytics, Mini-CRM và Webhook.",
   },
   footer: {
     logoUrl: "",
