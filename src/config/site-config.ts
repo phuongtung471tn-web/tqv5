@@ -195,7 +195,12 @@ export interface LandingConfig {
   galleryDescription: string;
   galleryCaptions: string[];
   testimonialsHeading: string;
-  testimonials: { name: string; meta: string; text: string }[];
+  testimonials: {
+    name: string;
+    meta: string;
+    text: string;
+    avatarUrl?: string;
+  }[];
   stepsHeading: string;
   steps: { number: string; title: string; description: string }[];
   faqHeading: string;
@@ -494,16 +499,19 @@ export const DEFAULT_CONFIG: SiteConfig = {
         name: "Nguyễn Văn Hùng",
         meta: "Ngành Ô tô điện · Quảng Châu · khóa tháng 9",
         text: "Trước em làm xưởng gỗ 7 triệu/tháng. Sang đây vừa học vừa làm được hơn 20 triệu, tháng nào cũng gửi về nhà 10 triệu. Tay nghề lên hẳn vì được làm trên xe thật.",
+        avatarUrl: "",
       },
       {
         name: "Trần Thị Ngọc",
         meta: "Ngành Thương mại điện tử · Nghĩa Ô",
         text: "Em không biết tiếng Hán, được học nền tảng trước khi bay nên sang không bị choáng. Giờ em phụ trách livestream cho một shop, thu nhập ổn định.",
+        avatarUrl: "",
       },
       {
         name: "Lê Đình Phúc",
         meta: "Ngành Drone (UAV) · Thâm Quyến",
         text: "Nhà em không đủ tiền cho đi du học tự túc. Chương trình 0Đ giúp em học ngành công nghệ mà chi phí ban đầu rất nhẹ. Ra trường có bằng Cao đẳng chính quy.",
+        avatarUrl: "",
       },
     ],
     stepsHeading: "Lộ trình 4 bước đơn giản",

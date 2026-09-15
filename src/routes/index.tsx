@@ -547,6 +547,16 @@ function Landing() {
                 <p className="text-gold" aria-hidden="true">
                   ★★★★★
                 </p>
+                {t.avatarUrl && (
+                  <img
+                    src={t.avatarUrl}
+                    alt={`Ảnh đại diện ${t.name}`}
+                    width={48}
+                    height={48}
+                    loading="lazy"
+                    className="mt-3 h-12 w-12 rounded-full object-cover ring-2 ring-border"
+                  />
+                )}
                 <p className="mt-3 flex-1 text-sm leading-relaxed text-card-foreground/90">
                   “{t.text}”
                 </p>

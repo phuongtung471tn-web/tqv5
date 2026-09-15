@@ -2013,6 +2013,7 @@ function LandingEditorModal({ onClose }: ModalProps) {
   const content = config.landing;
   const importRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const [logoError, setLogoError] = useState("");
   const [templateType, setTemplateType] = useState("promo");
   const updateLines = (
@@ -2121,6 +2122,39 @@ function LandingEditorModal({ onClose }: ModalProps) {
     };
     reader.onerror = () => setLogoError("Không thể đọc file logo.");
     reader.readAsDataURL(file);
+  }
+  function uploadGallery(files: FileList) {
+    const selected = Array.from(files).filter(
+      (file) =>
+        /^image\/(png|jpeg|webp)$/.test(file.type) &&
+        file.size <= 2 * 1024 * 1024,
+    );
+    if (selected.length === 0) return;
+    Promise.all(
+      selected.map(
+        (file) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () =>
+              typeof reader.result === "string"
+                ? resolve(reader.result)
+                : reject(new Error("invalid image"));
+            reader.onerror = () => reject(new Error("read failed"));
+            reader.readAsDataURL(file);
+          }),
+      ),
+    ).then((images) => {
+      update((draft) => {
+        draft.landing.galleryImageUrls = [
+          ...draft.landing.galleryImageUrls,
+          ...images,
+        ];
+        draft.landing.galleryCaptions = [
+          ...draft.landing.galleryCaptions,
+          ...images.map(() => "Ảnh thực tế chương trình"),
+        ];
+      });
+    });
   }
   function updateSections(nextSections: typeof content.sectionsArray) {
     update((draft) => {
@@ -2794,6 +2828,31 @@ function LandingEditorModal({ onClose }: ModalProps) {
           onChange={(e) => updateJson("galleryImageUrls", e.target.value)}
         />
       </Field>
+      <div className="mb-3 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
+        <p className="text-xs font-bold">Thêm nhiều ảnh vào slider</p>
+        <p className="mt-1 text-[11px] text-neutral-400">
+          Chọn nhiều PNG/JPG/WebP, tối đa 2MB mỗi ảnh. Caption tương ứng chỉnh ở
+          ô Caption gallery ngay phía trên.
+        </p>
+        <input
+          ref={galleryInputRef}
+          type="file"
+          multiple
+          accept="image/png,image/jpeg,image/webp"
+          className="hidden"
+          onChange={(event) => {
+            if (event.target.files) uploadGallery(event.target.files);
+            event.target.value = "";
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => galleryInputRef.current?.click()}
+          className="mt-3 rounded-lg bg-neutral-900 px-3 py-2 text-xs font-bold text-white"
+        >
+          Chọn nhiều ảnh
+        </button>
+      </div>
       <Field label="URL ảnh chuyên gia (JSON array)">
         <TextArea
           value={JSON.stringify(content.expertImageUrls, null, 2)}
