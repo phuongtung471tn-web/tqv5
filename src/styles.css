@@ -158,3 +158,27 @@
     box-shadow: 0 20px 40px -12px oklch(0.55 0.22 25 / 0.75);
   }
 }
+
+@keyframes contact-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@utility contact-breathe {
+  animation: contact-breathe 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

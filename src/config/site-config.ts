@@ -96,6 +96,8 @@ export interface FloatingContactConfig {
   hotline: string;
   zalo: string;
   messenger: string;
+  animateHotline?: boolean;
+  animateMessenger?: boolean;
 }
 
 export interface FormField {
@@ -601,6 +603,8 @@ export const DEFAULT_CONFIG: SiteConfig = {
     hotline: "0900000000",
     zalo: "https://zalo.me/0900000000",
     messenger: "",
+    animateHotline: true,
+    animateMessenger: true,
   },
   form: {
     headline: "Đăng ký nhận tư vấn miễn phí",

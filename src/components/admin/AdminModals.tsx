@@ -395,6 +395,18 @@ function ContactModal({ onClose }: ModalProps) {
         onChange={(v) => update((d) => (d.floatingContact.enabled = v))}
         label="Bật nút liên hệ nổi"
       />
+      <Toggle
+        checked={c.animateHotline !== false}
+        onChange={(v) => update((d) => (d.floatingContact.animateHotline = v))}
+        label="Hiệu ứng nút gọi hotline"
+      />
+      <Toggle
+        checked={c.animateMessenger !== false}
+        onChange={(v) =>
+          update((d) => (d.floatingContact.animateMessenger = v))
+        }
+        label="Hiệu ứng nút Messenger"
+      />
       <Field label="Số hotline">
         <TextInput
           value={c.hotline}
