@@ -463,6 +463,19 @@ function PixelModal({ onClose }: ModalProps) {
           }
         />
       </Field>
+      <Field
+        label="TikTok Events API Access Token"
+        hint="Chỉ dùng ở backend/server; không nhúng token vào mã trình duyệt."
+      >
+        <TextInput
+          type="password"
+          value={t.tiktokAccessToken}
+          autoComplete="new-password"
+          onChange={(e) =>
+            update((d) => (d.tracking.tiktokAccessToken = e.target.value))
+          }
+        />
+      </Field>
       <Field label="GA4 Measurement ID">
         <TextInput
           value={t.ga4Id}
@@ -500,6 +513,16 @@ function PixelModal({ onClose }: ModalProps) {
         }
         label="CompleteRegistration"
       />
+      <Toggle
+        checked={t.events.click !== false}
+        onChange={(v) => update((d) => (d.tracking.events.click = v))}
+        label="Click CTA / Hotline / Zalo / Messenger"
+      />
+      <Toggle
+        checked={t.events.scroll !== false}
+        onChange={(v) => update((d) => (d.tracking.events.scroll = v))}
+        label="Scroll depth 25 / 50 / 75 / 90%"
+      />
       <div className="mt-4 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
         <button
           onClick={() => setLogs(fireTestEvent())}
@@ -508,9 +531,19 @@ function PixelModal({ onClose }: ModalProps) {
           Kiểm tra / Bắn sự kiện thử
         </button>
         <p className="mt-2 text-[11px] text-neutral-400">
-          Lưu cấu hình và tải lại trang trước khi kiểm tra để mã pixel được
-          chèn.
+          Lưu cấu hình, tải lại trang rồi kiểm tra. Sự kiện thử không phải là
+          chuyển đổi thật và không gửi lead.
         </p>
+        <ol className="mt-3 list-decimal space-y-1 pl-4 text-[11px] text-neutral-500">
+          <li>Meta: lấy Pixel ID trong Events Manager.</li>
+          <li>
+            TikTok: lấy Pixel ID trong Events Manager; Access Token chỉ cấu hình
+            ở server.
+          </li>
+          <li>GA4: dùng Measurement ID dạng G-XXXXXXXXXX.</li>
+          <li>GTM: dùng Container ID dạng GTM-XXXXXXX rồi kiểm tra Preview.</li>
+          <li>Dùng nút kiểm tra, xem log Admin và DebugView/Test Events.</li>
+        </ol>
         {logs && (
           <ul className="mt-3 space-y-1.5">
             {logs.map((l) => (
