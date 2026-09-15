@@ -8,10 +8,7 @@ import {
   BookOpen,
   ClipboardList,
   Globe,
-  CloudUpload,
-  Database,
   Search,
-  KeyRound,
   Save,
   Package,
   Upload,
@@ -37,7 +34,6 @@ interface Tool {
   icon: LucideIcon;
 }
 
-// 24 công cụ mở modal + 4 hành động hệ thống = 28 nút (mục 20).
 const TOOLS: Tool[] = [
   { key: "editor", label: "Sửa Giao Diện", icon: Pencil },
   { key: "fomo", label: "FOMO Popups", icon: Bell },
@@ -49,10 +45,7 @@ const TOOLS: Tool[] = [
   { key: "guide", label: "Hướng Dẫn & Health", icon: BookOpen },
   { key: "leads", label: "Quản Lý Lead", icon: ClipboardList },
   { key: "webmaster", label: "Webmaster & Scripts", icon: Globe },
-  { key: "cron", label: "Cloud Cron & Backup", icon: CloudUpload },
-  { key: "storage", label: "Storage Mode", icon: Database },
   { key: "seo", label: "SEO Google", icon: Search },
-  { key: "adminlink", label: "Đổi Link Admin", icon: KeyRound },
 ];
 
 const DEVICES = [
