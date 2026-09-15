@@ -14,6 +14,7 @@ import {
 } from "@/lib/behavior";
 import { getVariant, utmSource } from "@/lib/ab";
 import { useSiteConfig } from "@/lib/use-site-config";
+import { useVisitorTracking } from "@/lib/visitor-tracking";
 import { dispatchLead } from "@/services/webhooks";
 import {
   isDuplicateLead,
@@ -149,6 +150,7 @@ function rateLimited(maxCount: number, windowMin: number): boolean {
 
 export function LeadForm({ id = "dang-ky" }: { id?: string }) {
   const { config } = useSiteConfig();
+  const visitor = useVisitorTracking();
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
   const [form, setForm] = useState(EMPTY);
@@ -238,6 +240,16 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
     const { score: aiScore, rank: aiRank } = assessment;
     const variant = getVariant(config.abTest.enabled, config.abTest.split);
     const source = utmSource();
+    const deviceProfile = visitor.device.modelDisplay || behavior.device_model_name;
+    const networkLabel = visitor.network.label || config.trafficStats.fallbackNetworkLabel;
+    const locationLabel =
+      visitor.network.locationLabel || config.trafficStats.fallbackLocationLabel;
+    const visitMetrics = visitor.metrics;
+    const attributionSummary = [
+      visitor.source.source || behavior.utm_source || "direct",
+      visitor.source.medium || behavior.utm_medium || "organic",
+      visitor.source.campaign || behavior.utm_campaign || "—",
+    ].join(" · ");
 
     const payload = {
       full_name: form.name.trim().slice(0, 100),
@@ -266,6 +278,23 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
       behavior_summary: generateBehaviorSummary(behavior),
       device_tech_info: generateDeviceTechInfo(behavior),
       traffic_ads_source: generateTrafficAdsSource(behavior),
+      visitor_session_id: visitor.device.sessionId,
+      visitor_fingerprint: visitor.device.fingerprint,
+      visitor_device_kind: visitor.device.kind,
+      visitor_device_vendor: visitor.device.vendor,
+      visitor_device_model: visitor.device.model,
+      visitor_device_profile: deviceProfile,
+      visitor_network_label: networkLabel,
+      visitor_network_location: locationLabel,
+      visitor_network_isp: visitor.network.isp,
+      visitor_network_region: visitor.network.region,
+      visitor_network_country: visitor.network.country,
+      visitor_network_flags: visitor.network.networkFlags,
+      visitor_current_session: visitMetrics.currentSession,
+      visitor_visits_today: visitMetrics.today,
+      visitor_visits_month: visitMetrics.month,
+      visitor_tracking_storage_mode: visitMetrics.storageMode,
+      visitor_attribution_summary: attributionSummary,
     };
 
     try {
@@ -290,6 +319,17 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
         utmContent: payload.utm_content,
         ttclid: payload.ttclid,
         variant,
+        visitorSessionId: visitor.device.sessionId,
+        visitorFingerprint: visitor.device.fingerprint,
+        deviceProfile,
+        networkLabel,
+        networkLocation: locationLabel,
+        networkFlags: visitor.network.networkFlags,
+        visitCurrentSession: visitMetrics.currentSession,
+        visitsToday: visitMetrics.today,
+        visitsMonth: visitMetrics.month,
+        trackingStorageMode: visitMetrics.storageMode,
+        attributionSummary,
       };
       if (payload.email) leadRecord.email = payload.email;
       if (payload.city) leadRecord.city = payload.city;

@@ -238,6 +238,17 @@ export interface LeadRecord {
   ttclid?: string;
   utmSource?: string;
   variant?: string;
+  visitorSessionId?: string;
+  visitorFingerprint?: string;
+  deviceProfile?: string;
+  networkLabel?: string;
+  networkLocation?: string;
+  networkFlags?: string[];
+  visitCurrentSession?: number;
+  visitsToday?: number;
+  visitsMonth?: number;
+  trackingStorageMode?: StorageMode;
+  attributionSummary?: string;
   /** Nơi bản ghi được lưu: máy khách hay đám mây. */
   storage?: StorageMode;
 }
@@ -359,6 +370,15 @@ export function exportLeadsCsv(leads: LeadRecord[]): void {
     "utmContent",
     "ttclid",
     "variant",
+    "deviceProfile",
+    "networkLabel",
+    "networkLocation",
+    "networkFlags",
+    "visitCurrentSession",
+    "visitsToday",
+    "visitsMonth",
+    "trackingStorageMode",
+    "attributionSummary",
   ];
   const rows = leads.map((l) =>
     headers

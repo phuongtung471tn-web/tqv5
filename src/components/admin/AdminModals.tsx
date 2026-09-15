@@ -1576,6 +1576,11 @@ function LeadsModal({ onClose }: ModalProps) {
                         {l.riskLevel === "high" ? "CẦN XÁC MINH" : "XEM LẠI"}
                       </span>
                     )}
+                    {(l.deviceProfile || l.networkLabel) && (
+                      <p className="mt-1 max-w-[240px] break-words text-[10px] font-medium text-neutral-500">
+                        {[l.deviceProfile, l.networkLabel].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
                   </td>
                   <td className="px-3 py-2 tabular-nums">{l.phone}</td>
                   <td className="px-3 py-2">{l.city || "—"}</td>
@@ -1585,6 +1590,11 @@ function LeadsModal({ onClose }: ModalProps) {
                   </td>
                   <td className="px-3 py-2 text-neutral-500">
                     {l.utmSource || "direct"}
+                    {(l.visitsToday || l.visitsMonth) && (
+                      <p className="mt-1 text-[10px]">
+                        Hôm nay {l.visitsToday ?? 0} · Tháng {l.visitsMonth ?? 0}
+                      </p>
+                    )}
                   </td>
                   <td className="px-3 py-2">
                     <span
@@ -2464,6 +2474,64 @@ function LandingEditorModal({ onClose }: ModalProps) {
           }
           label="Hiển thị khối thống kê truy cập ở chân trang"
         />
+        <Toggle
+          checked={config.trafficStats.showOnSecondaryPages}
+          onChange={(value) =>
+            update((draft) => (draft.trafficStats.showOnSecondaryPages = value))
+          }
+          label="Hiển thị thêm ở các trang phụ"
+        />
+        <Toggle
+          checked={config.trafficStats.showAttribution}
+          onChange={(value) =>
+            update((draft) => (draft.trafficStats.showAttribution = value))
+          }
+          label="Hiển thị nguồn UTM trong khối thống kê"
+        />
+        <Field label="Kiểu hiển thị">
+          <div className="flex gap-2">
+            {(["compact", "detailed"] as const).map((variant) => (
+              <button
+                key={variant}
+                type="button"
+                onClick={() =>
+                  update((draft) => (draft.trafficStats.variant = variant))
+                }
+                className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold ${
+                  config.trafficStats.variant === variant
+                    ? "border-neutral-900 bg-neutral-900 text-white"
+                    : "border-neutral-300"
+                }`}
+              >
+                {variant === "compact" ? "Gọn" : "Chi tiết"}
+              </button>
+            ))}
+          </div>
+        </Field>
+        <Field label="Chuỗi dự phòng nhà mạng">
+          <TextInput
+            value={config.trafficStats.fallbackNetworkLabel}
+            onChange={(event) =>
+              update(
+                (draft) =>
+                  (draft.trafficStats.fallbackNetworkLabel =
+                    event.target.value),
+              )
+            }
+          />
+        </Field>
+        <Field label="Chuỗi dự phòng vị trí">
+          <TextInput
+            value={config.trafficStats.fallbackLocationLabel}
+            onChange={(event) =>
+              update(
+                (draft) =>
+                  (draft.trafficStats.fallbackLocationLabel =
+                    event.target.value),
+              )
+            }
+          />
+        </Field>
         <div className="space-y-1.5">
           {content.sectionsArray.map((item, index) => (
             <div
