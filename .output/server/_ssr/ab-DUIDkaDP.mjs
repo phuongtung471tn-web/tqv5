@@ -1,7 +1,7 @@
 import { c as createServerFn, i as TSS_SERVER_FUNCTION } from "./createServerFn-CIHAFgYl.mjs";
 import { n as objectType, r as stringType, t as enumType } from "../_libs/zod.mjs";
 import { t as getServerFnById } from "../__23tanstack-start-server-fn-resolver-Cj8cTMMZ.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/ab-1ZHA4A9t.js
+//#region node_modules/.nitro/vite/services/ssr/assets/ab-DUIDkaDP.js
 var createSsrRpc = (functionId) => {
 	const url = "/_serverFn/" + functionId;
 	const serverFnMeta = { id: functionId };
@@ -36,12 +36,39 @@ function pushDataLayer(event) {
 	window.dataLayer.push(event);
 }
 /** Khách bắt đầu tương tác với ô input đầu tiên */
-function trackFormStart() {
+function trackFormStart(enabled = true) {
+	if (!enabled) return;
 	pushDataLayer({ event: "form_start" });
 }
-/** Chỉ gọi SAU khi dữ liệu đã gửi thành công về Make.com */
-function trackLead(payload) {
+function trackInteraction(eventName, payload = {}) {
 	if (typeof window === "undefined") return;
+	pushDataLayer({
+		event: eventName,
+		...payload
+	});
+	try {
+		window.fbq?.("trackCustom", eventName, payload);
+	} catch (e) {
+		console.warn(`fbq ${eventName} failed`, e);
+	}
+	try {
+		window.ttq?.track("ClickButton", {
+			event_name: eventName,
+			...payload
+		});
+	} catch (e) {
+		console.warn(`ttq ${eventName} failed`, e);
+	}
+	try {
+		window.gtag?.("event", eventName, payload);
+	} catch (e) {
+		console.warn(`gtag ${eventName} failed`, e);
+	}
+}
+/** Chỉ gọi SAU khi dữ liệu đã gửi thành công về Make.com */
+function trackLead(payload, events) {
+	if (typeof window === "undefined") return;
+	if (events?.lead === false) return;
 	pushDataLayer({
 		event: "lead_conversion",
 		nganh_hoc: payload?.["content_name"] ?? ""
@@ -52,7 +79,7 @@ function trackLead(payload) {
 		console.warn("fbq lead failed", e);
 	}
 	try {
-		window.ttq?.track("CompleteRegistration", payload);
+		if (events?.completeRegistration !== false) window.ttq?.track("CompleteRegistration", payload);
 		window.ttq?.track("SubmitForm", payload);
 	} catch (e) {
 		console.warn("ttq event failed", e);
@@ -289,8 +316,8 @@ async function testWebhookEndpoint(endpoint, config) {
 	});
 }
 /**
-* Gửi lead đi mọi kênh. Trả về danh sách kết quả; coi là thành công khi
-* có ít nhất một kênh nhận được dữ liệu (hoặc không cấu hình kênh nào).
+* Gửi lead đi mọi kênh. Khi đã cấu hình nhiều kênh, chỉ coi là thành công
+* khi tất cả kênh đều nhận được dữ liệu; không cấu hình kênh nào vẫn hợp lệ.
 */
 async function dispatchLead(config, payload) {
 	const endpoints = [];
@@ -313,7 +340,7 @@ async function dispatchLead(config, payload) {
 		key: config.admin.supabaseAnonKey
 	})));
 	return {
-		ok: results.some((r) => r.ok),
+		ok: results.every((r) => r.ok),
 		results
 	};
 }
@@ -352,4 +379,4 @@ function utmSource() {
 	return new URLSearchParams(window.location.search).get("utm_source") || (document.referrer ? "referral" : "direct");
 }
 //#endregion
-export { resetVariant as a, testWebhookEndpoint as c, utmSource as d, webhookConfigurationWarning as f, getVariant as i, trackFormStart as l, dispatchLead as n, sendLeadEmail as o, fireTestEvent as r, sendTestEmail as s, checkEmailConfig as t, trackLead as u };
+export { resetVariant as a, testWebhookEndpoint as c, trackLead as d, utmSource as f, getVariant as i, trackFormStart as l, dispatchLead as n, sendLeadEmail as o, webhookConfigurationWarning as p, fireTestEvent as r, sendTestEmail as s, checkEmailConfig as t, trackInteraction as u };

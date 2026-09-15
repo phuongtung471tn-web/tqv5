@@ -1562,31 +1562,37 @@ function LeadsModal({ onClose }: ModalProps) {
                   <td className="px-3 py-2 font-semibold">
                     <div className="min-w-0">
                       <div className="break-words">{l.name}</div>
-                    {l.aiRank && (
-                      <span className="ml-1.5 rounded bg-amber-100 px-1.5 text-[10px] font-bold text-amber-700">
-                        {l.aiRank}
-                      </span>
-                    )}
-                    {l.riskLevel && l.riskLevel !== "low" && (
-                      <span
-                        title={
-                          l.riskReasons?.join("; ") ||
-                          l.recommendedAction ||
-                          "Cần kiểm tra thêm"
-                        }
-                        className={`ml-1.5 rounded px-1.5 text-[10px] font-bold ${
-                          l.riskLevel === "high"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {l.riskLevel === "high" ? "CẦN XÁC MINH" : "XEM LẠI"}
-                      </span>
-                    )}
+                      {l.aiRank && (
+                        <span className="ml-1.5 rounded bg-amber-100 px-1.5 text-[10px] font-bold text-amber-700">
+                          {l.aiRank}
+                        </span>
+                      )}
+                      {l.riskLevel && l.riskLevel !== "low" && (
+                        <span
+                          title={
+                            l.riskReasons?.join("; ") ||
+                            l.recommendedAction ||
+                            "Cần kiểm tra thêm"
+                          }
+                          className={`ml-1.5 rounded px-1.5 text-[10px] font-bold ${
+                            l.riskLevel === "high"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {l.riskLevel === "high" ? "CẦN XÁC MINH" : "XEM LẠI"}
+                        </span>
+                      )}
                       <div className="mt-1 space-y-1 text-[11px] font-normal leading-relaxed text-neutral-500">
-                        {l.deviceTechInfo && <p className="break-words">{l.deviceTechInfo}</p>}
-                        {l.networkLabel && <p className="break-words">{l.networkLabel}</p>}
-                        {l.trafficAdsSource && <p className="break-words">{l.trafficAdsSource}</p>}
+                        {l.deviceTechInfo && (
+                          <p className="break-words">{l.deviceTechInfo}</p>
+                        )}
+                        {l.networkLabel && (
+                          <p className="break-words">{l.networkLabel}</p>
+                        )}
+                        {l.trafficAdsSource && (
+                          <p className="break-words">{l.trafficAdsSource}</p>
+                        )}
                         {l.saleAdvice && (
                           <p className="break-words text-neutral-700 dark:text-neutral-200">
                             {l.saleAdvice}
@@ -1605,7 +1611,8 @@ function LeadsModal({ onClose }: ModalProps) {
                     <div className="space-y-1">
                       <div>{l.utmSource || "direct"}</div>
                       <div className="text-[11px] leading-relaxed">
-                        Phiên {l.currentSession || 1} · Hôm nay {l.visitsToday || 0} · Tháng {l.visitsMonth || 0}
+                        Phiên {l.currentSession || 1} · Hôm nay{" "}
+                        {l.visitsToday || 0} · Tháng {l.visitsMonth || 0}
                       </div>
                     </div>
                   </td>
@@ -2185,7 +2192,9 @@ function LandingEditorModal({ onClose }: ModalProps) {
   function uploadHeroSlider(files: FileList) {
     setHeroMediaError("");
     const selected = Array.from(files).filter(
-      (file) => /^image\/(png|jpeg|webp)$/.test(file.type) && file.size <= 2 * 1024 * 1024,
+      (file) =>
+        /^image\/(png|jpeg|webp)$/.test(file.type) &&
+        file.size <= 2 * 1024 * 1024,
     );
     if (selected.length === 0) {
       setHeroMediaError("Vui lòng chọn PNG/JPG/WebP tối đa 2MB.");
@@ -2552,7 +2561,8 @@ function LandingEditorModal({ onClose }: ModalProps) {
               onChange={(event) =>
                 update(
                   (draft) =>
-                    (draft.trafficStats.position = event.target.value as typeof config.trafficStats.position),
+                    (draft.trafficStats.position = event.target
+                      .value as typeof config.trafficStats.position),
                 )
               }
               className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-neutral-900"
@@ -2565,7 +2575,9 @@ function LandingEditorModal({ onClose }: ModalProps) {
             <TextInput
               value={config.trafficStats.title}
               onChange={(event) =>
-                update((draft) => (draft.trafficStats.title = event.target.value))
+                update(
+                  (draft) => (draft.trafficStats.title = event.target.value),
+                )
               }
             />
           </Field>
@@ -2574,7 +2586,9 @@ function LandingEditorModal({ onClose }: ModalProps) {
           <TextArea
             value={config.trafficStats.helperText}
             onChange={(event) =>
-              update((draft) => (draft.trafficStats.helperText = event.target.value))
+              update(
+                (draft) => (draft.trafficStats.helperText = event.target.value),
+              )
             }
           />
         </Field>
@@ -2867,7 +2881,8 @@ function LandingEditorModal({ onClose }: ModalProps) {
           onChange={(e) =>
             update(
               (d) =>
-                (d.landing.heroMediaMode = e.target.value as typeof content.heroMediaMode),
+                (d.landing.heroMediaMode = e.target
+                  .value as typeof content.heroMediaMode),
             )
           }
           className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-neutral-900"
@@ -2888,7 +2903,8 @@ function LandingEditorModal({ onClose }: ModalProps) {
       <div className="mb-3 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
         <p className="text-xs font-bold">Tải media cho Hero</p>
         <p className="mt-1 text-[11px] text-neutral-400">
-          Ảnh tĩnh hoặc nhiều ảnh slider, tối đa 2MB mỗi tệp, responsive trên mobile/tablet/desktop.
+          Ảnh tĩnh hoặc nhiều ảnh slider, tối đa 2MB mỗi tệp, responsive trên
+          mobile/tablet/desktop.
         </p>
         <input
           ref={heroImageInputRef}

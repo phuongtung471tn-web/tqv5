@@ -266,7 +266,9 @@ function Landing() {
       content.heroMediaMode === "slider"
         ? content.heroSliderImages.filter(Boolean)
         : [content.heroImageUrl].filter(Boolean);
-    return configured.length > 0 ? configured : [content.heroImageUrl || heroImg];
+    return configured.length > 0
+      ? configured
+      : [content.heroImageUrl || heroImg];
   }, [content.heroImageUrl, content.heroMediaMode, content.heroSliderImages]);
   const [heroSlideIndex, setHeroSlideIndex] = useState(0);
 
@@ -422,16 +424,17 @@ function Landing() {
         </div>
       </section>
 
-      {config.trafficStats.enabled && config.trafficStats.position === "afterHero" && (
-        <section className="border-b border-border bg-background py-8 sm:py-10">
-          <div className="mx-auto max-w-6xl px-4">
-            <FooterStats
-              title={config.trafficStats.title}
-              helperText={config.trafficStats.helperText}
-            />
-          </div>
-        </section>
-      )}
+      {config.trafficStats.enabled &&
+        config.trafficStats.position === "afterHero" && (
+          <section className="border-b border-border bg-background py-8 sm:py-10">
+            <div className="mx-auto max-w-6xl px-4">
+              <FooterStats
+                title={config.trafficStats.title}
+                helperText={config.trafficStats.helperText}
+              />
+            </div>
+          </section>
+        )}
 
       {/* Stats */}
       <section
@@ -712,11 +715,12 @@ function Landing() {
         style={{ order: 99 }}
         className="border-t border-border bg-background py-12"
       >
-        {config.trafficStats.enabled && config.trafficStats.position === "footer" && (
-          <div className="mx-auto mb-10 max-w-6xl px-4">
-            <FooterStats />
-          </div>
-        )}
+        {config.trafficStats.enabled &&
+          config.trafficStats.position === "footer" && (
+            <div className="mx-auto mb-10 max-w-6xl px-4">
+              <FooterStats />
+            </div>
+          )}
         <div className="mx-auto max-w-6xl px-4 text-sm text-muted-foreground">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">

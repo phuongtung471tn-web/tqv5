@@ -196,7 +196,10 @@ function connectionTypeLabel(value: string) {
   }
 }
 
-function buildFallbackNetworkLabel(connectionType: string, country = "Việt Nam") {
+function buildFallbackNetworkLabel(
+  connectionType: string,
+  country = "Việt Nam",
+) {
   return `${connectionTypeLabel(connectionType)} · ${country}`;
 }
 
@@ -211,7 +214,8 @@ function buildNetworkDisplay(info: Partial<NetworkInfo>) {
   const location = compactLocation([info.city, info.region, info.country]);
   if (info.provider && location) return `${info.provider} · ${location}`;
   if (info.provider) return `${info.provider} · Việt Nam`;
-  if (location) return `${info.connectionLabel || "Mạng băng thông rộng"} · ${location}`;
+  if (location)
+    return `${info.connectionLabel || "Mạng băng thông rộng"} · ${location}`;
   return info.fallbackLabel || "Mạng băng thông rộng · Việt Nam";
 }
 
@@ -246,10 +250,13 @@ function inferDeviceKind(ua: string): DeviceKind {
 function mapIPhoneModelByViewport() {
   if (!isBrowser()) return { family: "iPhone", model: "iPhone" };
   const width = Math.max(window.screen.width, window.screen.height);
-  if (width >= 932) return { family: "iPhone Pro Max", model: "iPhone 15/16 Pro Max" };
-  if (width >= 926) return { family: "iPhone Pro Max", model: "iPhone 12/13/14 Pro Max" };
+  if (width >= 932)
+    return { family: "iPhone Pro Max", model: "iPhone 15/16 Pro Max" };
+  if (width >= 926)
+    return { family: "iPhone Pro Max", model: "iPhone 12/13/14 Pro Max" };
   if (width >= 896) return { family: "iPhone", model: "iPhone XR/11/XS Max" };
-  if (width >= 852) return { family: "iPhone Pro", model: "iPhone 14/15/16 Pro" };
+  if (width >= 852)
+    return { family: "iPhone Pro", model: "iPhone 14/15/16 Pro" };
   if (width >= 844) return { family: "iPhone", model: "iPhone 12/13/14" };
   if (width >= 812) return { family: "iPhone", model: "iPhone X/XS/11 Pro" };
   return { family: "iPhone", model: "iPhone SE/8/Plus" };
@@ -264,7 +271,8 @@ function inferAndroidManufacturer(token: string, ua: string) {
   if (/V2\d|VIVO/i.test(source)) return "Vivo";
   if (/RMX|realme/i.test(source)) return "realme";
   if (/HUAWEI|ANA-|ELS-|JAD-|BLA-/i.test(source)) return "Huawei";
-  if (/TECNO|Infinix/i.test(source)) return /TECNO/i.test(source) ? "TECNO" : "Infinix";
+  if (/TECNO|Infinix/i.test(source))
+    return /TECNO/i.test(source) ? "TECNO" : "Infinix";
   return "Android";
 }
 
@@ -272,7 +280,8 @@ function parseAndroidModel(ua: string) {
   const match = ua.match(/Android\s[\d.]+;\s*([^;)]+?)(?:\sBuild\/|;|\))/i);
   const rawModel = prettifyToken(match?.[1] || "Android");
   const manufacturer = inferAndroidManufacturer(rawModel, ua);
-  const family = rawModel.split(" ").slice(0, 2).join(" ").trim() || manufacturer;
+  const family =
+    rawModel.split(" ").slice(0, 2).join(" ").trim() || manufacturer;
   return { manufacturer, family, model: rawModel };
 }
 
@@ -369,10 +378,10 @@ function detectHeadlessBrowser() {
   const nav = navigator as Navigator & { webdriver?: boolean };
   return Boolean(
     nav.webdriver ||
-      /HeadlessChrome|Puppeteer|Playwright|PhantomJS/i.test(
-        navigator.userAgent,
-      ) ||
-      (navigator.languages && navigator.languages.length === 0),
+    /HeadlessChrome|Puppeteer|Playwright|PhantomJS/i.test(
+      navigator.userAgent,
+    ) ||
+    (navigator.languages && navigator.languages.length === 0),
   );
 }
 
@@ -431,7 +440,8 @@ function computeMetrics(): VisitorMetrics {
     ? Math.max(0, Math.round((now - runtime.formStartedAt) / 1000))
     : 0;
   const focusSection =
-    Object.entries(runtime.sectionTime).sort((a, b) => b[1] - a[1])[0]?.[0] || "";
+    Object.entries(runtime.sectionTime).sort((a, b) => b[1] - a[1])[0]?.[0] ||
+    "";
   const batteryDrain =
     runtime.startBatteryLevel != null && runtime.currentBatteryLevel != null
       ? Math.max(0, runtime.startBatteryLevel - runtime.currentBatteryLevel)
@@ -519,14 +529,16 @@ async function fetchRemoteSessionCounts(
   const headers = {
     "Content-Type": "application/json",
     apikey: options.supabaseAnonKey,
-    Authorization: `******
   };
 
   try {
     if (isNewSession) {
       await fetch(`${base}/rest/v1/${VISITOR_SESSION_TABLE}`, {
         method: "POST",
-        headers: { ...headers, Prefer: "resolution=ignore-duplicates,return=minimal" },
+        headers: {
+          ...headers,
+          Prefer: "resolution=ignore-duplicates,return=minimal",
+        },
         body: JSON.stringify([
           {
             id: sessionId,
@@ -566,8 +578,12 @@ async function fetchRemoteSessionCounts(
 
     runtime.sessionCounts = {
       currentSession: 1,
-      today: Array.isArray(todayRows) ? todayRows.length : runtime.sessionCounts.today,
-      month: Array.isArray(monthRows) ? monthRows.length : runtime.sessionCounts.month,
+      today: Array.isArray(todayRows)
+        ? todayRows.length
+        : runtime.sessionCounts.today,
+      month: Array.isArray(monthRows)
+        ? monthRows.length
+        : runtime.sessionCounts.month,
     };
     updateSnapshot();
   } catch {
@@ -591,7 +607,9 @@ async function refreshNetworkInfo() {
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), NETWORK_TIMEOUT_MS);
   try {
-    const response = await fetch("https://ipwho.is/", { signal: controller.signal });
+    const response = await fetch("https://ipwho.is/", {
+      signal: controller.signal,
+    });
     const payload = (await response.json()) as {
       success?: boolean;
       ip?: string;
@@ -599,7 +617,12 @@ async function refreshNetworkInfo() {
       region?: string;
       country?: string;
       connection?: { isp?: string; org?: string };
-      security?: { vpn?: boolean; proxy?: boolean; tor?: boolean; hosting?: boolean };
+      security?: {
+        vpn?: boolean;
+        proxy?: boolean;
+        tor?: boolean;
+        hosting?: boolean;
+      };
     };
     window.clearTimeout(timer);
 
@@ -689,8 +712,12 @@ export function initVisitorTracking(options: VisitorTrackingInitOptions = {}) {
     markInteraction();
     const doc = document.documentElement;
     const total = doc.scrollHeight - window.innerHeight;
-    const percent = total > 0 ? Math.round(((window.scrollY || 0) / total) * 100) : 100;
-    runtime.maxScrollPercent = Math.max(runtime.maxScrollPercent, Math.min(100, percent));
+    const percent =
+      total > 0 ? Math.round(((window.scrollY || 0) / total) * 100) : 100;
+    runtime.maxScrollPercent = Math.max(
+      runtime.maxScrollPercent,
+      Math.min(100, percent),
+    );
     updateSnapshot();
   };
   const events: Array<[keyof WindowEventMap, EventListener]> = [
@@ -736,7 +763,8 @@ export function initVisitorTracking(options: VisitorTrackingInitOptions = {}) {
       addEventListener: (type: string, listener: () => void) => void;
     }>;
   };
-  nav.getBattery?.()
+  nav
+    .getBattery?.()
     .then((battery) => {
       runtime.startBatteryLevel = Math.round(battery.level * 100);
       runtime.currentBatteryLevel = runtime.startBatteryLevel;
@@ -759,7 +787,9 @@ export function initVisitorTracking(options: VisitorTrackingInitOptions = {}) {
   );
 
   runtime.cleanup = () => {
-    events.forEach(([name, handler]) => window.removeEventListener(name, handler));
+    events.forEach(([name, handler]) =>
+      window.removeEventListener(name, handler),
+    );
     window.clearInterval(tick);
     observer?.disconnect();
   };
@@ -772,7 +802,8 @@ function incrementSubmissionCounter() {
     counts: Record<string, number>;
   }>(SUBMISSION_KEY, { day: dayKey(), counts: {} });
   const counts = store.day === dayKey() ? store.counts : {};
-  counts[runtime.visitorId || "unknown"] = (counts[runtime.visitorId || "unknown"] || 0) + 1;
+  counts[runtime.visitorId || "unknown"] =
+    (counts[runtime.visitorId || "unknown"] || 0) + 1;
   writeJSON(SUBMISSION_KEY, { day: dayKey(), counts });
   return counts[runtime.visitorId || "unknown"];
 }
@@ -831,14 +862,18 @@ export function getTrackingSnapshot() {
   return getSnapshot();
 }
 
-export function collectBehavior(form: { city: string; major: string }): BehaviorData {
+export function collectBehavior(form: {
+  city: string;
+  major: string;
+}): BehaviorData {
   const snapshot = getSnapshot();
   const submissionCount = incrementSubmissionCounter();
   snapshot.metrics.submissionCountSameVisitor = submissionCount;
 
   return {
     time_on_page_seconds: snapshot.metrics.timeOnPageSeconds,
-    time_to_first_interaction_seconds: snapshot.metrics.timeToFirstInteractionSeconds,
+    time_to_first_interaction_seconds:
+      snapshot.metrics.timeToFirstInteractionSeconds,
     form_fill_duration_seconds: snapshot.metrics.formFillDurationSeconds,
     scroll_depth_percent: snapshot.metrics.scrollDepthPercent,
     industry_switch_count: snapshot.metrics.industrySwitchCount,

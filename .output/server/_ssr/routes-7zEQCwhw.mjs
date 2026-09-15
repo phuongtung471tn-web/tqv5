@@ -1,40 +1,102 @@
 import { n as __toESM } from "../_runtime.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
-import { c as isDuplicateLead, d as saveLead, h as useSiteConfig, p as trackConversion, r as LEAD_CREATED_EVENT, u as loadLeads } from "./use-site-config-ivcknSZJ.mjs";
-import { p as Phone, v as MessageCircle, w as GraduationCap } from "../_libs/lucide-react.mjs";
-import { n as ScarcityBar, t as ContentSection } from "./ContentSection-sShD4TP1.mjs";
-import { d as utmSource, i as getVariant, l as trackFormStart, n as dispatchLead, o as sendLeadEmail, u as trackLead } from "./ab-1ZHA4A9t.mjs";
+import { c as isDuplicateLead, d as saveLead, h as useSiteConfig, p as trackConversion, r as LEAD_CREATED_EVENT, u as loadLeads } from "./use-site-config-BdT5VrkD.mjs";
+import { F as Activity, M as CalendarDays, O as Cpu, d as Phone, g as MapPin, h as MessageCircle, n as Wifi, x as GraduationCap } from "../_libs/lucide-react.mjs";
+import { n as ScarcityBar, t as ContentSection } from "./ContentSection-BnvvopOE.mjs";
+import { d as trackLead, f as utmSource, i as getVariant, l as trackFormStart, n as dispatchLead, o as sendLeadEmail } from "./ab-DUIDkaDP.mjs";
 import { n as toast, t as Toaster } from "../_libs/sonner.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-B58-uFM6.js
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-7zEQCwhw.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var expert_1_default = "/assets/expert-1-CcX0y7YN.webp";
 var expert_2_default = "/assets/expert-2-WVJni1up.webp";
 var expert_3_default = "/assets/expert-3-AK2LvN4J.webp";
-var isBrowser = () => typeof window !== "undefined";
-var state = {
-	started: 0,
-	firstInteraction: 0,
-	formStart: 0,
-	maxScroll: 0,
-	industrySwitch: 0,
+var VISITOR_ID_KEY = "lp_visitor_id_v2";
+var ATTRIBUTION_KEY = "lp_utm_v2";
+var COUNTERS_KEY = "lp_visit_counters_v2";
+var SUBMISSION_KEY = "lp_submission_counters_v2";
+var SESSION_MARKER_KEY = "lp_session_marker_v2";
+var VISITOR_SESSION_TABLE = "visitor_sessions";
+var NETWORK_TIMEOUT_MS = 3500;
+var defaultDevice = {
+	userAgent: "",
+	manufacturer: "Unknown",
+	family: "Unknown",
+	model: "Unknown",
+	kind: "unknown",
+	osName: "Unknown",
+	osVersion: "",
+	os: "Unknown",
+	browserName: "Unknown",
+	browserVersion: "",
+	browser: "Unknown",
+	isInAppBrowser: false
+};
+var defaultNetwork = {
+	ip: "",
+	city: "",
+	region: "",
+	country: "Việt Nam",
+	isp: "",
+	organization: "",
+	provider: "",
+	connectionType: "",
+	connectionLabel: "Mạng băng thông rộng",
+	fallbackLabel: "Mạng băng thông rộng · Việt Nam",
+	displayLabel: "Mạng băng thông rộng · Việt Nam",
+	flags: [],
+	lookupStatus: "idle"
+};
+var defaultAttribution = {
+	source: "",
+	medium: "",
+	campaign: "",
+	content: "",
+	term: "",
+	ttclid: "",
+	landingUrl: ""
+};
+var runtime = {
+	initialized: false,
+	startedAt: 0,
+	firstInteractionAt: 0,
+	formStartedAt: 0,
+	maxScrollPercent: 0,
+	industrySwitchCount: 0,
 	faqClicked: "",
 	copiedTextType: "",
 	isCopyPaste: false,
-	startBattery: null,
-	currentBattery: null,
-	ip: "",
-	city: "",
+	startBatteryLevel: null,
+	currentBatteryLevel: null,
 	sectionTime: {},
-	visible: {},
-	initialized: false
+	visibleSections: {},
+	visitorId: "",
+	sessionId: "",
+	device: defaultDevice,
+	network: defaultNetwork,
+	attribution: defaultAttribution,
+	sessionCounts: {
+		currentSession: 1,
+		today: 0,
+		month: 0
+	},
+	options: {}
 };
-var dayKey = () => (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-var monthKey = () => (/* @__PURE__ */ new Date()).toISOString().slice(0, 7);
+var listeners = /* @__PURE__ */ new Set();
+function isBrowser() {
+	return typeof window !== "undefined";
+}
+function subscribe(listener) {
+	listeners.add(listener);
+	return () => listeners.delete(listener);
+}
+function emit() {
+	listeners.forEach((listener) => listener());
+}
 function readJSON(key, fallback) {
 	if (!isBrowser()) return fallback;
 	try {
-		const raw = localStorage.getItem(key);
+		const raw = window.localStorage.getItem(key);
 		return raw ? JSON.parse(raw) : fallback;
 	} catch {
 		return fallback;
@@ -43,353 +105,742 @@ function readJSON(key, fallback) {
 function writeJSON(key, value) {
 	if (!isBrowser()) return;
 	try {
-		localStorage.setItem(key, JSON.stringify(value));
+		window.localStorage.setItem(key, JSON.stringify(value));
 	} catch {}
 }
-function detectDevice() {
+function readSessionMarker() {
+	if (!isBrowser()) return "";
+	try {
+		return window.sessionStorage.getItem(SESSION_MARKER_KEY) || "";
+	} catch {
+		return "";
+	}
+}
+function writeSessionMarker(value) {
+	if (!isBrowser()) return;
+	try {
+		window.sessionStorage.setItem(SESSION_MARKER_KEY, value);
+	} catch {}
+}
+function makeId(prefix) {
+	if (!isBrowser()) return `${prefix}-ssr`;
+	return `${prefix}-${crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`}`;
+}
+function dayKey() {
+	return (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+}
+function monthKey() {
+	return (/* @__PURE__ */ new Date()).toISOString().slice(0, 7);
+}
+function connectionTypeLabel(value) {
+	switch (value.toUpperCase()) {
+		case "5G": return "Mạng di động 5G";
+		case "4G": return "Mạng di động 4G";
+		case "3G": return "Mạng di động 3G";
+		case "2G": return "Mạng di động 2G";
+		case "SLOW-2G": return "Mạng di động chậm";
+		default: return "Mạng băng thông rộng";
+	}
+}
+function buildFallbackNetworkLabel(connectionType, country = "Việt Nam") {
+	return `${connectionTypeLabel(connectionType)} · ${country}`;
+}
+function compactLocation(parts) {
+	return parts.map((part) => (part || "").trim()).filter(Boolean).join(", ");
+}
+function buildNetworkDisplay(info) {
+	const location = compactLocation([
+		info.city,
+		info.region,
+		info.country
+	]);
+	if (info.provider && location) return `${info.provider} · ${location}`;
+	if (info.provider) return `${info.provider} · Việt Nam`;
+	if (location) return `${info.connectionLabel || "Mạng băng thông rộng"} · ${location}`;
+	return info.fallbackLabel || "Mạng băng thông rộng · Việt Nam";
+}
+function detectConnectionType() {
+	if (!isBrowser()) return "";
+	const nav = navigator;
+	return (nav.connection?.effectiveType || nav.connection?.type || "").toUpperCase();
+}
+function parseVersion(input) {
+	return (input || "").replace(/_/g, ".").trim();
+}
+function prettifyToken(value) {
+	return value.replace(/_/g, " ").replace(/\s+/g, " ").replace(/\b([a-z])/g, (match) => match.toUpperCase()).trim();
+}
+function inferDeviceKind(ua) {
+	if (/iPad|Tablet|Nexus 7|SM-T|Tab/i.test(ua)) return "tablet";
+	if (/Mobi|Android|iPhone|Mobile/i.test(ua)) return "mobile";
+	if (ua) return "desktop";
+	return "unknown";
+}
+function mapIPhoneModelByViewport() {
 	if (!isBrowser()) return {
-		model: "Unknown",
-		os: "Unknown",
-		browser: "Unknown"
+		family: "iPhone",
+		model: "iPhone"
 	};
-	const ua = navigator.userAgent;
-	let os = "Unknown";
-	if (/Windows NT/.test(ua)) os = "Windows";
-	else if (/Android/.test(ua)) os = "Android";
-	else if (/iPhone|iPad|iPod/.test(ua)) os = /iPad/.test(ua) ? "iPadOS" : "iOS";
-	else if (/Mac OS X/.test(ua)) os = "macOS";
-	else if (/Linux/.test(ua)) os = "Linux";
-	let browser = "Khác";
-	if (/Edg\//.test(ua)) browser = "Edge";
-	else if (/OPR\/|Opera/.test(ua)) browser = "Opera";
-	else if (/Chrome\//.test(ua) && !/Edg\//.test(ua)) browser = "Chrome";
-	else if (/Safari\//.test(ua) && /Version\//.test(ua)) browser = "Safari";
-	else if (/Firefox\//.test(ua)) browser = "Firefox";
-	if (/FBAN|FBAV/.test(ua)) browser = "Facebook In-App";
-	if (/TikTok|BytedanceWebview/i.test(ua)) browser = "TikTok In-App";
-	if (/Zalo/i.test(ua)) browser = "Zalo In-App";
-	let model = os;
-	const android = ua.match(/Android\s[\d.]+;\s([^;)]+)/);
-	if (android?.[1]) model = android[1].replace(/Build\/.*/, "").trim();
-	else if (/iPhone/.test(ua)) {
-		const w = Math.max(screen.width, screen.height);
-		const dpr = window.devicePixelRatio || 2;
-		if (w >= 932) model = "iPhone Pro Max (15/16)";
-		else if (w >= 926) model = "iPhone Pro Max (12/13/14)";
-		else if (w >= 896) model = "iPhone XR/11/XS Max";
-		else if (w >= 852) model = "iPhone 14/15/16 Pro";
-		else if (w >= 844) model = "iPhone 12/13/14";
-		else if (w >= 812) model = "iPhone X/XS/11 Pro";
-		else model = dpr >= 3 ? "iPhone Plus" : "iPhone SE/8";
-	} else if (/iPad/.test(ua)) model = "iPad";
-	else if (os === "Windows") model = "PC Windows";
-	else if (os === "macOS") model = "Mac";
+	const width = Math.max(window.screen.width, window.screen.height);
+	if (width >= 932) return {
+		family: "iPhone Pro Max",
+		model: "iPhone 15/16 Pro Max"
+	};
+	if (width >= 926) return {
+		family: "iPhone Pro Max",
+		model: "iPhone 12/13/14 Pro Max"
+	};
+	if (width >= 896) return {
+		family: "iPhone",
+		model: "iPhone XR/11/XS Max"
+	};
+	if (width >= 852) return {
+		family: "iPhone Pro",
+		model: "iPhone 14/15/16 Pro"
+	};
+	if (width >= 844) return {
+		family: "iPhone",
+		model: "iPhone 12/13/14"
+	};
+	if (width >= 812) return {
+		family: "iPhone",
+		model: "iPhone X/XS/11 Pro"
+	};
 	return {
-		model,
-		os,
-		browser
+		family: "iPhone",
+		model: "iPhone SE/8/Plus"
 	};
 }
-function isHeadless() {
+function inferAndroidManufacturer(token, ua) {
+	const source = `${token} ${ua}`;
+	if (/SM-|Galaxy|Samsung/i.test(source)) return "Samsung";
+	if (/Pixel/i.test(source)) return "Google";
+	if (/M210|M20\d|Redmi|Mi |Xiaomi|POCO/i.test(source)) return "Xiaomi";
+	if (/CPH|PHT|PAHM|OPPO/i.test(source)) return "OPPO";
+	if (/V2\d|VIVO/i.test(source)) return "Vivo";
+	if (/RMX|realme/i.test(source)) return "realme";
+	if (/HUAWEI|ANA-|ELS-|JAD-|BLA-/i.test(source)) return "Huawei";
+	if (/TECNO|Infinix/i.test(source)) return /TECNO/i.test(source) ? "TECNO" : "Infinix";
+	return "Android";
+}
+function parseAndroidModel(ua) {
+	const rawModel = prettifyToken(ua.match(/Android\s[\d.]+;\s*([^;)]+?)(?:\sBuild\/|;|\))/i)?.[1] || "Android");
+	const manufacturer = inferAndroidManufacturer(rawModel, ua);
+	return {
+		manufacturer,
+		family: rawModel.split(" ").slice(0, 2).join(" ").trim() || manufacturer,
+		model: rawModel
+	};
+}
+function detectDeviceProfile() {
+	if (!isBrowser()) return defaultDevice;
+	const ua = navigator.userAgent || "";
+	const kind = inferDeviceKind(ua);
+	let osName = "Unknown";
+	let osVersion = "";
+	if (/Windows NT/i.test(ua)) {
+		osName = "Windows";
+		osVersion = parseVersion(ua.match(/Windows NT ([\d.]+)/i)?.[1]);
+	} else if (/Android/i.test(ua)) {
+		osName = "Android";
+		osVersion = parseVersion(ua.match(/Android ([\d.]+)/i)?.[1]);
+	} else if (/iPhone|iPad|iPod/i.test(ua)) {
+		osName = /iPad/i.test(ua) ? "iPadOS" : "iOS";
+		osVersion = parseVersion(ua.match(/OS ([\d_]+)/i)?.[1]);
+	} else if (/Mac OS X/i.test(ua)) {
+		osName = "macOS";
+		osVersion = parseVersion(ua.match(/Mac OS X ([\d_]+)/i)?.[1]);
+	} else if (/Linux/i.test(ua)) osName = "Linux";
+	const browserMatchers = [
+		[/Edg\/([\d.]+)/i, "Edge"],
+		[/OPR\/([\d.]+)/i, "Opera"],
+		[/Chrome\/([\d.]+)/i, "Chrome"],
+		[/Version\/([\d.]+).*Safari/i, "Safari"],
+		[/Firefox\/([\d.]+)/i, "Firefox"]
+	];
+	let browserName = "Unknown";
+	let browserVersion = "";
+	for (const [matcher, name] of browserMatchers) {
+		const match = ua.match(matcher);
+		if (match) {
+			browserName = name;
+			browserVersion = match[1] || "";
+			break;
+		}
+	}
+	if (/FBAN|FBAV/i.test(ua)) browserName = "Facebook In-App";
+	if (/TikTok|BytedanceWebview/i.test(ua)) browserName = "TikTok In-App";
+	if (/Zalo/i.test(ua)) browserName = "Zalo In-App";
+	const isInAppBrowser = /FBAN|FBAV|TikTok|BytedanceWebview|Zalo/i.test(ua);
+	let manufacturer = "Unknown";
+	let family = osName;
+	let model = osName;
+	if (/Android/i.test(ua)) {
+		const parsed = parseAndroidModel(ua);
+		manufacturer = parsed.manufacturer;
+		family = parsed.family;
+		model = parsed.model;
+	} else if (/iPhone/i.test(ua)) {
+		const parsed = mapIPhoneModelByViewport();
+		manufacturer = "Apple";
+		family = parsed.family;
+		model = parsed.model;
+	} else if (/iPad/i.test(ua)) {
+		manufacturer = "Apple";
+		family = "iPad";
+		model = "iPad";
+	} else if (/Mac/i.test(ua)) {
+		manufacturer = "Apple";
+		family = "Mac";
+		model = "Mac";
+	} else if (/Windows/i.test(ua)) {
+		manufacturer = "Microsoft / OEM";
+		family = "Windows PC";
+		model = "PC Windows";
+	}
+	return {
+		userAgent: ua,
+		manufacturer,
+		family,
+		model,
+		kind,
+		osName,
+		osVersion,
+		os: [osName, osVersion].filter(Boolean).join(" "),
+		browserName,
+		browserVersion,
+		browser: [browserName, browserVersion].filter(Boolean).join(" "),
+		isInAppBrowser
+	};
+}
+function detectHeadlessBrowser() {
 	if (!isBrowser()) return false;
 	return Boolean(navigator.webdriver || /HeadlessChrome|Puppeteer|Playwright|PhantomJS/i.test(navigator.userAgent) || navigator.languages && navigator.languages.length === 0);
 }
-function connectionType() {
-	if (!isBrowser()) return "";
-	const c = navigator.connection;
-	return c?.effectiveType ? c.effectiveType.toUpperCase() : "";
+function getVisitorId() {
+	if (!isBrowser()) return "visitor-ssr";
+	try {
+		const stored = window.localStorage.getItem(VISITOR_ID_KEY);
+		if (stored) return stored;
+		const next = makeId("visitor");
+		window.localStorage.setItem(VISITOR_ID_KEY, next);
+		return next;
+	} catch {
+		return makeId("visitor");
+	}
 }
-function utm() {
-	if (!isBrowser()) return {
-		source: "",
-		medium: "",
-		campaign: "",
-		content: "",
-		ttclid: ""
-	};
-	const stored = readJSON("lp_utm", {});
-	const p = new URLSearchParams(window.location.search);
-	const pick = (k) => p.get(k) || stored[k] || "";
-	const data = {
+function readAttribution() {
+	if (!isBrowser()) return defaultAttribution;
+	const stored = readJSON(ATTRIBUTION_KEY, {});
+	const params = new URLSearchParams(window.location.search);
+	const pick = (key) => params.get(key) || stored[key] || "";
+	const attribution = {
 		source: pick("utm_source"),
 		medium: pick("utm_medium"),
 		campaign: pick("utm_campaign"),
 		content: pick("utm_content"),
-		ttclid: pick("ttclid")
+		term: pick("utm_term"),
+		ttclid: pick("ttclid"),
+		landingUrl: window.location.href.split("#")[0]
 	};
-	if (p.toString()) writeJSON("lp_utm", {
-		utm_source: data.source,
-		utm_medium: data.medium,
-		utm_campaign: data.campaign,
-		utm_content: data.content,
-		ttclid: data.ttclid
+	if (params.toString()) writeJSON(ATTRIBUTION_KEY, {
+		utm_source: attribution.source,
+		utm_medium: attribution.medium,
+		utm_campaign: attribution.campaign,
+		utm_content: attribution.content,
+		utm_term: attribution.term,
+		ttclid: attribution.ttclid
 	});
-	return data;
+	return attribution;
 }
-function bumpVisitCounters() {
-	if (!isBrowser()) return {
-		today: 0,
-		month: 0
+function computeMetrics() {
+	const now = isBrowser() ? Date.now() : runtime.startedAt;
+	const timeOnPageSeconds = runtime.startedAt ? Math.max(0, Math.round((now - runtime.startedAt) / 1e3)) : 0;
+	const timeToFirstInteractionSeconds = runtime.firstInteractionAt ? Math.max(0, Math.round((runtime.firstInteractionAt - runtime.startedAt) / 1e3)) : 0;
+	const formFillDurationSeconds = runtime.formStartedAt ? Math.max(0, Math.round((now - runtime.formStartedAt) / 1e3)) : 0;
+	const focusSection = Object.entries(runtime.sectionTime).sort((a, b) => b[1] - a[1])[0]?.[0] || "";
+	const batteryDrain = runtime.startBatteryLevel != null && runtime.currentBatteryLevel != null ? Math.max(0, runtime.startBatteryLevel - runtime.currentBatteryLevel) : 0;
+	return {
+		timeOnPageSeconds,
+		timeToFirstInteractionSeconds,
+		formFillDurationSeconds,
+		scrollDepthPercent: runtime.maxScrollPercent,
+		industrySwitchCount: Math.max(0, runtime.industrySwitchCount - 1),
+		focusSection,
+		faqClicked: runtime.faqClicked,
+		copiedTextType: runtime.copiedTextType,
+		isCopyPaste: runtime.isCopyPaste,
+		isHeadlessBrowser: detectHeadlessBrowser(),
+		submissionCountSameVisitor: 0,
+		startBatteryLevel: runtime.startBatteryLevel,
+		currentBatteryLevel: runtime.currentBatteryLevel,
+		batteryDrain,
+		sessionCounts: runtime.sessionCounts
 	};
-	const d = readJSON("lp_visits_day", {
-		key: dayKey(),
-		count: 0
+}
+function getSnapshot() {
+	return {
+		device: runtime.device,
+		network: runtime.network,
+		attribution: runtime.attribution,
+		metrics: computeMetrics(),
+		visitorId: runtime.visitorId,
+		sessionId: runtime.sessionId,
+		initialized: runtime.initialized
+	};
+}
+function useVisitorTrackingSnapshot() {
+	return (0, import_react.useSyncExternalStore)(subscribe, getSnapshot, getSnapshot);
+}
+function updateSnapshot() {
+	emit();
+}
+function readLocalSessionCounts(isNewSession) {
+	const stored = readJSON(COUNTERS_KEY, {
+		day: {
+			key: dayKey(),
+			count: 0
+		},
+		month: {
+			key: monthKey(),
+			count: 0
+		}
 	});
-	const m = readJSON("lp_visits_month", {
-		key: monthKey(),
-		count: 0
-	});
-	const today = d.key === dayKey() ? d.count + 1 : 1;
-	const month = m.key === monthKey() ? m.count + 1 : 1;
-	writeJSON("lp_visits_day", {
-		key: dayKey(),
-		count: today
-	});
-	writeJSON("lp_visits_month", {
-		key: monthKey(),
-		count: month
+	const nextDay = stored.day.key === dayKey() ? stored.day.count : 0;
+	const nextMonth = stored.month.key === monthKey() ? stored.month.count : 0;
+	const dayCount = isNewSession ? nextDay + 1 : Math.max(1, nextDay);
+	const monthCount = isNewSession ? nextMonth + 1 : Math.max(1, nextMonth);
+	writeJSON(COUNTERS_KEY, {
+		day: {
+			key: dayKey(),
+			count: dayCount
+		},
+		month: {
+			key: monthKey(),
+			count: monthCount
+		}
 	});
 	return {
-		today,
-		month
+		currentSession: 1,
+		today: dayCount,
+		month: monthCount
 	};
 }
-function bumpIpVisits(ip) {
-	if (!ip) return 0;
-	const store = readJSON("lp_ip_visits", {
-		key: dayKey(),
-		map: {}
-	});
-	const map = store.key === dayKey() ? store.map : {};
-	map[ip] = (map[ip] || 0) + 1;
-	writeJSON("lp_ip_visits", {
-		key: dayKey(),
-		map
-	});
-	return map[ip];
+async function fetchRemoteSessionCounts(options, visitorId, sessionId, isNewSession, attribution, device) {
+	if (options.storageMode !== "database" || !options.supabaseUrl || !options.supabaseAnonKey || !isBrowser()) return;
+	const base = options.supabaseUrl.replace(/\/$/, "");
+	const headers = {
+		"Content-Type": "application/json",
+		apikey: options.supabaseAnonKey
+	};
+	try {
+		if (isNewSession) await fetch(`${base}/rest/v1/${VISITOR_SESSION_TABLE}`, {
+			method: "POST",
+			headers: {
+				...headers,
+				Prefer: "resolution=ignore-duplicates,return=minimal"
+			},
+			body: JSON.stringify([{
+				id: sessionId,
+				visitor_id: visitorId,
+				visited_day: dayKey(),
+				visited_month: monthKey(),
+				source: attribution.source || null,
+				medium: attribution.medium || null,
+				campaign: attribution.campaign || null,
+				content: attribution.content || null,
+				device_model: device.model,
+				device_kind: device.kind,
+				os: device.os,
+				browser: device.browser,
+				created_at: (/* @__PURE__ */ new Date()).toISOString()
+			}])
+		});
+		const [todayResponse, monthResponse] = await Promise.all([fetch(`${base}/rest/v1/${VISITOR_SESSION_TABLE}?visitor_id=eq.${encodeURIComponent(visitorId)}&visited_day=eq.${dayKey()}&select=id`, { headers }), fetch(`${base}/rest/v1/${VISITOR_SESSION_TABLE}?visitor_id=eq.${encodeURIComponent(visitorId)}&visited_month=eq.${monthKey()}&select=id`, { headers })]);
+		if (!todayResponse.ok || !monthResponse.ok) return;
+		const [todayRows, monthRows] = await Promise.all([todayResponse.json(), monthResponse.json()]);
+		runtime.sessionCounts = {
+			currentSession: 1,
+			today: Array.isArray(todayRows) ? todayRows.length : runtime.sessionCounts.today,
+			month: Array.isArray(monthRows) ? monthRows.length : runtime.sessionCounts.month
+		};
+		updateSnapshot();
+	} catch {}
 }
-function bumpSubmissionCount(ip) {
-	if (!isBrowser()) return 1;
-	const key = ip || "unknown";
-	const store = readJSON("lp_submits", {
-		key: dayKey(),
-		map: {}
-	});
-	const map = store.key === dayKey() ? store.map : {};
-	map[key] = (map[key] || 0) + 1;
-	writeJSON("lp_submits", {
-		key: dayKey(),
-		map
-	});
-	return map[key];
+async function refreshNetworkInfo() {
+	if (!isBrowser()) return;
+	const connectionType = detectConnectionType();
+	runtime.network = {
+		...runtime.network,
+		connectionType,
+		connectionLabel: connectionTypeLabel(connectionType),
+		fallbackLabel: buildFallbackNetworkLabel(connectionType),
+		displayLabel: buildFallbackNetworkLabel(connectionType),
+		lookupStatus: "loading"
+	};
+	updateSnapshot();
+	const controller = new AbortController();
+	const timer = window.setTimeout(() => controller.abort(), NETWORK_TIMEOUT_MS);
+	try {
+		const payload = await (await fetch("https://ipwho.is/", { signal: controller.signal })).json();
+		window.clearTimeout(timer);
+		const provider = payload.connection?.isp || payload.connection?.org || "";
+		runtime.network = {
+			ip: payload.ip || "",
+			city: payload.city || "",
+			region: payload.region || "",
+			country: payload.country || "Việt Nam",
+			isp: payload.connection?.isp || "",
+			organization: payload.connection?.org || "",
+			provider,
+			connectionType,
+			connectionLabel: connectionTypeLabel(connectionType),
+			fallbackLabel: buildFallbackNetworkLabel(connectionType, payload.country || "Việt Nam"),
+			displayLabel: "",
+			flags: [
+				payload.security?.vpn && "VPN",
+				payload.security?.proxy && "Proxy",
+				payload.security?.tor && "Tor",
+				payload.security?.hosting && "Hosting"
+			].filter((flag) => Boolean(flag)),
+			lookupStatus: payload.success === false ? "fallback" : "resolved"
+		};
+		runtime.network.displayLabel = buildNetworkDisplay(runtime.network);
+	} catch {
+		window.clearTimeout(timer);
+		runtime.network = {
+			...runtime.network,
+			lookupStatus: "fallback",
+			displayLabel: buildNetworkDisplay(runtime.network)
+		};
+	}
+	updateSnapshot();
 }
-function initBehavior() {
-	if (!isBrowser() || state.initialized) return () => {};
-	state.initialized = true;
-	state.started = Date.now();
+function initVisitorTracking(options = {}) {
+	if (!isBrowser()) return () => {};
+	runtime.options = options;
+	if (runtime.initialized) {
+		fetchRemoteSessionCounts(runtime.options, runtime.visitorId, runtime.sessionId, false, runtime.attribution, runtime.device);
+		return runtime.cleanup || (() => {});
+	}
+	runtime.initialized = true;
+	runtime.startedAt = Date.now();
+	runtime.firstInteractionAt = 0;
+	runtime.formStartedAt = 0;
+	runtime.maxScrollPercent = 0;
+	runtime.industrySwitchCount = 0;
+	runtime.faqClicked = "";
+	runtime.copiedTextType = "";
+	runtime.isCopyPaste = false;
+	runtime.sectionTime = {};
+	runtime.visibleSections = {};
+	runtime.visitorId = getVisitorId();
+	runtime.sessionId = readSessionMarker() || makeId("session");
+	const isNewSession = !readSessionMarker();
+	if (isNewSession) writeSessionMarker(runtime.sessionId);
+	runtime.device = detectDeviceProfile();
+	runtime.attribution = readAttribution();
+	runtime.sessionCounts = readLocalSessionCounts(isNewSession);
+	runtime.network = {
+		...defaultNetwork,
+		connectionType: detectConnectionType(),
+		connectionLabel: connectionTypeLabel(detectConnectionType()),
+		fallbackLabel: buildFallbackNetworkLabel(detectConnectionType()),
+		displayLabel: buildFallbackNetworkLabel(detectConnectionType())
+	};
+	updateSnapshot();
 	const markInteraction = () => {
-		if (!state.firstInteraction) state.firstInteraction = Date.now();
+		if (!runtime.firstInteractionAt) runtime.firstInteractionAt = Date.now();
+		updateSnapshot();
 	};
 	const onScroll = () => {
 		markInteraction();
 		const total = document.documentElement.scrollHeight - window.innerHeight;
-		const pct = total > 0 ? Math.round((window.scrollY || 0) / total * 100) : 100;
-		state.maxScroll = Math.min(100, Math.max(state.maxScroll, pct));
+		const percent = total > 0 ? Math.round((window.scrollY || 0) / total * 100) : 100;
+		runtime.maxScrollPercent = Math.max(runtime.maxScrollPercent, Math.min(100, percent));
+		updateSnapshot();
 	};
 	const events = [
 		["scroll", onScroll],
 		["pointerdown", markInteraction],
 		["keydown", markInteraction]
 	];
-	events.forEach(([n, h]) => window.addEventListener(n, h, { passive: true }));
+	events.forEach(([name, handler]) => window.addEventListener(name, handler, { passive: true }));
 	onScroll();
 	let observer;
 	const tick = window.setInterval(() => {
-		Object.keys(state.visible).forEach((name) => {
-			if (state.visible[name]) state.sectionTime[name] = (state.sectionTime[name] || 0) + 1;
+		Object.keys(runtime.visibleSections).forEach((name) => {
+			if (runtime.visibleSections[name]) runtime.sectionTime[name] = (runtime.sectionTime[name] || 0) + 1;
 		});
 	}, 1e3);
 	if ("IntersectionObserver" in window) {
 		observer = new IntersectionObserver((entries) => {
-			entries.forEach((en) => {
-				const name = en.target.dataset["section"];
-				if (name) state.visible[name] = en.isIntersecting && en.intersectionRatio > .4 ? 1 : 0;
+			entries.forEach((entry) => {
+				const name = entry.target.dataset["section"];
+				if (name) runtime.visibleSections[name] = entry.isIntersecting && entry.intersectionRatio > .4 ? 1 : 0;
 			});
 		}, { threshold: [
 			0,
 			.4,
 			.8
 		] });
-		document.querySelectorAll("[data-section]").forEach((el) => observer?.observe(el));
+		document.querySelectorAll("[data-section]").forEach((element) => observer?.observe(element));
 	}
-	navigator.getBattery?.().then((bat) => {
-		state.startBattery = Math.round(bat.level * 100);
-		state.currentBattery = state.startBattery;
-		bat.addEventListener("levelchange", () => {
-			state.currentBattery = Math.round(bat.level * 100);
+	navigator.getBattery?.().then((battery) => {
+		runtime.startBatteryLevel = Math.round(battery.level * 100);
+		runtime.currentBatteryLevel = runtime.startBatteryLevel;
+		battery.addEventListener("levelchange", () => {
+			runtime.currentBatteryLevel = Math.round(battery.level * 100);
+			updateSnapshot();
 		});
+		updateSnapshot();
 	}).catch(() => {});
-	fetch("https://ipwho.is/").then((r) => r.json()).then((j) => {
-		if (j?.ip) {
-			state.ip = j.ip;
-			state.city = j.city || "";
-			bumpIpVisits(j.ip);
-		}
-	}).catch(() => {});
-	return () => {
-		events.forEach(([n, h]) => window.removeEventListener(n, h));
+	refreshNetworkInfo();
+	fetchRemoteSessionCounts(runtime.options, runtime.visitorId, runtime.sessionId, isNewSession, runtime.attribution, runtime.device);
+	runtime.cleanup = () => {
+		events.forEach(([name, handler]) => window.removeEventListener(name, handler));
 		window.clearInterval(tick);
 		observer?.disconnect();
 	};
+	return runtime.cleanup;
 }
-var markFormStart = () => {
-	if (!state.formStart) state.formStart = Date.now();
-	if (!state.firstInteraction) state.firstInteraction = Date.now();
-};
-var markIndustrySwitch = () => {
-	state.industrySwitch += 1;
-};
-var markFaqClick = (slug) => {
-	state.faqClicked = slug;
-};
-var markCopyPaste = (type = "sdt") => {
-	state.isCopyPaste = true;
-	state.copiedTextType = type;
-};
-function getIpSnapshot() {
-	const store = readJSON("lp_ip_visits", {
-		key: dayKey(),
-		map: {}
+function incrementSubmissionCounter() {
+	const store = readJSON(SUBMISSION_KEY, {
+		day: dayKey(),
+		counts: {}
 	});
-	const visits = store.key === dayKey() && state.ip ? store.map[state.ip] || 0 : 0;
-	return {
-		ip: state.ip,
-		city: state.city,
-		visitsToday: visits
-	};
+	const counts = store.day === dayKey() ? store.counts : {};
+	counts[runtime.visitorId || "unknown"] = (counts[runtime.visitorId || "unknown"] || 0) + 1;
+	writeJSON(SUBMISSION_KEY, {
+		day: dayKey(),
+		counts
+	});
+	return counts[runtime.visitorId || "unknown"];
+}
+function markFormStart() {
+	if (!runtime.formStartedAt) runtime.formStartedAt = Date.now();
+	if (!runtime.firstInteractionAt) runtime.firstInteractionAt = Date.now();
+	updateSnapshot();
+}
+function markIndustrySwitch() {
+	runtime.industrySwitchCount += 1;
+	updateSnapshot();
+}
+function markFaqClick(slug) {
+	runtime.faqClicked = slug;
+	updateSnapshot();
+}
+function markCopyPaste(type = "sdt") {
+	runtime.isCopyPaste = true;
+	runtime.copiedTextType = type;
+	updateSnapshot();
+}
+function getTrackingSnapshot() {
+	return getSnapshot();
 }
 function collectBehavior(form) {
-	const now = Date.now();
-	const dev = detectDevice();
-	const u = utm();
-	const focus = Object.entries(state.sectionTime).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "";
-	const submissionCount = bumpSubmissionCount(state.ip);
+	const snapshot = getSnapshot();
+	const submissionCount = incrementSubmissionCounter();
+	snapshot.metrics.submissionCountSameVisitor = submissionCount;
 	return {
-		time_on_page_seconds: Math.round((now - state.started) / 1e3),
-		time_to_first_interaction_seconds: state.firstInteraction ? Math.round((state.firstInteraction - state.started) / 1e3) : 0,
-		form_fill_duration_seconds: state.formStart ? Math.round((now - state.formStart) / 1e3) : 0,
-		scroll_depth_percent: state.maxScroll,
-		industry_switch_count: Math.max(0, state.industrySwitch - 1),
-		focus_section: focus,
-		faq_clicked: state.faqClicked,
-		copied_text_type: state.copiedTextType,
-		is_copy_paste: state.isCopyPaste,
-		is_headless_browser: isHeadless(),
+		time_on_page_seconds: snapshot.metrics.timeOnPageSeconds,
+		time_to_first_interaction_seconds: snapshot.metrics.timeToFirstInteractionSeconds,
+		form_fill_duration_seconds: snapshot.metrics.formFillDurationSeconds,
+		scroll_depth_percent: snapshot.metrics.scrollDepthPercent,
+		industry_switch_count: snapshot.metrics.industrySwitchCount,
+		focus_section: snapshot.metrics.focusSection,
+		faq_clicked: snapshot.metrics.faqClicked,
+		copied_text_type: snapshot.metrics.copiedTextType,
+		is_copy_paste: snapshot.metrics.isCopyPaste,
+		is_headless_browser: snapshot.metrics.isHeadlessBrowser,
 		submission_count_same_ip: submissionCount,
-		device_model_name: dev.model,
-		operating_system: dev.os,
-		browser: dev.browser,
-		connection_type: connectionType(),
-		start_battery_level: state.startBattery,
-		current_battery_level: state.currentBattery,
-		battery_drain: state.startBattery != null && state.currentBattery != null ? Math.max(0, state.startBattery - state.currentBattery) : 0,
-		client_ip: state.ip,
-		location_city: state.city,
+		device_model_name: snapshot.device.model,
+		device_manufacturer: snapshot.device.manufacturer,
+		device_family: snapshot.device.family,
+		operating_system: snapshot.device.osName,
+		operating_system_version: snapshot.device.osVersion,
+		browser: snapshot.device.browserName,
+		browser_version: snapshot.device.browserVersion,
+		connection_type: snapshot.network.connectionType,
+		network_provider: snapshot.network.provider,
+		network_label: snapshot.network.displayLabel,
+		network_flags: snapshot.network.flags,
+		start_battery_level: snapshot.metrics.startBatteryLevel,
+		current_battery_level: snapshot.metrics.currentBatteryLevel,
+		battery_drain: snapshot.metrics.batteryDrain,
+		client_ip: snapshot.network.ip,
+		location_city: snapshot.network.city,
+		location_region: snapshot.network.region,
+		location_country: snapshot.network.country,
 		form_city: form.city,
 		nganh_hoc: form.major,
-		utm_source: u.source,
-		utm_medium: u.medium,
-		utm_campaign: u.campaign,
-		utm_content: u.content,
-		ttclid: u.ttclid
+		utm_source: snapshot.attribution.source,
+		utm_medium: snapshot.attribution.medium,
+		utm_campaign: snapshot.attribution.campaign,
+		utm_content: snapshot.attribution.content,
+		utm_term: snapshot.attribution.term,
+		ttclid: snapshot.attribution.ttclid,
+		visits_today: snapshot.metrics.sessionCounts.today,
+		visits_month: snapshot.metrics.sessionCounts.month,
+		current_session: snapshot.metrics.sessionCounts.currentSession
 	};
 }
-/**
-* Chấm điểm & phân hạng lead từ hành vi vi mô + cấu hình AI Advisor.
-* Trả về điểm 0-100 và nhãn phân hạng để lưu Mini-CRM và chèn vào email.
-*/
+function initBehavior(options = {}) {
+	return initVisitorTracking(options);
+}
 function scoreLead(data, cfg) {
+	if (cfg?.enabled === false) return {
+		score: 0,
+		rank: "Chưa chấm AI",
+		riskLevel: "unrated",
+		reasons: ["AI Sales Advisor đang tắt trong cấu hình Admin"],
+		recommendedAction: "Tư vấn theo quy trình thông thường"
+	};
 	const fastFill = cfg?.fastFillThresholdSec ?? 4;
 	const vipTime = cfg?.vipTimeOnPageSec ?? 80;
 	const vipScroll = cfg?.vipScrollPercent ?? 70;
-	if (data.is_headless_browser || data.form_fill_duration_seconds < fastFill || data.submission_count_same_ip > 1) return {
+	const reasons = [];
+	const locationMismatch = Boolean(data.location_city && data.form_city && !data.location_city.toLowerCase().includes(data.form_city.toLowerCase()) && !data.form_city.toLowerCase().includes(data.location_city.toLowerCase()));
+	if (data.is_headless_browser) reasons.push("Trình duyệt tự động/headless được nhận diện");
+	if (data.form_fill_duration_seconds > 0 && data.form_fill_duration_seconds < fastFill) reasons.push(`Thời gian điền form dưới ${fastFill} giây`);
+	if (data.submission_count_same_ip > 1) reasons.push(`Thiết bị đã ghi nhận ${data.submission_count_same_ip} lần gửi trong ngày`);
+	if (locationMismatch && data.is_copy_paste) reasons.push("Khu vực mạng khác tỉnh khai báo kèm thao tác copy số điện thoại");
+	if (data.network_flags.length > 0) reasons.push(`Mạng có tín hiệu: ${data.network_flags.join(", ")}`);
+	if (data.is_headless_browser) return {
 		score: 5,
-		rank: "Bot / Ảo"
+		rank: "Bot / Ảo",
+		riskLevel: "high",
+		reasons,
+		recommendedAction: "Không tự động gọi; kiểm tra lead và nguồn quảng cáo"
 	};
-	let score = 45;
-	const safe = (re) => {
-		if (!re) return null;
+	const safeRegex = (pattern) => {
+		if (!pattern) return null;
 		try {
-			return new RegExp(re, "i");
+			return new RegExp(pattern, "i");
 		} catch {
 			return null;
 		}
 	};
-	const vipDevice = safe(cfg?.vipDeviceRegex) ?? /iPhone (13|14|15|16) Pro|Pro Max|Galaxy S(22|23|24|25)|Fold|Flip/i;
-	const keyRegion = safe(cfg?.keyRegions) ?? /Nghệ An|Hà Tĩnh|Quảng Bình|Thanh Hóa|Quảng Ninh|Hải Phòng/i;
-	if (vipDevice.test(data.device_model_name)) score += 20;
+	const vipDevice = safeRegex(cfg?.vipDeviceRegex) ?? /iPhone (12|13|14|15|16)|Galaxy S(22|23|24|25)|Fold|Flip|Pixel/i;
+	const keyRegion = safeRegex(cfg?.keyRegions) ?? /Nghệ An|Hà Tĩnh|Quảng Bình|Thanh Hóa|Quảng Ninh|Hải Phòng/i;
+	let score = 45;
+	if (vipDevice.test(data.device_model_name)) score += 18;
 	if (data.time_on_page_seconds >= vipTime) score += 15;
 	if (data.scroll_depth_percent >= vipScroll) score += 12;
 	if (keyRegion.test(data.form_city)) score += 8;
 	if (data.utm_source && data.utm_source !== "Direct") score += 5;
 	if (data.focus_section === "luong_thuc_tap" || data.copied_text_type === "chi_phi") score += 5;
+	if (data.visits_today >= 2) score += 4;
 	score = Math.max(0, Math.min(100, score));
+	const riskLevel = data.submission_count_same_ip > 1 || locationMismatch && data.is_copy_paste || data.network_flags.includes("Tor") ? "high" : data.form_fill_duration_seconds > 0 && data.form_fill_duration_seconds < fastFill ? "review" : "low";
 	return {
 		score,
-		rank: score >= 80 ? "VIP" : score >= 65 ? "Tiềm năng cao" : score >= 50 ? "Tiềm năng" : "Cần nuôi dưỡng"
+		rank: score >= 80 ? "VIP" : score >= 65 ? "Tiềm năng cao" : score >= 50 ? "Tiềm năng" : "Cần nuôi dưỡng",
+		riskLevel,
+		reasons,
+		recommendedAction: riskLevel === "high" ? "Xác minh thủ công trước khi gửi báo giá hoặc chuyển sale" : riskLevel === "review" ? "Ưu tiên xác minh qua Zalo trước khi gọi" : "Gọi tư vấn theo kịch bản phù hợp nhu cầu"
 	};
 }
-function generateSaleAdvice(data) {
+function generateSaleAdvice(data, assessment = scoreLead(data)) {
+	if (assessment.riskLevel === "unrated") return `ℹ️ [CHƯA CHẤM AI] ${assessment.recommendedAction}.`;
+	if (assessment.riskLevel === "high") return `⚠️ [CẦN XÁC MINH] ${assessment.reasons.join("; ") || "Lead có tín hiệu bất thường"}. ${assessment.recommendedAction}.`;
+	if (assessment.riskLevel === "review") return `🟡 [TÍN HIỆU YẾU] ${assessment.reasons.join("; ") || "Cần xác minh thêm"}. ${assessment.recommendedAction}.`;
 	const advice = [];
-	const isHighEndDevice = /iPhone (13|14|15|16) Pro|Pro Max|Galaxy S(22|23|24|25)|Fold|Flip/i.test(data.device_model_name);
-	const h = (/* @__PURE__ */ new Date()).getHours();
-	const isNightTime = h >= 22 || h <= 6;
-	const isLocationMismatch = Boolean(data.location_city && data.form_city && !data.location_city.toLowerCase().includes(data.form_city.toLowerCase()) && !data.form_city.toLowerCase().includes(data.location_city.toLowerCase()));
+	const isHighEndDevice = /iPhone (12|13|14|15|16)|Galaxy S(22|23|24|25)|Fold|Flip|Pixel/i.test(data.device_model_name);
 	const isKeyRegion = /Nghệ An|Hà Tĩnh|Quảng Bình|Thanh Hóa|Quảng Ninh|Hải Phòng/i.test(data.form_city);
-	if (data.form_fill_duration_seconds < 4 || data.is_headless_browser) return "🚨 [LEAD ẢO / BOT SPAM] Điền Form quá nhanh (<4s) hoặc dùng trình duyệt giả lập. KHÔNG GỌI, kiểm tra Zalo trước!";
-	if (data.submission_count_same_ip > 1) return `🚨 [CẢNH BÁO SPAM IP] IP này đã bấm gửi ${data.submission_count_same_ip} lần trong ngày. Nghi vấn đối thủ phá Ads hoặc trùng thông tin!`;
-	if (isLocationMismatch && data.is_copy_paste) return `⚠️ [NGHI VẤN ĐỐI THỦ DÒ GIÁ] Khai ở ${data.form_city} nhưng IP tại ${data.location_city} + Copy/Paste SĐT. Xác minh kỹ, tuyệt đối không gửi báo giá chi tiết sớm!`;
+	const isNightTime = (() => {
+		const hour = (/* @__PURE__ */ new Date()).getHours();
+		return hour >= 22 || hour <= 6;
+	})();
 	if (isHighEndDevice && data.time_on_page_seconds >= 80 && data.scroll_depth_percent >= 70) {
-		advice.push(`💡 [KHÁCH VIP - PHỤ HUYNH TÀI CHÍNH TỐT] Dùng ${data.device_model_name}. Nghiên cứu rất kỹ trang (${data.time_on_page_seconds}s, cuộn ${data.scroll_depth_percent}%).`);
-		advice.push(`👉 KỊCH BẢN GỌI: "Em chào anh/chị, em thấy mình đang tìm hiểu lộ trình Du học nghề trọn gói cho cháu. Bên em có chương trình cam kết Visa 100% & KTX VIP tiêu chuẩn..."`);
-	} else if (data.focus_section === "luong_thuc_tap" || data.copied_text_type === "chi_phi") {
-		advice.push(`💡 [KHÁCH QUAN TÂM THU NHẬP / TÀI CHÍNH] Ngâm đọc rất kỹ phần Chi phí & Thực tập.`);
-		advice.push(`👉 KỊCH BẢN GỌI: "Chào bạn, ngành ${data.nganh_hoc} đang có gói Vừa học vừa làm thực tập hưởng lương 15-25 triệu/tháng giúp tự trang trải 100% học phí..."`);
+		advice.push(`💡 [KHÁCH VIP] Thiết bị ${data.device_model_name}, đọc kỹ trang ${data.time_on_page_seconds}s và cuộn ${data.scroll_depth_percent}%.`);
+		advice.push(`👉 Tư vấn theo hướng phụ huynh quan tâm độ an toàn, lộ trình visa và đầu ra nghề nghiệp của ngành ${data.nganh_hoc}.`);
+	} else if (data.focus_section === "luong_thuc_tap" || data.copied_text_type === "chi_phi" || /cpc|paid|ads/i.test(data.utm_medium)) {
+		advice.push("💡 [KHÁCH QUAN TÂM TÀI CHÍNH] Tập trung vào thu nhập, chi phí và khả năng tự chủ tài chính.");
+		advice.push(`👉 Mở đầu bằng mức lương thực tập của ngành ${data.nganh_hoc}, rồi chốt bằng lộ trình học phí 0Đ và cơ hội việc làm sau tốt nghiệp.`);
 	} else if (data.faq_clicked === "tieng_trung") {
-		advice.push(`💡 [KHÁCH LO RÀO CẢN TIẾNG TRUNG] Thắc mắc điều kiện đầu vào.`);
-		advice.push(`👉 KỊCH BẢN GỌI: "Bạn yên tâm nếu chưa biết tiếng Trung nhé, bên mình đào tạo siêu tốc từ 0 lên HSK4 tại Việt Nam trước khi xuất cảnh..."`);
+		advice.push("💡 [LO NGẠI NGÔN NGỮ] Khách quan tâm rào cản tiếng Trung và điều kiện đầu vào.");
+		advice.push("👉 Tư vấn ngắn, rõ: học từ 0, có lộ trình tiền HSK và hỗ trợ thích nghi trước khi bay.");
 	} else if (data.industry_switch_count > 1) {
-		advice.push(`💡 [KHÁCH PHÂN VÂN NGÀNH HỌC] Đã đổi chọn ngành ${data.industry_switch_count} lần trước khi chốt ngành ${data.nganh_hoc}.`);
-		advice.push(`👉 KỊCH BẢN GỌI: Đóng vai Hướng nghiệp, phân tích tiềm năng việc làm & mức lương ngành ${data.nganh_hoc} so với các ngành khác.`);
+		advice.push(`💡 [PHÂN VÂN NGÀNH] Đã đổi ngành ${data.industry_switch_count} lần trước khi chốt ${data.nganh_hoc}.`);
+		advice.push("👉 Sale nên đóng vai hướng nghiệp, so sánh đầu ra, môi trường làm việc và thu nhập giữa 2-3 ngành gần nhau.");
 	} else if (data.time_on_page_seconds < 25) {
-		advice.push(`💡 [KHÁCH XEM LƯỚT VỘI] Dùng ${data.device_model_name}, lướt nhanh ${data.time_on_page_seconds}s.`);
-		advice.push(`👉 HÀNH ĐỘNG: Kết bạn Zalo gửi trước Video thực tế KTX & Trường học Trung Quốc rồi mới gọi điện tư vấn.`);
+		advice.push(`💡 [XEM NHANH] Khách lướt nhanh bằng ${data.device_model_name}.`);
+		advice.push("👉 Ưu tiên gửi Zalo kèm ảnh thực tế/KTX trước, sau đó mới gọi điện chốt nhu cầu.");
 	} else {
-		advice.push(`💡 [KHÁCH TÌM HIỂU CHUẨN] Dùng ${data.device_model_name} tại ${data.location_city || "không rõ"}.`);
-		advice.push(`👉 KỊCH BẢN GỌI: Khai thác nguyện vọng học ngành ${data.nganh_hoc} và trình độ tiếng Trung hiện tại.`);
+		advice.push(`💡 [TÌM HIỂU NGHIÊM TÚC] ${data.device_model_name} · ${data.network_label}. Ngành quan tâm: ${data.nganh_hoc}.`);
+		advice.push("👉 Gọi tư vấn theo kịch bản khám phá mục tiêu học tập, tài chính và thời điểm nhập học phù hợp.");
 	}
-	if (data.current_battery_level != null && data.current_battery_level <= 15) advice.push(`⚡ (Pin thiết bị sắp hết: ${data.current_battery_level}%. Ưu tiên nhắn Zalo/gọi gấp trước khi máy sập nguồn).`);
-	if (data.time_to_first_interaction_seconds > 120) advice.push(`🧐 (Khách ngẫm hơn 2 phút mới bắt đầu gõ Form: Cân nhắc rất kỹ, Sale nên tư vấn chuyên sâu).`);
-	if (isKeyRegion) advice.push(`📌 (Khách ở ${data.form_city} - Tỉnh trọng điểm: Nhắc đến cộng đồng du học sinh đồng hương đông đảo tại trường).`);
-	if (isNightTime) advice.push(`🌙 (Đăng ký đêm muộn: Nhắn Zalo chào trước, 8h30 sáng hôm sau mới gọi điện).`);
+	if (data.current_battery_level != null && data.current_battery_level <= 15) advice.push(`⚡ Pin chỉ còn ${data.current_battery_level}%, ưu tiên nhắn Zalo/gọi sớm để không rơi lead.`);
+	if (data.time_to_first_interaction_seconds > 120) advice.push("🧐 Khách suy nghĩ khá lâu trước khi điền form, cần tư vấn chuyên sâu và tránh chốt vội.");
+	if (isKeyRegion) advice.push(`📌 Khách ở ${data.form_city}, nên nhắc tới cộng đồng học viên đồng hương và case thành công gần khu vực này.`);
+	if (isNightTime) advice.push("🌙 Lead đến vào đêm muộn, nên nhắn chào ngay nhưng hẹn gọi lại vào giờ hành chính hôm sau.");
 	return advice.join("\n");
 }
 function generateBehaviorSummary(data) {
-	const summary = [];
-	summary.push(`⏱️ Xem web: ${data.time_on_page_seconds}s (Ngẫm ${data.time_to_first_interaction_seconds || 0}s mới điền, Điền mất ${data.form_fill_duration_seconds}s)`);
-	summary.push(`📜 Cuộn: ${data.scroll_depth_percent}%`);
-	if (data.industry_switch_count > 0) summary.push(`🔄 Đổi ngành: ${data.industry_switch_count} lần`);
-	if (data.focus_section) summary.push(`🎯 Tập trung: ${data.focus_section}`);
-	if (data.faq_clicked) summary.push(`❓ FAQ xem: ${data.faq_clicked}`);
-	if (data.is_copy_paste) summary.push(`📋 Thao tác: Copy-Paste SĐT`);
-	return summary.join(" | ");
+	const items = [
+		`⏱️ ${data.time_on_page_seconds}s trên trang`,
+		`🖱️ ${data.time_to_first_interaction_seconds || 0}s tới lần tương tác đầu`,
+		`📝 ${data.form_fill_duration_seconds || 0}s điền form`,
+		`📜 Cuộn ${data.scroll_depth_percent}%`,
+		`👀 Phiên #${data.current_session} · Hôm nay ${data.visits_today} · Tháng ${data.visits_month}`
+	];
+	if (data.industry_switch_count > 0) items.push(`🔄 Đổi ngành ${data.industry_switch_count} lần`);
+	if (data.focus_section) items.push(`🎯 Tập trung ${data.focus_section}`);
+	if (data.faq_clicked) items.push(`❓ FAQ ${data.faq_clicked}`);
+	if (data.is_copy_paste) items.push("📋 Có thao tác copy/paste");
+	return items.join(" | ");
 }
 function generateDeviceTechInfo(data) {
-	const batteryInfo = data.start_battery_level != null ? `🔋 Pin: ${data.current_battery_level}% (Giảm ${data.battery_drain}% khi lướt)` : "🔋 Pin: N/A";
-	return `${data.device_model_name} | ${data.operating_system} | ${batteryInfo} | Mạng: ${data.connection_type || "WiFi/4G"} | IP: ${data.client_ip || "N/A"} (${data.location_city || "Không rõ"}) | Browser: ${data.browser}`;
+	const batteryInfo = data.start_battery_level != null ? `Pin ${data.current_battery_level}% (giảm ${data.battery_drain}%)` : "Pin N/A";
+	const os = [data.operating_system, data.operating_system_version].filter(Boolean).join(" ");
+	const browser = [data.browser, data.browser_version].filter(Boolean).join(" ");
+	return [
+		`${data.device_manufacturer} ${data.device_model_name}`.trim(),
+		os || "Hệ điều hành chưa rõ",
+		browser || "Trình duyệt chưa rõ",
+		data.network_label,
+		batteryInfo
+	].filter(Boolean).join(" | ");
 }
 function generateTrafficAdsSource(data) {
-	return `Source: ${data.utm_source || "Direct"} | Medium: ${data.utm_medium || "N/A"} | Campaign: ${data.utm_campaign || "N/A"} | Content: ${data.utm_content || "N/A"} | TTCLID: ${data.ttclid || "N/A"}`;
+	return [
+		`Source: ${data.utm_source || "Direct"}`,
+		`Medium: ${data.utm_medium || "N/A"}`,
+		`Campaign: ${data.utm_campaign || "N/A"}`,
+		`Content: ${data.utm_content || "N/A"}`,
+		`Term: ${data.utm_term || "N/A"}`,
+		`TTCLID: ${data.ttclid || "N/A"}`
+	].join(" | ");
+}
+function buildVisitorBehaviorPayload(input, cfg) {
+	const behavior = collectBehavior(input);
+	const assessment = scoreLead(behavior, cfg);
+	const snapshot = getTrackingSnapshot();
+	const saleAdvice = generateSaleAdvice(behavior, assessment);
+	const behaviorSummary = generateBehaviorSummary(behavior);
+	const deviceTechInfo = generateDeviceTechInfo(behavior);
+	const trafficAdsSource = generateTrafficAdsSource(behavior);
+	return {
+		behavior,
+		assessment,
+		visitorBehaviorPayload: {
+			submittedAt: (/* @__PURE__ */ new Date()).toISOString(),
+			device: snapshot.device,
+			network: snapshot.network,
+			attribution: snapshot.attribution,
+			metrics: {
+				...snapshot.metrics,
+				submissionCountSameVisitor: behavior.submission_count_same_ip
+			},
+			form: input,
+			assessment,
+			saleAdvice,
+			behaviorSummary,
+			deviceTechInfo,
+			trafficAdsSource
+		}
+	};
 }
 var MAJORS = [
 	"Công nghệ Ô tô điện",
@@ -517,6 +968,7 @@ function LeadForm({ id = "dang-ky" }) {
 	const [form, setForm] = (0, import_react.useState)(EMPTY);
 	const startedRef = (0, import_react.useRef)(false);
 	const honeypotRef = (0, import_react.useRef)(null);
+	const field = (name, fallback) => config.form.fields.find((item) => item.name === name)?.placeholder || fallback;
 	const set = (k) => (e) => setForm((f) => ({
 		...f,
 		[k]: e.target.value
@@ -536,7 +988,7 @@ function LeadForm({ id = "dang-ky" }) {
 		if (startedRef.current) return;
 		startedRef.current = true;
 		markFormStart();
-		trackFormStart();
+		trackFormStart(config.tracking.events.formStart);
 	};
 	async function onSubmit(e) {
 		e.preventDefault();
@@ -570,11 +1022,11 @@ function LeadForm({ id = "dang-ky" }) {
 		}
 		setError("");
 		setStatus("sending");
-		const behavior = collectBehavior({
+		const { behavior, assessment, visitorBehaviorPayload } = buildVisitorBehaviorPayload({
 			city: form.province,
 			major: form.major
-		});
-		const { score: aiScore, rank: aiRank } = scoreLead(behavior, config.aiAdvisor);
+		}, config.aiAdvisor);
+		const { score: aiScore, rank: aiRank } = assessment;
 		const variant = getVariant(config.abTest.enabled, config.abTest.split);
 		const source = utmSource();
 		const payload = {
@@ -584,14 +1036,34 @@ function LeadForm({ id = "dang-ky" }) {
 			major: form.major,
 			city: form.province,
 			source: typeof window !== "undefined" ? window.location.href : "Landing Page UTM",
-			created_at: (/* @__PURE__ */ new Date()).toISOString(),
+			created_at: visitorBehaviorPayload.submittedAt,
 			ab_variant: variant,
 			ai_score: aiScore,
 			ai_rank: aiRank,
-			sale_advice: generateSaleAdvice(behavior),
-			behavior_summary: generateBehaviorSummary(behavior),
-			device_tech_info: generateDeviceTechInfo(behavior),
-			traffic_ads_source: generateTrafficAdsSource(behavior)
+			lead_risk_level: assessment.riskLevel,
+			lead_risk_reasons: assessment.reasons,
+			recommended_action: assessment.recommendedAction,
+			utm_source: behavior.utm_source,
+			utm_medium: behavior.utm_medium,
+			utm_campaign: behavior.utm_campaign,
+			utm_content: behavior.utm_content,
+			utm_term: behavior.utm_term,
+			ttclid: behavior.ttclid,
+			visits_today: behavior.visits_today,
+			visits_month: behavior.visits_month,
+			current_session: behavior.current_session,
+			device_manufacturer: behavior.device_manufacturer,
+			device_family: behavior.device_family,
+			device_model_name: behavior.device_model_name,
+			operating_system: [behavior.operating_system, behavior.operating_system_version].filter(Boolean).join(" "),
+			browser: [behavior.browser, behavior.browser_version].filter(Boolean).join(" "),
+			network_provider: behavior.network_provider,
+			network_label: behavior.network_label,
+			sale_advice: visitorBehaviorPayload.saleAdvice,
+			behavior_summary: visitorBehaviorPayload.behaviorSummary,
+			device_tech_info: visitorBehaviorPayload.deviceTechInfo,
+			traffic_ads_source: visitorBehaviorPayload.trafficAdsSource,
+			visitor_behavior_payload: visitorBehaviorPayload
 		};
 		try {
 			const leadRecord = {
@@ -599,21 +1071,38 @@ function LeadForm({ id = "dang-ky" }) {
 				at: payload.created_at,
 				name: payload.full_name,
 				phone: payload.phone,
+				email: payload.email || void 0,
+				city: payload.city || void 0,
+				major: payload.major || void 0,
 				aiScore,
 				aiRank,
+				riskLevel: assessment.riskLevel,
+				riskReasons: assessment.reasons,
+				recommendedAction: assessment.recommendedAction,
+				behaviorSummary: payload.behavior_summary,
+				saleAdvice: payload.sale_advice,
+				deviceTechInfo: payload.device_tech_info,
+				trafficAdsSource: payload.traffic_ads_source,
+				networkProvider: payload.network_provider || void 0,
+				networkLabel: payload.network_label || void 0,
+				visitsToday: payload.visits_today,
+				visitsMonth: payload.visits_month,
+				currentSession: payload.current_session,
+				visitorBehaviorPayload,
 				utmSource: source,
+				utmMedium: payload.utm_medium,
+				utmCampaign: payload.utm_campaign,
+				utmContent: payload.utm_content,
+				ttclid: payload.ttclid,
 				variant
 			};
-			if (payload.email) leadRecord.email = payload.email;
-			if (payload.city) leadRecord.city = payload.city;
-			if (payload.major) leadRecord.major = payload.major;
 			await saveLead(leadRecord, config);
-			dispatchLead(config, payload).then(({ ok, results }) => {
-				if (!ok && results.length > 0) {
-					console.warn("All webhook endpoints failed:", results);
-					toast.warning("Lead đã lưu vào CRM nhưng webhook chưa nhận được", { description: "Kiểm tra cấu hình endpoint trong Admin > Cổng Webhook & Đa Kênh." });
-				} else if (results.some((result) => !result.ok)) console.warn("Some webhook endpoints failed:", results);
-			});
+			const delivery = await dispatchLead(config, payload);
+			if (!delivery.ok) {
+				const failed = delivery.results.filter((result) => !result.ok).map((result) => result.label).join(", ");
+				console.warn("Webhook delivery incomplete:", delivery.results);
+				throw new Error(failed ? `Webhook chưa nhận được dữ liệu: ${failed}` : "Webhook chưa được cấu hình hoặc chưa phản hồi.");
+			}
 			trackConversion(source, config.abTest.enabled ? variant : void 0);
 			if (config.emailAutomation.enabled && email) {
 				const fill = (s) => s.replaceAll("{name}", payload.full_name).replaceAll("{phone}", payload.phone).replaceAll("{city}", payload.city || "").replaceAll("{ai_score}", String(aiScore));
@@ -629,7 +1118,7 @@ function LeadForm({ id = "dang-ky" }) {
 					console.warn("Lead confirmation email failed:", error);
 				});
 			}
-			trackLead({ content_name: form.major || "Du hoc nghe Trung Quoc" });
+			trackLead({ content_name: form.major || "Du hoc nghe Trung Quoc" }, config.tracking.events);
 			setForm(EMPTY);
 			setStatus("done");
 			toast.success("Đăng ký thành công!", { description: "Tư vấn viên sẽ liên hệ lại trong 5 phút." });
@@ -680,7 +1169,7 @@ function LeadForm({ id = "dang-ky" }) {
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
 				className: "mt-1 text-2xl font-extrabold leading-tight sm:text-3xl",
-				children: "Nhận lộ trình du học nghề 0Đ"
+				children: config.form.headline || "Nhận lộ trình du học nghề 0Đ"
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "mt-2 text-sm text-muted-foreground",
@@ -704,7 +1193,7 @@ function LeadForm({ id = "dang-ky" }) {
 						value: form.name,
 						onChange: set("name"),
 						onFocus: onFirstInteract,
-						placeholder: "Họ và tên",
+						placeholder: field("name", "Họ và tên"),
 						className: inputClass
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
@@ -717,7 +1206,7 @@ function LeadForm({ id = "dang-ky" }) {
 						onChange: setPhone,
 						onFocus: onFirstInteract,
 						onPaste: () => markCopyPaste("sdt"),
-						placeholder: "Số điện thoại (Zalo) — 10 số",
+						placeholder: field("phone", "Số điện thoại (Zalo) — 10 số"),
 						className: inputClass
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
@@ -726,7 +1215,7 @@ function LeadForm({ id = "dang-ky" }) {
 						value: form.email,
 						onChange: set("email"),
 						onFocus: onFirstInteract,
-						placeholder: "Email (không bắt buộc)",
+						placeholder: field("email", "Email (không bắt buộc)"),
 						className: inputClass
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
@@ -736,7 +1225,7 @@ function LeadForm({ id = "dang-ky" }) {
 						className: inputClass,
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
 							value: "",
-							children: "Tỉnh/Thành phố"
+							children: field("city", "Tỉnh/Thành phố")
 						}), PROVINCE_GROUPS.map((g) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("optgroup", {
 							label: g.region,
 							children: g.provinces.map((p) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
@@ -752,7 +1241,7 @@ function LeadForm({ id = "dang-ky" }) {
 						className: inputClass,
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
 							value: "",
-							children: "Ngành quan tâm"
+							children: field("major", "Ngành quan tâm")
 						}), MAJORS.map((m) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
 							value: m,
 							children: m
@@ -773,7 +1262,7 @@ function LeadForm({ id = "dang-ky" }) {
 				children: [status === "sending" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 					"aria-hidden": "true",
 					className: "h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground"
-				}), status === "sending" ? "Đang gửi..." : "Gửi đăng ký — Nhận lộ trình 0Đ"]
+				}), status === "sending" ? "Đang gửi..." : config.form.ctaLabel || "Gửi đăng ký — Nhận lộ trình 0Đ"]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "mt-3 text-center text-xs text-muted-foreground",
@@ -1084,114 +1573,96 @@ function FloatingContact() {
 	const links = contactLinks(config);
 	if (!links.enabled) return null;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "fixed bottom-20 right-4 z-50 flex flex-col gap-3 sm:bottom-6 sm:right-6",
-		children: [
-			links.messengerHref && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-				href: links.messengerHref,
-				target: "_blank",
-				rel: "noopener noreferrer",
-				"aria-label": "Nhắn tin Messenger",
-				className: "flex h-12 w-12 items-center justify-center rounded-full bg-card text-foreground shadow-[var(--shadow-card)] ring-1 ring-border transition hover:scale-105",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MessageCircle, { className: "h-5 w-5" })
-			}),
-			links.hasZalo && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-				href: links.zaloHref,
-				target: "_blank",
-				rel: "noopener noreferrer",
-				"aria-label": "Chat Zalo tư vấn",
-				className: "flex h-12 w-12 items-center justify-center rounded-full bg-gold text-xs font-black text-gold-foreground shadow-[var(--shadow-card)] transition hover:scale-105",
-				children: "Zalo"
-			}),
-			links.hasHotline && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-				href: links.hotlineHref,
-				"aria-label": "Gọi hotline tư vấn",
-				className: "flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-cta)] transition hover:scale-105",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Phone, { className: "h-6 w-6" })
-			})
-		]
+		className: "fixed bottom-24 right-4 z-50 flex flex-col gap-3 sm:bottom-6 sm:right-6",
+		children: [links.messengerHref && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+			href: links.messengerHref,
+			target: "_blank",
+			rel: "noopener noreferrer",
+			"aria-label": "Nhắn tin Messenger",
+			className: `flex h-12 w-12 items-center justify-center rounded-full bg-card text-foreground shadow-[var(--shadow-card)] ring-1 ring-border transition hover:scale-105 ${config.floatingContact.animateMessenger !== false ? "contact-breathe" : ""}`,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MessageCircle, { className: "h-5 w-5" })
+		}), links.hasHotline && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+			href: links.hotlineHref,
+			"aria-label": "Gọi hotline tư vấn",
+			className: `flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-cta)] transition hover:scale-105 ${config.floatingContact.animateHotline !== false ? "contact-breathe" : ""}`,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Phone, { className: "h-6 w-6" })
+		})]
 	});
 }
-/**
-* Widget thống kê traffic realtime ở chân trang.
-* Số người online là chỉ số tương đối (12–38) dao động nhẹ theo thời gian;
-* lượt truy cập ngày/tháng lưu ở localStorage của chính thiết bị.
-*/
-function FooterStats() {
-	const [online, setOnline] = (0, import_react.useState)(24);
-	const [visits, setVisits] = (0, import_react.useState)({
-		today: 0,
-		month: 0
-	});
-	const [device, setDevice] = (0, import_react.useState)("");
-	const [ip, setIp] = (0, import_react.useState)({
-		ip: "",
-		city: "",
-		visitsToday: 0
-	});
-	(0, import_react.useEffect)(() => {
-		setVisits(bumpVisitCounters());
-		const dev = detectDevice();
-		setDevice(`${dev.model} · ${dev.os}`);
-		setOnline(12 + Math.floor(Math.random() * 27));
-		const drift = window.setInterval(() => {
-			setOnline((v) => {
-				const next = v + (Math.random() < .5 ? -1 : 1) * (1 + Math.floor(Math.random() * 2));
-				return Math.min(38, Math.max(12, next));
-			});
-		}, 4e3);
-		const poll = window.setInterval(() => setIp(getIpSnapshot()), 1500);
-		return () => {
-			window.clearInterval(drift);
-			window.clearInterval(poll);
-		};
-	}, []);
-	const suspicious = ip.visitsToday > 5;
+function FooterStats({ title = "Thống kê truy cập thông minh", helperText = "Dữ liệu truy cập được gom từ cùng một kho tracking để đồng bộ giữa Analytics, Mini-CRM và Webhook." }) {
+	const snapshot = useVisitorTrackingSnapshot();
+	const deviceValue = [
+		snapshot.device.manufacturer !== "Unknown" ? snapshot.device.manufacturer : "",
+		snapshot.device.model,
+		snapshot.device.os,
+		snapshot.device.browser
+	].filter(Boolean).join(" · ");
 	const items = [
 		{
-			icon: "🔴",
-			label: "Đang online",
-			value: `${online} người`
+			icon: Activity,
+			label: "Phiên hiện tại",
+			value: `1 phiên · Visitor ${snapshot.visitorId.slice(-6)}`
 		},
 		{
-			icon: "📅",
+			icon: CalendarDays,
 			label: "Truy cập hôm nay",
-			value: visits.today.toLocaleString("vi-VN")
+			value: snapshot.metrics.sessionCounts.today.toLocaleString("vi-VN")
 		},
 		{
-			icon: "📆",
+			icon: CalendarDays,
 			label: "Truy cập tháng này",
-			value: visits.month.toLocaleString("vi-VN")
+			value: snapshot.metrics.sessionCounts.month.toLocaleString("vi-VN")
 		},
 		{
-			icon: "⚡",
-			label: "Thiết bị của bạn",
-			value: device ? `${device}${ip.ip ? ` · IP ${ip.ip}` : ""}` : "Đang nhận diện..."
+			icon: Cpu,
+			label: "Thiết bị nhận diện",
+			value: deviceValue || "Đang nhận diện thiết bị..."
+		},
+		{
+			icon: Wifi,
+			label: "Mạng & khu vực",
+			value: snapshot.network.displayLabel || snapshot.network.fallbackLabel
 		}
 	];
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("aside", {
 		"aria-label": "Thống kê lưu lượng truy cập",
-		className: "rounded-2xl bg-card/80 p-4 ring-1 ring-border backdrop-blur",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dl", {
-			className: "grid gap-3 sm:grid-cols-2 lg:grid-cols-4",
-			children: items.map((it) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "rounded-xl bg-background/70 px-3.5 py-3 ring-1 ring-border/70",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("dt", {
-					className: "flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						"aria-hidden": "true",
-						children: it.icon
-					}), it.label]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("dd", {
-					className: "mt-1 truncate text-sm font-bold text-foreground",
-					title: it.value,
-					children: it.value
+		className: "rounded-2xl bg-card/85 p-4 ring-1 ring-border backdrop-blur sm:p-5",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "mb-4 flex flex-col gap-1",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+					className: "text-base font-extrabold text-foreground sm:text-lg",
+					children: title
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "text-xs leading-relaxed text-muted-foreground sm:text-sm",
+					children: helperText
 				})]
-			}, it.label))
-		}), suspicious && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-			role: "status",
-			className: "mt-3 rounded-xl bg-destructive/10 px-3.5 py-2.5 text-sm font-bold text-destructive ring-1 ring-destructive/30",
-			children: "🛡️ Cảnh báo: Phát hiện lưu lượng cao từ IP này!"
-		})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dl", {
+				className: "grid min-w-0 gap-3 sm:grid-cols-2 2xl:grid-cols-5",
+				children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "min-w-0 rounded-xl bg-background/80 px-3.5 py-3 ring-1 ring-border/70",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("dt", {
+						className: "flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, {
+							className: "h-3.5 w-3.5 shrink-0",
+							"aria-hidden": "true"
+						}), item.label]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("dd", {
+						className: "mt-1 min-h-10 break-words text-sm font-bold leading-relaxed text-foreground",
+						title: item.value,
+						children: item.value
+					})]
+				}, item.label))
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+				className: "mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground sm:text-xs",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(MapPin, {
+					className: "mt-0.5 h-3.5 w-3.5 shrink-0",
+					"aria-hidden": "true"
+				}), snapshot.network.lookupStatus === "resolved" ? `Nhà mạng hiện tại: ${snapshot.network.provider || snapshot.network.connectionLabel}. Khi dịch vụ IP thiếu dữ liệu, hệ thống tự rơi về chuỗi lịch sự thay thế.` : "Dịch vụ định vị IP đang dùng cơ chế dự phòng; giao diện vẫn hiển thị chuỗi mạng chuyên nghiệp, không lộ lỗi hệ thống."]
+			})
+		]
 	});
 }
 var gallery_visa_default = "/assets/gallery-visa-C2KfDTnt.webp";
@@ -1301,7 +1772,36 @@ function Landing() {
 	const menuPages = config.pages.filter((page) => page.enabled && page.showInMenu).sort((a, b) => a.menuOrder - b.menuOrder);
 	const secondaryPageSectionIds = new Set(config.pages.filter((page) => page.id !== "home").flatMap((page) => page.sectionIds || []));
 	const homeCustomSections = customSections.filter((section) => !secondaryPageSectionIds.has(section.id));
-	(0, import_react.useEffect)(() => initBehavior(), []);
+	const heroSlides = (0, import_react.useMemo)(() => {
+		const configured = content.heroMediaMode === "slider" ? content.heroSliderImages.filter(Boolean) : [content.heroImageUrl].filter(Boolean);
+		return configured.length > 0 ? configured : [content.heroImageUrl || "/assets/hero-student-RoGGUFG7.webp"];
+	}, [
+		content.heroImageUrl,
+		content.heroMediaMode,
+		content.heroSliderImages
+	]);
+	const [heroSlideIndex, setHeroSlideIndex] = (0, import_react.useState)(0);
+	(0, import_react.useEffect)(() => initBehavior({
+		storageMode: config.admin.storageMode,
+		supabaseUrl: config.admin.supabaseUrl,
+		supabaseAnonKey: config.admin.supabaseAnonKey
+	}), [
+		config.admin.storageMode,
+		config.admin.supabaseAnonKey,
+		config.admin.supabaseUrl
+	]);
+	(0, import_react.useEffect)(() => {
+		setHeroSlideIndex(0);
+	}, [content.heroMediaMode, heroSlides.length]);
+	(0, import_react.useEffect)(() => {
+		if (content.heroMediaMode !== "slider" || heroSlides.length <= 1) return;
+		const timer = window.setInterval(() => setHeroSlideIndex((current) => (current + 1) % heroSlides.length), Math.max(2500, content.heroSliderIntervalMs || 4500));
+		return () => window.clearInterval(timer);
+	}, [
+		content.heroMediaMode,
+		content.heroSliderIntervalMs,
+		heroSlides.length
+	]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		id: "top",
 		className: "flex min-h-screen flex-col bg-background",
@@ -1355,68 +1855,85 @@ function Landing() {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
 				style: sectionStyle("hero"),
 				className: "surface-panel relative overflow-hidden",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-					src: content.heroImageUrl || "/assets/hero-student-RoGGUFG7.webp",
-					alt: "Học viên Việt Nam thực hành lắp ráp ô tô điện tại trung tâm đào tạo nghề Trung Quốc",
-					width: 1600,
-					height: 1104,
-					fetchPriority: "high",
-					decoding: "async",
-					className: "absolute inset-0 h-full w-full object-cover opacity-25"
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "relative mx-auto grid max-w-6xl gap-12 px-4 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-24",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "text-surface-foreground",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: "inline-flex items-center gap-2 rounded-full bg-gold px-3 py-1.5 text-xs font-extrabold uppercase tracking-wide text-gold-foreground",
-								children: content.heroEyebrow
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h1", {
-								className: "mt-6 text-3xl font-black leading-[1.12] sm:text-4xl lg:text-[3.25rem]",
-								children: [
-									experimentHeadline || content.heroTitle,
-									" ",
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										className: "text-hero-gradient",
-										children: content.heroHighlight
-									})
-								]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-								className: "mt-5 max-w-xl text-base leading-relaxed text-surface-foreground/85 sm:text-lg",
-								children: content.heroDescription
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "mt-8 flex flex-col gap-3 sm:flex-row sm:items-center",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-									href: "#dang-ky",
-									className: "cta-pulse rounded-xl bg-primary px-7 py-4 text-center text-base font-extrabold uppercase tracking-wide text-primary-foreground sm:text-lg",
-									children: experimentCta || content.heroCtaLabel
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-									className: "text-center text-sm text-surface-foreground/70 sm:text-left",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "absolute inset-0",
+						children: heroSlides.map((slide, index) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+							src: slide || "/assets/hero-student-RoGGUFG7.webp",
+							alt: "Học viên Việt Nam thực hành lắp ráp ô tô điện tại trung tâm đào tạo nghề Trung Quốc",
+							width: 1600,
+							height: 1104,
+							fetchPriority: index === 0 ? "high" : void 0,
+							decoding: "async",
+							className: `absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${content.heroMediaMode === "slider" ? index === heroSlideIndex ? "opacity-30" : "opacity-0" : "opacity-25"}`
+						}, `${slide}-${index}`))
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "absolute inset-0 bg-surface/68" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "relative mx-auto grid max-w-6xl gap-12 px-4 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-24",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "text-surface-foreground",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "inline-flex items-center gap-2 rounded-full bg-gold px-3 py-1.5 text-xs font-extrabold uppercase tracking-wide text-gold-foreground",
+									children: content.heroEyebrow
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h1", {
+									className: "mt-6 text-3xl font-black leading-[1.12] sm:text-4xl lg:text-[3.25rem]",
 									children: [
-										"Chỉ còn",
+										experimentHeadline || content.heroTitle,
 										" ",
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
-											className: "text-gold",
-											children: config.countdown.slotsLeft
-										}),
-										" ",
-										config.countdown.headline
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "text-hero-gradient",
+											children: content.heroHighlight
+										})
 									]
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
-								className: "mt-9 grid gap-2.5 text-sm text-surface-foreground/80 sm:grid-cols-2",
-								children: content.heroTrustItems.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: ["✓ ", item] }, item))
-							})
-						]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "space-y-3 lg:pl-4",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScarcityBar, { tone: "dark" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LeadForm, {})]
-					})]
-				})]
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "mt-5 max-w-xl text-base leading-relaxed text-surface-foreground/85 sm:text-lg",
+									children: content.heroDescription
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "mt-8 flex flex-col gap-3 sm:flex-row sm:items-center",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+										href: "#dang-ky",
+										className: "cta-pulse rounded-xl bg-primary px-7 py-4 text-center text-base font-extrabold uppercase tracking-wide text-primary-foreground sm:text-lg",
+										children: experimentCta || content.heroCtaLabel
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+										className: "text-center text-sm text-surface-foreground/70 sm:text-left",
+										children: [
+											"Chỉ còn",
+											" ",
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
+												className: "text-gold",
+												children: config.countdown.slotsLeft
+											}),
+											" ",
+											config.countdown.headline
+										]
+									})]
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+									className: "mt-9 grid gap-2.5 text-sm text-surface-foreground/80 sm:grid-cols-2",
+									children: content.heroTrustItems.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: ["✓ ", item] }, item))
+								})
+							]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "space-y-3 lg:pl-4",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScarcityBar, { tone: "dark" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LeadForm, {})]
+						})]
+					})
+				]
+			}),
+			config.trafficStats.enabled && config.trafficStats.position === "afterHero" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+				className: "border-b border-border bg-background py-8 sm:py-10",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "mx-auto max-w-6xl px-4",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FooterStats, {
+						title: config.trafficStats.title,
+						helperText: config.trafficStats.helperText
+					})
+				})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
 				style: sectionStyle("stats"),
@@ -1622,6 +2139,14 @@ function Landing() {
 									"aria-hidden": "true",
 									children: "★★★★★"
 								}),
+								t.avatarUrl && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+									src: t.avatarUrl,
+									alt: `Ảnh đại diện ${t.name}`,
+									width: 48,
+									height: 48,
+									loading: "lazy",
+									className: "mt-3 h-12 w-12 rounded-full object-cover ring-2 ring-border"
+								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
 									className: "mt-3 flex-1 text-sm leading-relaxed text-card-foreground/90",
 									children: [
@@ -1732,15 +2257,42 @@ function Landing() {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("footer", {
 				style: { order: 99 },
 				className: "border-t border-border bg-background py-12",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				children: [config.trafficStats.enabled && config.trafficStats.position === "footer" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					className: "mx-auto mb-10 max-w-6xl px-4",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FooterStats, {})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "mx-auto max-w-6xl px-4 text-sm text-muted-foreground",
 					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-							className: "font-bold text-foreground",
-							children: content.brandName
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "min-w-0",
+								children: [(config.footer.logoUrl || content.logoUrl) && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+									src: config.footer.logoUrl || content.logoUrl,
+									alt: `Logo ${content.brandName}`,
+									width: 180,
+									height: 52,
+									loading: "lazy",
+									className: "mb-3 h-10 max-w-[180px] object-contain object-left"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "font-bold text-foreground",
+									children: content.brandName
+								})]
+							}), config.footer.menuLinks.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("nav", {
+								"aria-label": config.footer.menuLabel,
+								className: "min-w-0",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "mb-2 text-xs font-bold uppercase tracking-wide text-foreground",
+									children: config.footer.menuLabel
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "flex flex-wrap gap-x-4 gap-y-2",
+									children: config.footer.menuLinks.map((link) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+										href: link.href,
+										className: "font-semibold underline-offset-4 transition hover:text-primary hover:underline",
+										children: link.label
+									}, `${link.label}-${link.href}`))
+								})]
+							})]
 						}),
 						(links.hasHotline || FOOTER.email) && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
 							className: "mt-2",

@@ -1,7 +1,8 @@
 export type DeviceKind = "mobile" | "tablet" | "desktop" | "unknown";
 export type LeadRiskLevel = "low" | "review" | "high" | "unrated";
 export type TrackingStorageMode = "local" | "database";
-export type LookupStatus = "idle" | "loading" | "resolved" | "fallback" | "error";
+export type LookupStatus =
+  "idle" | "loading" | "resolved" | "fallback" | "error";
 
 export interface DeviceProfile {
   userAgent: string;

@@ -71,15 +71,18 @@ export function scoreLead(
   const reasons: string[] = [];
   const locationMismatch = Boolean(
     data.location_city &&
-      data.form_city &&
-      !data.location_city.toLowerCase().includes(data.form_city.toLowerCase()) &&
-      !data.form_city.toLowerCase().includes(data.location_city.toLowerCase()),
+    data.form_city &&
+    !data.location_city.toLowerCase().includes(data.form_city.toLowerCase()) &&
+    !data.form_city.toLowerCase().includes(data.location_city.toLowerCase()),
   );
 
   if (data.is_headless_browser) {
     reasons.push("Trình duyệt tự động/headless được nhận diện");
   }
-  if (data.form_fill_duration_seconds > 0 && data.form_fill_duration_seconds < fastFill) {
+  if (
+    data.form_fill_duration_seconds > 0 &&
+    data.form_fill_duration_seconds < fastFill
+  ) {
     reasons.push(`Thời gian điền form dưới ${fastFill} giây`);
   }
   if (data.submission_count_same_ip > 1) {
@@ -88,7 +91,9 @@ export function scoreLead(
     );
   }
   if (locationMismatch && data.is_copy_paste) {
-    reasons.push("Khu vực mạng khác tỉnh khai báo kèm thao tác copy số điện thoại");
+    reasons.push(
+      "Khu vực mạng khác tỉnh khai báo kèm thao tác copy số điện thoại",
+    );
   }
   if (data.network_flags.length > 0) {
     reasons.push(`Mạng có tín hiệu: ${data.network_flags.join(", ")}`);
@@ -126,7 +131,10 @@ export function scoreLead(
   if (data.scroll_depth_percent >= vipScroll) score += 12;
   if (keyRegion.test(data.form_city)) score += 8;
   if (data.utm_source && data.utm_source !== "Direct") score += 5;
-  if (data.focus_section === "luong_thuc_tap" || data.copied_text_type === "chi_phi") {
+  if (
+    data.focus_section === "luong_thuc_tap" ||
+    data.copied_text_type === "chi_phi"
+  ) {
     score += 5;
   }
   if (data.visits_today >= 2) score += 4;
@@ -137,7 +145,8 @@ export function scoreLead(
     (locationMismatch && data.is_copy_paste) ||
     data.network_flags.includes("Tor")
       ? "high"
-      : data.form_fill_duration_seconds > 0 && data.form_fill_duration_seconds < fastFill
+      : data.form_fill_duration_seconds > 0 &&
+          data.form_fill_duration_seconds < fastFill
         ? "review"
         : "low";
 
@@ -190,7 +199,11 @@ export function generateSaleAdvice(
     return hour >= 22 || hour <= 6;
   })();
 
-  if (isHighEndDevice && data.time_on_page_seconds >= 80 && data.scroll_depth_percent >= 70) {
+  if (
+    isHighEndDevice &&
+    data.time_on_page_seconds >= 80 &&
+    data.scroll_depth_percent >= 70
+  ) {
     advice.push(
       `💡 [KHÁCH VIP] Thiết bị ${data.device_model_name}, đọc kỹ trang ${data.time_on_page_seconds}s và cuộn ${data.scroll_depth_percent}%.`,
     );
@@ -202,37 +215,61 @@ export function generateSaleAdvice(
     data.copied_text_type === "chi_phi" ||
     /cpc|paid|ads/i.test(data.utm_medium)
   ) {
-    advice.push("💡 [KHÁCH QUAN TÂM TÀI CHÍNH] Tập trung vào thu nhập, chi phí và khả năng tự chủ tài chính.");
+    advice.push(
+      "💡 [KHÁCH QUAN TÂM TÀI CHÍNH] Tập trung vào thu nhập, chi phí và khả năng tự chủ tài chính.",
+    );
     advice.push(
       `👉 Mở đầu bằng mức lương thực tập của ngành ${data.nganh_hoc}, rồi chốt bằng lộ trình học phí 0Đ và cơ hội việc làm sau tốt nghiệp.`,
     );
   } else if (data.faq_clicked === "tieng_trung") {
-    advice.push("💡 [LO NGẠI NGÔN NGỮ] Khách quan tâm rào cản tiếng Trung và điều kiện đầu vào.");
-    advice.push("👉 Tư vấn ngắn, rõ: học từ 0, có lộ trình tiền HSK và hỗ trợ thích nghi trước khi bay.");
+    advice.push(
+      "💡 [LO NGẠI NGÔN NGỮ] Khách quan tâm rào cản tiếng Trung và điều kiện đầu vào.",
+    );
+    advice.push(
+      "👉 Tư vấn ngắn, rõ: học từ 0, có lộ trình tiền HSK và hỗ trợ thích nghi trước khi bay.",
+    );
   } else if (data.industry_switch_count > 1) {
-    advice.push(`💡 [PHÂN VÂN NGÀNH] Đã đổi ngành ${data.industry_switch_count} lần trước khi chốt ${data.nganh_hoc}.`);
-    advice.push("👉 Sale nên đóng vai hướng nghiệp, so sánh đầu ra, môi trường làm việc và thu nhập giữa 2-3 ngành gần nhau.");
+    advice.push(
+      `💡 [PHÂN VÂN NGÀNH] Đã đổi ngành ${data.industry_switch_count} lần trước khi chốt ${data.nganh_hoc}.`,
+    );
+    advice.push(
+      "👉 Sale nên đóng vai hướng nghiệp, so sánh đầu ra, môi trường làm việc và thu nhập giữa 2-3 ngành gần nhau.",
+    );
   } else if (data.time_on_page_seconds < 25) {
-    advice.push(`💡 [XEM NHANH] Khách lướt nhanh bằng ${data.device_model_name}.`);
-    advice.push("👉 Ưu tiên gửi Zalo kèm ảnh thực tế/KTX trước, sau đó mới gọi điện chốt nhu cầu.");
+    advice.push(
+      `💡 [XEM NHANH] Khách lướt nhanh bằng ${data.device_model_name}.`,
+    );
+    advice.push(
+      "👉 Ưu tiên gửi Zalo kèm ảnh thực tế/KTX trước, sau đó mới gọi điện chốt nhu cầu.",
+    );
   } else {
     advice.push(
       `💡 [TÌM HIỂU NGHIÊM TÚC] ${data.device_model_name} · ${data.network_label}. Ngành quan tâm: ${data.nganh_hoc}.`,
     );
-    advice.push("👉 Gọi tư vấn theo kịch bản khám phá mục tiêu học tập, tài chính và thời điểm nhập học phù hợp.");
+    advice.push(
+      "👉 Gọi tư vấn theo kịch bản khám phá mục tiêu học tập, tài chính và thời điểm nhập học phù hợp.",
+    );
   }
 
   if (data.current_battery_level != null && data.current_battery_level <= 15) {
-    advice.push(`⚡ Pin chỉ còn ${data.current_battery_level}%, ưu tiên nhắn Zalo/gọi sớm để không rơi lead.`);
+    advice.push(
+      `⚡ Pin chỉ còn ${data.current_battery_level}%, ưu tiên nhắn Zalo/gọi sớm để không rơi lead.`,
+    );
   }
   if (data.time_to_first_interaction_seconds > 120) {
-    advice.push("🧐 Khách suy nghĩ khá lâu trước khi điền form, cần tư vấn chuyên sâu và tránh chốt vội.");
+    advice.push(
+      "🧐 Khách suy nghĩ khá lâu trước khi điền form, cần tư vấn chuyên sâu và tránh chốt vội.",
+    );
   }
   if (isKeyRegion) {
-    advice.push(`📌 Khách ở ${data.form_city}, nên nhắc tới cộng đồng học viên đồng hương và case thành công gần khu vực này.`);
+    advice.push(
+      `📌 Khách ở ${data.form_city}, nên nhắc tới cộng đồng học viên đồng hương và case thành công gần khu vực này.`,
+    );
   }
   if (isNightTime) {
-    advice.push("🌙 Lead đến vào đêm muộn, nên nhắn chào ngay nhưng hẹn gọi lại vào giờ hành chính hôm sau.");
+    advice.push(
+      "🌙 Lead đến vào đêm muộn, nên nhắn chào ngay nhưng hẹn gọi lại vào giờ hành chính hôm sau.",
+    );
   }
 
   return advice.join("\n");
@@ -246,7 +283,8 @@ export function generateBehaviorSummary(data: BehaviorData): string {
     `📜 Cuộn ${data.scroll_depth_percent}%`,
     `👀 Phiên #${data.current_session} · Hôm nay ${data.visits_today} · Tháng ${data.visits_month}`,
   ];
-  if (data.industry_switch_count > 0) items.push(`🔄 Đổi ngành ${data.industry_switch_count} lần`);
+  if (data.industry_switch_count > 0)
+    items.push(`🔄 Đổi ngành ${data.industry_switch_count} lần`);
   if (data.focus_section) items.push(`🎯 Tập trung ${data.focus_section}`);
   if (data.faq_clicked) items.push(`❓ FAQ ${data.faq_clicked}`);
   if (data.is_copy_paste) items.push("📋 Có thao tác copy/paste");
@@ -261,7 +299,9 @@ export function generateDeviceTechInfo(data: BehaviorData): string {
   const os = [data.operating_system, data.operating_system_version]
     .filter(Boolean)
     .join(" ");
-  const browser = [data.browser, data.browser_version].filter(Boolean).join(" ");
+  const browser = [data.browser, data.browser_version]
+    .filter(Boolean)
+    .join(" ");
   return [
     `${data.device_manufacturer} ${data.device_model_name}`.trim(),
     os || "Hệ điều hành chưa rõ",

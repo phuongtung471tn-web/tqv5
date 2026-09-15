@@ -13,7 +13,9 @@ export function FooterStats({
 }: FooterStatsProps) {
   const snapshot = useVisitorTrackingSnapshot();
   const deviceValue = [
-    snapshot.device.manufacturer !== "Unknown" ? snapshot.device.manufacturer : "",
+    snapshot.device.manufacturer !== "Unknown"
+      ? snapshot.device.manufacturer
+      : "",
     snapshot.device.model,
     snapshot.device.os,
     snapshot.device.browser,
