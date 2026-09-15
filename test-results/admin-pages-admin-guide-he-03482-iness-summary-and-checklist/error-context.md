@@ -6,8 +6,8 @@
 
 # Test info
 
-- Name: admin-pages.spec.ts >> admin can create a secondary page and keep its section scoped
-- Location: tests/e2e/admin-pages.spec.ts:3:1
+- Name: admin-pages.spec.ts >> admin guide health modal shows readiness summary and checklist
+- Location: tests/e2e/admin-pages.spec.ts:45:1
 
 # Error details
 
@@ -46,8 +46,7 @@ Call log:
   7  |   await page.getByPlaceholder("Mật khẩu quản trị").fill("duhoc2026");
   8  |   await page.getByRole("button", { name: "Đăng nhập" }).click();
   9  | 
-> 10 |   await expect(page).toHaveURL(/\/$/);
-     |                      ^ Error: expect(page).toHaveURL(expected) failed
+  10 |   await expect(page).toHaveURL(/\/$/);
   11 |   await expect(page.getByRole("button", { name: "Đa Trang" })).toBeVisible();
   12 |   await page.getByRole("button", { name: "Đa Trang" }).click();
   13 |   await expect(
@@ -89,7 +88,8 @@ Call log:
   49 |   await page.getByPlaceholder("Mật khẩu quản trị").fill("duhoc2026");
   50 |   await page.getByRole("button", { name: "Đăng nhập" }).click();
   51 | 
-  52 |   await expect(page).toHaveURL(/\/$/);
+> 52 |   await expect(page).toHaveURL(/\/$/);
+     |                      ^ Error: expect(page).toHaveURL(expected) failed
   53 |   await page.getByRole("button", { name: "Hướng Dẫn & Health" }).click();
   54 | 
   55 |   await expect(

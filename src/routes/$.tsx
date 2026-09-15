@@ -38,13 +38,14 @@ function CatchAll() {
             aria-label="Menu chính"
           >
             {menuPages.map((menuPage) => (
-              <a
+              <Link
                 key={menuPage.id}
-                href={menuPage.path ? `/${menuPage.path}` : "/"}
+                to={menuPage.path ? "/$" : "/"}
+                params={menuPage.path ? { _splat: menuPage.path } : undefined}
                 className={`shrink-0 text-xs font-semibold transition hover:text-primary ${menuPage.id === page.id ? "text-primary" : "text-muted-foreground"}`}
               >
                 {menuPage.title}
-              </a>
+              </Link>
             ))}
           </nav>
         </header>
