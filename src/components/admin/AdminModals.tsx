@@ -895,6 +895,79 @@ function WebhookModal({ onClose }: ModalProps) {
       subtitle="Gửi lead tới nhiều nơi cùng lúc"
       onClose={onClose}
     >
+      <div className="mb-4 space-y-3 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
+        <p className="text-xs font-bold">Form đăng ký & UTM</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Tiêu đề form">
+            <TextInput
+              value={config.form.headline}
+              onChange={(event) =>
+                update((draft) => (draft.form.headline = event.target.value))
+              }
+            />
+          </Field>
+          <Field label="Nhãn nút gửi form">
+            <TextInput
+              value={config.form.ctaLabel}
+              onChange={(event) =>
+                update((draft) => (draft.form.ctaLabel = event.target.value))
+              }
+            />
+          </Field>
+        </div>
+        <Field
+          label="Webhook chính"
+          hint="Endpoint này vẫn được gửi cùng các endpoint đa kênh bên dưới."
+        >
+          <TextInput
+            value={config.form.webhookUrl}
+            placeholder="https://hook.make.com/..."
+            onChange={(event) =>
+              update((draft) => (draft.form.webhookUrl = event.target.value))
+            }
+          />
+        </Field>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Giới hạn gửi">
+            <TextInput
+              type="number"
+              min="1"
+              value={config.form.rateLimitCount}
+              onChange={(event) =>
+                update(
+                  (draft) =>
+                    (draft.form.rateLimitCount = Math.max(
+                      1,
+                      Number(event.target.value) || 1,
+                    )),
+                )
+              }
+            />
+          </Field>
+          <Field label="Trong số phút">
+            <TextInput
+              type="number"
+              min="1"
+              value={config.form.rateLimitWindowMin}
+              onChange={(event) =>
+                update(
+                  (draft) =>
+                    (draft.form.rateLimitWindowMin = Math.max(
+                      1,
+                      Number(event.target.value) || 1,
+                    )),
+                )
+              }
+            />
+          </Field>
+        </div>
+        <p className="text-[11px] text-neutral-400">
+          UTM được đọc từ URL quảng cáo và gửi trong các trường
+          <span className="font-semibold"> traffic_ads_source</span>,
+          <span className="font-semibold"> utm_source</span>,
+          <span className="font-semibold"> utm_campaign</span> của lead.
+        </p>
+      </div>
       <div className="mb-3 rounded-lg bg-neutral-50 p-3 text-xs text-neutral-600">
         <p className="font-bold text-neutral-800">Cách vận hành</p>
         <p className="mt-1">

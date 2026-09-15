@@ -154,6 +154,9 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
   const [form, setForm] = useState(EMPTY);
   const startedRef = useRef(false);
   const honeypotRef = useRef<HTMLInputElement>(null);
+  const field = (name: string, fallback: string) =>
+    config.form.fields.find((item) => item.name === name)?.placeholder ||
+    fallback;
 
   const set =
     (k: keyof typeof form) =>
@@ -253,6 +256,11 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
       lead_risk_level: assessment.riskLevel,
       lead_risk_reasons: assessment.reasons,
       recommended_action: assessment.recommendedAction,
+      utm_source: behavior.utm_source,
+      utm_medium: behavior.utm_medium,
+      utm_campaign: behavior.utm_campaign,
+      utm_content: behavior.utm_content,
+      ttclid: behavior.ttclid,
       // 4 biến gộp bổ sung (không làm đứt kết nối Make.com hiện có)
       sale_advice: generateSaleAdvice(behavior, assessment),
       behavior_summary: generateBehaviorSummary(behavior),
@@ -392,7 +400,7 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
         Miễn phí 100%
       </p>
       <h2 className="mt-1 text-2xl font-extrabold leading-tight sm:text-3xl">
-        Nhận lộ trình du học nghề 0Đ
+        {config.form.headline || "Nhận lộ trình du học nghề 0Đ"}
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">
         Chỉ 30 giây. Chúng tôi gọi lại tư vấn 1:1, không thu bất kỳ khoản phí
@@ -416,7 +424,7 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
           value={form.name}
           onChange={set("name")}
           onFocus={onFirstInteract}
-          placeholder="Họ và tên"
+          placeholder={field("name", "Họ và tên")}
           className={inputClass}
         />
         <input
@@ -429,7 +437,7 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
           onChange={setPhone}
           onFocus={onFirstInteract}
           onPaste={() => markCopyPaste("sdt")}
-          placeholder="Số điện thoại (Zalo) — 10 số"
+          placeholder={field("phone", "Số điện thoại (Zalo) — 10 số")}
           className={inputClass}
         />
         <input
@@ -438,7 +446,7 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
           value={form.email}
           onChange={set("email")}
           onFocus={onFirstInteract}
-          placeholder="Email (không bắt buộc)"
+          placeholder={field("email", "Email (không bắt buộc)")}
           className={inputClass}
         />
         <select
@@ -447,7 +455,7 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
           onChange={set("province")}
           className={inputClass}
         >
-          <option value="">Tỉnh/Thành phố</option>
+          <option value="">{field("city", "Tỉnh/Thành phố")}</option>
           {PROVINCE_GROUPS.map((g) => (
             <optgroup key={g.region} label={g.region}>
               {g.provinces.map((p) => (
@@ -464,7 +472,7 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
           onChange={setMajor}
           className={inputClass}
         >
-          <option value="">Ngành quan tâm</option>
+          <option value="">{field("major", "Ngành quan tâm")}</option>
           {MAJORS.map((m) => (
             <option key={m} value={m}>
               {m}
@@ -493,7 +501,7 @@ export function LeadForm({ id = "dang-ky" }: { id?: string }) {
         )}
         {status === "sending"
           ? "Đang gửi..."
-          : "Gửi đăng ký — Nhận lộ trình 0Đ"}
+          : config.form.ctaLabel || "Gửi đăng ký — Nhận lộ trình 0Đ"}
       </button>
       <p className="mt-3 text-center text-xs text-muted-foreground">
         Thông tin của bạn được bảo mật, chỉ dùng để tư vấn hướng nghiệp.
