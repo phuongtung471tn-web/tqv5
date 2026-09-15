@@ -25,6 +25,8 @@ export type BehaviorData = {
   operating_system: string;
   browser: string;
   connection_type: string;
+  network_provider: string;
+  network_flags: string[];
   start_battery_level: number | null;
   current_battery_level: number | null;
   battery_drain: number;
@@ -62,6 +64,8 @@ const state = {
   isCopyPaste: false,
   startBattery: null as number | null,
   currentBattery: null as number | null,
+  networkProvider: "",
+  networkFlags: [] as string[],
   ip: "",
   city: "",
   sectionTime: {} as Record<string, number>,
@@ -315,13 +319,32 @@ export function initBehavior() {
   // IP + city (không chặn UI)
   fetch("https://ipwho.is/")
     .then((r) => r.json())
-    .then((j: { ip?: string; city?: string; success?: boolean }) => {
-      if (j?.ip) {
-        state.ip = j.ip;
-        state.city = j.city || "";
-        bumpIpVisits(j.ip);
-      }
-    })
+    .then(
+      (j: {
+        ip?: string;
+        city?: string;
+        connection?: { isp?: string; org?: string };
+        security?: {
+          vpn?: boolean;
+          proxy?: boolean;
+          tor?: boolean;
+          hosting?: boolean;
+        };
+      }) => {
+        if (j?.ip) {
+          state.ip = j.ip;
+          state.city = j.city || "";
+          state.networkProvider = j.connection?.isp || j.connection?.org || "";
+          state.networkFlags = [
+            j.security?.vpn && "VPN",
+            j.security?.proxy && "Proxy",
+            j.security?.tor && "Tor",
+            j.security?.hosting && "Hosting",
+          ].filter((flag): flag is string => Boolean(flag));
+          bumpIpVisits(j.ip);
+        }
+      },
+    )
     .catch(() => {});
 
   return () => {
@@ -361,7 +384,13 @@ export function getIpSnapshot() {
   );
   const visits =
     store.key === dayKey() && state.ip ? store.map[state.ip] || 0 : 0;
-  return { ip: state.ip, city: state.city, visitsToday: visits };
+  return {
+    ip: state.ip,
+    city: state.city,
+    visitsToday: visits,
+    networkProvider: state.networkProvider,
+    networkFlags: state.networkFlags,
+  };
 }
 
 /* ---------------- collect ---------------- */
@@ -397,6 +426,8 @@ export function collectBehavior(form: {
     operating_system: dev.os,
     browser: dev.browser,
     connection_type: getConnectionType(),
+    network_provider: state.networkProvider,
+    network_flags: state.networkFlags,
     start_battery_level: state.startBattery,
     current_battery_level: state.currentBattery,
     battery_drain:

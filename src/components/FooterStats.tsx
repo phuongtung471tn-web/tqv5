@@ -5,6 +5,7 @@ import {
   detectDevice,
   getConnectionType,
   getIpSnapshot,
+  isHeadless,
 } from "@/lib/behavior";
 
 /**
@@ -18,13 +19,26 @@ export function FooterStats() {
   );
   const [connection, setConnection] = useState("");
   const [location, setLocation] = useState("");
+  const [network, setNetwork] = useState({
+    provider: "",
+    flags: [] as string[],
+  });
+  const [bot, setBot] = useState(false);
 
   useEffect(() => {
     setVisits(bumpVisitCounters());
     setDevice(detectDevice());
     setConnection(getConnectionType());
+    setBot(isHeadless());
 
-    const refreshLocation = () => setLocation(getIpSnapshot().city);
+    const refreshLocation = () => {
+      const snapshot = getIpSnapshot();
+      setLocation(snapshot.city);
+      setNetwork({
+        provider: snapshot.networkProvider,
+        flags: snapshot.networkFlags,
+      });
+    };
     refreshLocation();
     const poll = window.setInterval(refreshLocation, 1500);
     return () => {
@@ -36,7 +50,13 @@ export function FooterStats() {
     ? [device.model, device.os, device.browser].filter(Boolean).join(" · ")
     : "Đang nhận diện...";
   const connectionValue =
-    [connection, location && `Khu vực: ${location}`]
+    [
+      connection || "Loại kết nối không cung cấp",
+      network.provider && `Nhà mạng: ${network.provider}`,
+      location && `Khu vực: ${location}`,
+      network.flags.length > 0 && `Cảnh báo: ${network.flags.join(", ")}`,
+      bot && "Trình duyệt tự động",
+    ]
       .filter(Boolean)
       .join(" · ") || "Chưa xác định";
 

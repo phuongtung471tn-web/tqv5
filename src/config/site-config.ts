@@ -107,6 +107,12 @@ export interface TrafficStatsConfig {
   enabled: boolean;
 }
 
+export interface FooterConfig {
+  logoUrl: string;
+  menuLabel: string;
+  menuLinks: { label: string; href: string }[];
+}
+
 export interface FormField {
   name: string;
   label: string;
@@ -209,6 +215,7 @@ export interface SiteConfig {
   countdown: CountdownConfig;
   floatingContact: FloatingContactConfig;
   trafficStats: TrafficStatsConfig;
+  footer: FooterConfig;
   form: FormConfig;
   aiAdvisor: AiAdvisorConfig;
   webhooks: WebhookEndpoint[];
@@ -619,6 +626,14 @@ export const DEFAULT_CONFIG: SiteConfig = {
   },
   trafficStats: {
     enabled: true,
+  },
+  footer: {
+    logoUrl: "",
+    menuLabel: "Liên kết nhanh",
+    menuLinks: [
+      { label: "Đăng ký tư vấn", href: "#dang-ky-cuoi" },
+      { label: "Câu hỏi thường gặp", href: "#faq" },
+    ],
   },
   form: {
     headline: "Đăng ký nhận tư vấn miễn phí",

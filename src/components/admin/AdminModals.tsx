@@ -2382,6 +2382,45 @@ function LandingEditorModal({ onClose }: ModalProps) {
           tracking. Bấm LƯU trên thanh Admin để áp dụng.
         </p>
       </div>
+      <div className="mb-3 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
+        <p className="mb-2 text-xs font-bold">Logo & menu footer</p>
+        <Field label="Logo footer URL">
+          <TextInput
+            type="url"
+            value={config.footer.logoUrl}
+            placeholder="Để trống dùng logo header"
+            onChange={(event) =>
+              update((draft) => (draft.footer.logoUrl = event.target.value))
+            }
+          />
+        </Field>
+        <Field label="Tên menu footer">
+          <TextInput
+            value={config.footer.menuLabel}
+            onChange={(event) =>
+              update((draft) => (draft.footer.menuLabel = event.target.value))
+            }
+          />
+        </Field>
+        <Field label="Menu footer (JSON: label, href)">
+          <TextArea
+            value={JSON.stringify(config.footer.menuLinks, null, 2)}
+            onChange={(event) => {
+              try {
+                const links = JSON.parse(event.target.value) as unknown;
+                if (Array.isArray(links))
+                  update((draft) => (draft.footer.menuLinks = links));
+              } catch {
+                // Giữ nội dung đang nhập cho tới khi JSON hợp lệ.
+              }
+            }}
+          />
+        </Field>
+        <p className="text-[11px] text-neutral-400">
+          Footer tự xếp cột trên mobile và hai vùng trên tablet/desktop, không
+          gây tràn chiều ngang.
+        </p>
+      </div>
       <div className="mb-4 rounded-xl border border-neutral-200 p-3 dark:border-white/10">
         <p className="mb-2 text-xs font-bold">Thứ tự & trạng thái section</p>
         <Toggle

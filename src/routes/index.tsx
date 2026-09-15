@@ -651,7 +651,39 @@ function Landing() {
           </div>
         )}
         <div className="mx-auto max-w-6xl px-4 text-sm text-muted-foreground">
-          <p className="font-bold text-foreground">{content.brandName}</p>
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              {(config.footer.logoUrl || content.logoUrl) && (
+                <img
+                  src={config.footer.logoUrl || content.logoUrl}
+                  alt={`Logo ${content.brandName}`}
+                  width={180}
+                  height={52}
+                  loading="lazy"
+                  className="mb-3 h-10 max-w-[180px] object-contain object-left"
+                />
+              )}
+              <p className="font-bold text-foreground">{content.brandName}</p>
+            </div>
+            {config.footer.menuLinks.length > 0 && (
+              <nav aria-label={config.footer.menuLabel} className="min-w-0">
+                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-foreground">
+                  {config.footer.menuLabel}
+                </p>
+                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                  {config.footer.menuLinks.map((link) => (
+                    <a
+                      key={`${link.label}-${link.href}`}
+                      href={link.href}
+                      className="font-semibold underline-offset-4 transition hover:text-primary hover:underline"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              </nav>
+            )}
+          </div>
           {(links.hasHotline || FOOTER.email) && (
             <p className="mt-2">
               {links.hasHotline && (
