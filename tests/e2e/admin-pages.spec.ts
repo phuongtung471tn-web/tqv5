@@ -8,6 +8,7 @@ test("admin can create a secondary page and keep its section scoped", async ({
   await page.getByRole("button", { name: "Đăng nhập" }).click();
 
   await expect(page).toHaveURL(/\/$/);
+  await page.getByRole("button", { name: /Xem trước: BẬT/ }).click();
   await expect(page.getByRole("button", { name: "Đa Trang" })).toBeVisible();
   await page.getByRole("button", { name: "Đa Trang" }).click();
   await expect(
@@ -50,19 +51,21 @@ test("admin guide health modal shows readiness summary and checklist", async ({
   await page.getByRole("button", { name: "Đăng nhập" }).click();
 
   await expect(page).toHaveURL(/\/$/);
+  await page.getByRole("button", { name: /Xem trước: BẬT/ }).click();
   await page.getByRole("button", { name: "Hướng Dẫn & Health" }).click();
 
   await expect(
     page.getByRole("heading", { name: "Hướng Dẫn & Health Check" }),
   ).toBeVisible();
-  await expect(page.getByText("Điểm health")).toBeVisible();
+  await expect(page.getByText("Điểm health", { exact: true })).toBeVisible();
   await expect(
     page.getByText("Tính năng này sinh ra để làm gì?"),
   ).toBeVisible();
   await expect(
     page.getByText("Checklist giá trị sau khi hoàn tất"),
   ).toBeVisible();
+  await expect(page.getByText("Lead có đầu ra nhận dữ liệu")).toBeVisible();
   await expect(
-    page.getByText("Nâng cấp đề xuất:", { exact: false }),
-  ).toHaveCount(8);
+    page.getByText("Khi điểm health đạt 100/100", { exact: false }),
+  ).toBeVisible();
 });

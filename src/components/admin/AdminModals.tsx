@@ -3191,6 +3191,7 @@ function PagesModal({ onClose }: ModalProps) {
                     </button>
                   </div>
                   <TextInput
+                    aria-label="Tiêu đề"
                     value={section.content?.heading || section.label}
                     onChange={(event) =>
                       updatePageSection(section.id, {
@@ -3200,6 +3201,7 @@ function PagesModal({ onClose }: ModalProps) {
                     placeholder="Tiêu đề block"
                   />
                   <TextArea
+                    aria-label="Nội dung"
                     value={section.content?.body || ""}
                     onChange={(event) =>
                       updatePageSection(section.id, {
@@ -3237,6 +3239,7 @@ function PagesModal({ onClose }: ModalProps) {
               <button
                 key={type}
                 type="button"
+                aria-label={`+ ${template.label}`}
                 onClick={() => addSectionToPage(type)}
                 className="rounded-lg border border-dashed border-neutral-300 px-2 py-1.5 text-left text-[11px] font-semibold hover:border-primary"
               >

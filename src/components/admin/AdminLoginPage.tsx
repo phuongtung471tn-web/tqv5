@@ -1,5 +1,5 @@
 import { Lock } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useAdmin } from "@/lib/use-admin";
 import { useSiteConfig } from "@/lib/use-site-config";
@@ -8,11 +8,18 @@ import { useSiteConfig } from "@/lib/use-site-config";
 export function AdminLoginPage() {
   const { authed, login } = useAdmin();
   const { config } = useSiteConfig();
+  const [ready, setReady] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setReady(true);
+  }, []);
 
   function handleSubmit() {
-    if (login(password, config.admin.password)) {
+    const nextPassword = passwordInputRef.current?.value ?? password;
+    if (login(nextPassword, config.admin.password)) {
       window.location.assign("/");
     } else {
       setError(true);
@@ -45,8 +52,8 @@ export function AdminLoginPage() {
         ) : (
           <div className="space-y-3">
             <input
+              ref={passwordInputRef}
               type="password"
-              value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
                 setError(false);
@@ -64,7 +71,8 @@ export function AdminLoginPage() {
             <button
               type="button"
               onClick={handleSubmit}
-              className="w-full rounded-lg bg-white py-2.5 text-sm font-bold text-neutral-900 transition-opacity hover:opacity-90"
+              disabled={!ready}
+              className="w-full rounded-lg bg-white py-2.5 text-sm font-bold text-neutral-900 transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
             >
               Đăng nhập
             </button>
