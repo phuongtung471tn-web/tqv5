@@ -13,6 +13,7 @@ import {
   exportConfigFile,
   loadCloudConfig,
   loadConfig,
+  parseImportedConfig,
   resetConfig,
   saveConfig,
 } from "@/services/dataAdapter";
@@ -28,6 +29,8 @@ interface SiteConfigContextValue {
   resetLanding: () => void;
   /** Xuất file config để dán đè vào mã nguồn. */
   exportFile: () => void;
+  /** Nạp cấu hình từ nội dung file đã tải lên; trả về false nếu file không hợp lệ. */
+  importConfig: (raw: string) => boolean;
   dirty: boolean;
 }
 
@@ -83,9 +86,36 @@ export function SiteConfigProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const importConfig = useCallback((raw: string) => {
+    const parsed = parseImportedConfig(raw);
+    if (!parsed) return false;
+    saveConfig(parsed);
+    setConfig(parsed);
+    setDirty(false);
+    return true;
+  }, []);
+
   const value = useMemo(
-    () => ({ config, update, save, reset, resetLanding, exportFile, dirty }),
-    [config, update, save, reset, resetLanding, exportFile, dirty],
+    () => ({
+      config,
+      update,
+      save,
+      reset,
+      resetLanding,
+      exportFile,
+      importConfig,
+      dirty,
+    }),
+    [
+      config,
+      update,
+      save,
+      reset,
+      resetLanding,
+      exportFile,
+      importConfig,
+      dirty,
+    ],
   );
 
   return (

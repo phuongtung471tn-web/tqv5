@@ -14,6 +14,9 @@ import {
   KeyRound,
   Save,
   Package,
+  Upload,
+  Eye,
+  EyeOff,
   RotateCcw,
   LogOut,
   Pencil,
@@ -22,7 +25,7 @@ import {
   Monitor,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useAdmin, type AdminModalKey } from "@/lib/use-admin";
 import { useSiteConfig } from "@/lib/use-site-config";
@@ -68,11 +71,28 @@ export function AdminBar() {
     deviceSizes,
     setDeviceSize,
     resetDeviceSizes,
+    previewEnabled,
+    setPreviewEnabled,
   } = useAdmin();
-  const { save, reset, exportFile, dirty } = useSiteConfig();
+  const { save, reset, exportFile, importConfig, dirty } = useSiteConfig();
   const [hidden, setHidden] = useState(true);
+  const configInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setHidden(isDevicePreview()), []);
+
+  function handleImportConfig(file: File) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const ok = importConfig(String(reader.result));
+      window.alert(
+        ok
+          ? "Đã nhập và lưu cấu hình thành công."
+          : "File cấu hình không hợp lệ hoặc thiếu trường bắt buộc.",
+      );
+    };
+    reader.onerror = () => window.alert("Không thể đọc file cấu hình.");
+    reader.readAsText(file);
+  }
 
   if (hidden) return null;
 
@@ -107,6 +127,27 @@ export function AdminBar() {
         <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-white/40">
           Xem thử
         </span>
+        <button
+          onClick={() => setPreviewEnabled(!previewEnabled)}
+          aria-pressed={previewEnabled}
+          title={
+            previewEnabled
+              ? "Tắt khung xem trước, sửa trực tiếp trên trang thật"
+              : "Bật lại khung xem trước theo thiết bị"
+          }
+          className={`flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-bold transition-colors ${
+            previewEnabled
+              ? "bg-white text-neutral-900"
+              : "bg-white/10 text-white/70 hover:bg-white/20"
+          }`}
+        >
+          {previewEnabled ? (
+            <Eye className="h-3.5 w-3.5" />
+          ) : (
+            <EyeOff className="h-3.5 w-3.5" />
+          )}
+          Xem trước: {previewEnabled ? "BẬT" : "TẮT"}
+        </button>
         {DEVICES.map((d) => {
           const Icon = d.icon;
           const active = device === d.key;
@@ -114,8 +155,9 @@ export function AdminBar() {
             <button
               key={d.key}
               onClick={() => setDevice(d.key)}
+              disabled={!previewEnabled}
               aria-pressed={active}
-              className={`flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-bold transition-colors ${
+              className={`flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-bold transition-colors disabled:opacity-40 ${
                 active
                   ? "bg-white text-neutral-900"
                   : "bg-white/10 text-white/70 hover:bg-white/20"
@@ -183,6 +225,24 @@ export function AdminBar() {
         >
           <Package className="h-3.5 w-3.5" />
           XUẤT CONFIG
+        </button>
+        <input
+          ref={configInputRef}
+          type="file"
+          accept="application/json,.json,.js"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) handleImportConfig(file);
+            event.target.value = "";
+          }}
+        />
+        <button
+          onClick={() => configInputRef.current?.click()}
+          className="flex items-center gap-1.5 rounded-md bg-white/10 px-3 py-1.5 text-[11px] font-bold text-white/80 transition-colors hover:bg-white/20"
+        >
+          <Upload className="h-3.5 w-3.5" />
+          NHẬP CONFIG
         </button>
         <button
           onClick={() => {

@@ -56,7 +56,12 @@ interface AdminContextValue {
   deviceSizes: Record<DeviceView, DeviceSize>;
   setDeviceSize: (device: DeviceView, size: DeviceSize) => void;
   resetDeviceSizes: () => void;
+  /** Bật: xem qua khung iframe theo thiết bị. Tắt: chỉnh trực tiếp trên trang thật. */
+  previewEnabled: boolean;
+  setPreviewEnabled: (enabled: boolean) => void;
 }
+
+const PREVIEW_KEY = "funnel_admin_preview_enabled_v1";
 
 const AdminContext = createContext<AdminContextValue | null>(null);
 
@@ -66,6 +71,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [device, setDevice] = useState<DeviceView>("desktop");
   const [deviceSizes, setDeviceSizes] =
     useState<Record<DeviceView, DeviceSize>>(DEFAULT_DEVICE_SIZES);
+  const [previewEnabled, setPreviewEnabledState] = useState(true);
 
   useEffect(() => {
     try {
@@ -75,6 +81,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       );
       if (savedSizes)
         setDeviceSizes({ ...DEFAULT_DEVICE_SIZES, ...JSON.parse(savedSizes) });
+      const savedPreview = window.localStorage.getItem(PREVIEW_KEY);
+      if (savedPreview !== null) setPreviewEnabledState(savedPreview === "1");
     } catch {
       /* ignore */
     }
@@ -99,6 +107,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setDeviceSizes(DEFAULT_DEVICE_SIZES);
     try {
       window.localStorage.removeItem("funnel_admin_device_sizes_v1");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const setPreviewEnabled = useCallback((enabled: boolean) => {
+    setPreviewEnabledState(enabled);
+    try {
+      window.localStorage.setItem(PREVIEW_KEY, enabled ? "1" : "0");
     } catch {
       /* ignore */
     }
@@ -140,6 +157,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       deviceSizes,
       setDeviceSize,
       resetDeviceSizes,
+      previewEnabled,
+      setPreviewEnabled,
     }),
     [
       authed,
@@ -150,6 +169,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       deviceSizes,
       setDeviceSize,
       resetDeviceSizes,
+      previewEnabled,
+      setPreviewEnabled,
     ],
   );
 

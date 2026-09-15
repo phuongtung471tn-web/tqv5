@@ -14,14 +14,14 @@ export function isDevicePreview() {
  * responsive thật sự áp dụng đúng với bề rộng 375px / 768px.
  */
 export function DeviceFrame({ children }: { children: ReactNode }) {
-  const { authed, device, deviceSizes } = useAdmin();
+  const { authed, device, deviceSizes, previewEnabled } = useAdmin();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [inPreview, setInPreview] = useState(true);
 
   useEffect(() => setInPreview(isDevicePreview()), []);
 
   const size = deviceSizes[device];
-  if (!authed || inPreview) return <>{children}</>;
+  if (!authed || inPreview || !previewEnabled) return <>{children}</>;
 
   return (
     <div className="flex justify-center bg-neutral-200 py-6 dark:bg-neutral-800">

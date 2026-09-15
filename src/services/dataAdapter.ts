@@ -173,6 +173,46 @@ export function exportConfigFile(config: SiteConfig): void {
   URL.revokeObjectURL(url);
 }
 
+/** Xuất file JSON thuần, dùng để tải lên lại qua trường "Nhập Cấu Hình". */
+export function exportConfigJson(config: SiteConfig): void {
+  if (!isBrowser()) return;
+  const blob = new Blob([JSON.stringify(config, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "funnel-config-backup.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Kiểm tra & chuẩn hoá cấu hình tải lên (JSON thuần hoặc file .js đã export).
+ * Trả về null nếu nội dung không phải một SiteConfig hợp lệ.
+ */
+export function parseImportedConfig(raw: string): SiteConfig | null {
+  const jsonText = raw.trim().startsWith("{")
+    ? raw
+    : (raw.match(/\{[\s\S]*\}/)?.[0] ?? "");
+  if (!jsonText) return null;
+  try {
+    const parsed = JSON.parse(jsonText) as unknown;
+    if (
+      !isRecord(parsed) ||
+      !isRecord(parsed["admin"]) ||
+      !isRecord(parsed["landing"]) ||
+      !isRecord(parsed["tracking"]) ||
+      !isRecord(parsed["seo"])
+    ) {
+      return null;
+    }
+    return mergeConfig(DEFAULT_CONFIG, parsed as Partial<SiteConfig>);
+  } catch {
+    return null;
+  }
+}
+
 /* ----------------------------- LEADS (Mini-CRM) ---------------------------- */
 
 export interface LeadRecord {
