@@ -1,6 +1,5 @@
-import { useNavigate } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useAdmin } from "@/lib/use-admin";
 import { useSiteConfig } from "@/lib/use-site-config";
@@ -9,14 +8,19 @@ import { useSiteConfig } from "@/lib/use-site-config";
 export function AdminLoginPage() {
   const { authed, login } = useAdmin();
   const { config } = useSiteConfig();
-  const navigate = useNavigate();
+  const [ready, setReady] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (login(password, config.admin.password)) {
-      navigate({ to: "/" });
+  useEffect(() => {
+    setReady(true);
+  }, []);
+
+  function handleSubmit() {
+    const nextPassword = passwordInputRef.current?.value ?? password;
+    if (login(nextPassword, config.admin.password)) {
+      window.location.assign("/");
     } else {
       setError(true);
     }
@@ -38,39 +42,44 @@ export function AdminLoginPage() {
         {authed ? (
           <div className="space-y-3 text-center">
             <p className="text-sm text-emerald-400">Đã đăng nhập.</p>
-            <button
-              onClick={() => navigate({ to: "/" })}
-              className="w-full rounded-lg bg-white py-2.5 text-sm font-bold text-neutral-900"
+            <a
+              href="/"
+              className="block w-full rounded-lg bg-white py-2.5 text-sm font-bold text-neutral-900"
             >
               Vào trang &amp; bật chế độ Admin
-            </button>
+            </a>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="space-y-3">
             <input
+              ref={passwordInputRef}
               type="password"
-              value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
                 setError(false);
               }}
               placeholder="Mật khẩu quản trị"
               autoFocus
+              onKeyDown={(event) => {
+                if (event.key === "Enter") handleSubmit();
+              }}
               className="w-full rounded-lg bg-neutral-800 px-3 py-2.5 text-sm outline-none ring-1 ring-white/10 focus:ring-white/30"
             />
             {error && (
               <p className="text-xs text-red-400">Mật khẩu không đúng.</p>
             )}
             <button
-              type="submit"
-              className="w-full rounded-lg bg-white py-2.5 text-sm font-bold text-neutral-900 transition-opacity hover:opacity-90"
+              type="button"
+              onClick={handleSubmit}
+              disabled={!ready}
+              className="w-full rounded-lg bg-white py-2.5 text-sm font-bold text-neutral-900 transition-opacity hover:opacity-90 disabled:cursor-wait disabled:opacity-60"
             >
               Đăng nhập
             </button>
             <p className="text-center text-[11px] text-white/40">
               Đổi mật khẩu &amp; đường dẫn trong công cụ “Đổi Link Admin”.
             </p>
-          </form>
+          </div>
         )}
       </div>
     </main>

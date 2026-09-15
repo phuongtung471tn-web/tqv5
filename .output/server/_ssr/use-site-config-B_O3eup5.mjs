@@ -1,6 +1,6 @@
 import { n as __toESM } from "../_runtime.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/use-site-config-ivcknSZJ.js
+//#region node_modules/.nitro/vite/services/ssr/assets/use-site-config-B_O3eup5.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var DEFAULT_CONFIG = {
@@ -54,7 +54,9 @@ var DEFAULT_CONFIG = {
 			pageView: true,
 			formStart: true,
 			lead: true,
-			completeRegistration: true
+			completeRegistration: true,
+			click: true,
+			scroll: true
 		}
 	},
 	seo: {
@@ -62,6 +64,7 @@ var DEFAULT_CONFIG = {
 		description: "Chương trình du học nghề Trung Quốc trọn gói: học bổng miễn 100% KTX, vừa học vừa làm lương 15-25 triệu/tháng, cam kết Visa 100%. Đăng ký tư vấn miễn phí.",
 		keywords: "du học nghề trung quốc, học bổng trung quốc, du học vừa học vừa làm",
 		ogImage: "/og-image.jpg",
+		faviconUrl: "/favicon.ico",
 		schemaType: "EducationalOrganization"
 	},
 	theme: {
@@ -290,17 +293,20 @@ var DEFAULT_CONFIG = {
 			{
 				name: "Nguyễn Văn Hùng",
 				meta: "Ngành Ô tô điện · Quảng Châu · khóa tháng 9",
-				text: "Trước em làm xưởng gỗ 7 triệu/tháng. Sang đây vừa học vừa làm được hơn 20 triệu, tháng nào cũng gửi về nhà 10 triệu. Tay nghề lên hẳn vì được làm trên xe thật."
+				text: "Trước em làm xưởng gỗ 7 triệu/tháng. Sang đây vừa học vừa làm được hơn 20 triệu, tháng nào cũng gửi về nhà 10 triệu. Tay nghề lên hẳn vì được làm trên xe thật.",
+				avatarUrl: ""
 			},
 			{
 				name: "Trần Thị Ngọc",
 				meta: "Ngành Thương mại điện tử · Nghĩa Ô",
-				text: "Em không biết tiếng Hán, được học nền tảng trước khi bay nên sang không bị choáng. Giờ em phụ trách livestream cho một shop, thu nhập ổn định."
+				text: "Em không biết tiếng Hán, được học nền tảng trước khi bay nên sang không bị choáng. Giờ em phụ trách livestream cho một shop, thu nhập ổn định.",
+				avatarUrl: ""
 			},
 			{
 				name: "Lê Đình Phúc",
 				meta: "Ngành Drone (UAV) · Thâm Quyến",
-				text: "Nhà em không đủ tiền cho đi du học tự túc. Chương trình 0Đ giúp em học ngành công nghệ mà chi phí ban đầu rất nhẹ. Ra trường có bằng Cao đẳng chính quy."
+				text: "Nhà em không đủ tiền cho đi du học tự túc. Chương trình 0Đ giúp em học ngành công nghệ mà chi phí ban đầu rất nhẹ. Ra trường có bằng Cao đẳng chính quy.",
+				avatarUrl: ""
 			}
 		],
 		stepsHeading: "Lộ trình 4 bước đơn giản",
@@ -407,7 +413,21 @@ var DEFAULT_CONFIG = {
 		enabled: true,
 		hotline: "0900000000",
 		zalo: "https://zalo.me/0900000000",
-		messenger: ""
+		messenger: "",
+		animateHotline: true,
+		animateMessenger: true
+	},
+	trafficStats: { enabled: true },
+	footer: {
+		logoUrl: "",
+		menuLabel: "Liên kết nhanh",
+		menuLinks: [{
+			label: "Đăng ký tư vấn",
+			href: "#dang-ky-cuoi"
+		}, {
+			label: "Câu hỏi thường gặp",
+			href: "#faq"
+		}]
 	},
 	form: {
 		headline: "Đăng ký nhận tư vấn miễn phí",
@@ -583,6 +603,21 @@ function exportConfigFile(config) {
 	a.click();
 	URL.revokeObjectURL(url);
 }
+/**
+* Kiểm tra & chuẩn hoá cấu hình tải lên (JSON thuần hoặc file .js đã export).
+* Trả về null nếu nội dung không phải một SiteConfig hợp lệ.
+*/
+function parseImportedConfig(raw) {
+	const jsonText = raw.trim().startsWith("{") ? raw : raw.match(/\{[\s\S]*\}/)?.[0] ?? "";
+	if (!jsonText) return null;
+	try {
+		const parsed = JSON.parse(jsonText);
+		if (!isRecord(parsed) || !isRecord(parsed["admin"]) || !isRecord(parsed["landing"]) || !isRecord(parsed["tracking"]) || !isRecord(parsed["seo"])) return null;
+		return mergeConfig(DEFAULT_CONFIG, parsed);
+	} catch {
+		return null;
+	}
+}
 function loadLeads() {
 	if (!isBrowser()) return [];
 	try {
@@ -659,7 +694,18 @@ function exportLeadsCsv(leads) {
 		"major",
 		"aiScore",
 		"aiRank",
+		"riskLevel",
+		"riskReasons",
+		"recommendedAction",
+		"behaviorSummary",
+		"saleAdvice",
+		"deviceTechInfo",
+		"trafficAdsSource",
 		"utmSource",
+		"utmMedium",
+		"utmCampaign",
+		"utmContent",
+		"ttclid",
 		"variant"
 	];
 	const rows = leads.map((l) => headers.map((h) => `"${String(l[h] ?? "").replace(/"/g, "\"\"")}"`).join(","));
@@ -842,6 +888,14 @@ function SiteConfigProvider({ children }) {
 			return current;
 		});
 	}, []);
+	const importConfig = (0, import_react.useCallback)((raw) => {
+		const parsed = parseImportedConfig(raw);
+		if (!parsed) return false;
+		saveConfig(parsed);
+		setConfig(parsed);
+		setDirty(false);
+		return true;
+	}, []);
 	const value = (0, import_react.useMemo)(() => ({
 		config,
 		update,
@@ -849,6 +903,7 @@ function SiteConfigProvider({ children }) {
 		reset,
 		resetLanding,
 		exportFile,
+		importConfig,
 		dirty
 	}), [
 		config,
@@ -857,6 +912,7 @@ function SiteConfigProvider({ children }) {
 		reset,
 		resetLanding,
 		exportFile,
+		importConfig,
 		dirty
 	]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SiteConfigContext.Provider, {

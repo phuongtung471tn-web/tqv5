@@ -1,15 +1,15 @@
 import { n as __toESM } from "../_runtime.mjs";
 import { n as require_jsx_runtime, r as require_react, t as QueryClientProvider } from "../_libs/react+tanstack__react-query.mjs";
-import { a as clearAnalytics, d as saveLead, f as testSupabaseConnection, h as useSiteConfig, i as SiteConfigProvider, l as loadAnalytics, m as trackVisit, n as DEFAULT_CONFIG, o as clearLeads, s as exportLeadsCsv, t as ANALYTICS_UPDATED_EVENT, u as loadLeads } from "./use-site-config-ivcknSZJ.mjs";
-import { n as useAdmin, t as AdminProvider } from "./use-admin-BM5hUDJ4.mjs";
+import { a as clearAnalytics, d as saveLead, f as testSupabaseConnection, h as useSiteConfig, i as SiteConfigProvider, l as loadAnalytics, m as trackVisit, n as DEFAULT_CONFIG, o as clearLeads, s as exportLeadsCsv, t as ANALYTICS_UPDATED_EVENT, u as loadLeads } from "./use-site-config-B_O3eup5.mjs";
+import { n as useAdmin, t as AdminProvider } from "./use-admin-D0sSGca6.mjs";
 import { b as useRouter, c as HeadContent, d as createRouter, f as Outlet, g as Link, h as createRootRouteWithContext, l as useRouterState, m as createFileRoute, p as lazyRouteComponent, s as Scripts } from "../_libs/@tanstack/react-router+[...].mjs";
-import { A as Clock, C as KeyRound, D as Download, E as FileText, F as Bell, I as Activity, M as ChartColumn, N as BrainCircuit, O as Database, P as BookOpen, S as Link2, T as Globe, _ as Monitor, a as Tablet, b as LogOut, c as Search, d as RectangleEllipsis, f as Plus, g as Package, h as Palette, i as Tag, j as ClipboardList, k as CloudUpload, l as Save, m as Pencil, n as Trash2, o as SquareSplitHorizontal, p as Phone, r as Target, s as Smartphone, t as X, u as RotateCcw, w as GraduationCap, y as Mail } from "../_libs/lucide-react.mjs";
-import { a as resetVariant, c as testWebhookEndpoint, d as utmSource, f as webhookConfigurationWarning, i as getVariant, r as fireTestEvent, s as sendTestEmail, t as checkEmailConfig } from "./ab-1ZHA4A9t.mjs";
+import { C as GraduationCap, D as EyeOff, E as Eye, F as BookOpen, I as Bell, M as ClipboardList, N as ChartColumn, O as Download, S as KeyRound, T as FileText, a as Tablet, c as Search, d as Plus, h as Monitor, i as Trash2, j as CloudUpload, k as Database, l as Save, m as Package, o as SquareSplitHorizontal, p as Pencil, r as Upload, s as Smartphone, t as X, u as RotateCcw, v as Mail, w as Globe, x as Link2, y as LogOut } from "../_libs/lucide-react.mjs";
+import { a as resetVariant, c as testWebhookEndpoint, f as utmSource, i as getVariant, p as webhookConfigurationWarning, r as fireTestEvent, s as sendTestEmail, t as checkEmailConfig, u as trackInteraction } from "./ab-DUIDkaDP.mjs";
 import { t as QueryClient } from "../_libs/tanstack__query-core.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-BWsHnEmI.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-BwtnkHMw.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
-var styles_default = "/assets/styles-DMM3hCKQ.css";
+var styles_default = "/assets/styles-BdUtYFYd.css";
 function reportLovableError(error, context = {}) {
 	if (typeof window === "undefined") return;
 	window.__lovableEvents?.captureException?.(error, {
@@ -39,14 +39,14 @@ function isDevicePreview() {
 * responsive thật sự áp dụng đúng với bề rộng 375px / 768px.
 */
 function DeviceFrame({ children }) {
-	const { authed, device, deviceSizes } = useAdmin();
+	const { authed, device, deviceSizes, previewEnabled } = useAdmin();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const [inPreview, setInPreview] = (0, import_react.useState)(true);
 	(0, import_react.useEffect)(() => setInPreview(isDevicePreview()), []);
 	const size = deviceSizes[device];
-	if (!authed || inPreview) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children });
+	if (!authed || inPreview || !previewEnabled) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children });
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		className: "flex justify-center bg-neutral-200 py-6 dark:bg-neutral-800",
+		className: "flex justify-center bg-neutral-200 px-2 pb-6 dark:bg-neutral-800 sm:px-4",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("iframe", {
 			title: `Xem thử ${device}`,
 			src: `${pathname}?device_preview=1`,
@@ -96,11 +96,6 @@ var TOOLS = [
 		icon: Link2
 	},
 	{
-		key: "theme",
-		label: "Style & Theme",
-		icon: Palette
-	},
-	{
 		key: "guide",
 		label: "Hướng Dẫn & Health",
 		icon: BookOpen
@@ -114,16 +109,6 @@ var TOOLS = [
 		key: "webmaster",
 		label: "Webmaster & Scripts",
 		icon: Globe
-	},
-	{
-		key: "pixel",
-		label: "Pixel & Ads",
-		icon: Activity
-	},
-	{
-		key: "utm",
-		label: "UTM Hub",
-		icon: Target
 	},
 	{
 		key: "cron",
@@ -141,34 +126,9 @@ var TOOLS = [
 		icon: Search
 	},
 	{
-		key: "form",
-		label: "Form & Webhook",
-		icon: RectangleEllipsis
-	},
-	{
-		key: "ai",
-		label: "AI Sales Advisor",
-		icon: BrainCircuit
-	},
-	{
-		key: "contact",
-		label: "Hotline & Zalo",
-		icon: Phone
-	},
-	{
-		key: "countdown",
-		label: "Countdown",
-		icon: Clock
-	},
-	{
 		key: "adminlink",
 		label: "Đổi Link Admin",
 		icon: KeyRound
-	},
-	{
-		key: "tracking",
-		label: "Tracking",
-		icon: Tag
 	}
 ];
 var DEVICES = [
@@ -189,10 +149,20 @@ var DEVICES = [
 	}
 ];
 function AdminBar() {
-	const { authed, openModal, logout, device, setDevice, deviceSizes, setDeviceSize, resetDeviceSizes } = useAdmin();
-	const { save, reset, exportFile, dirty } = useSiteConfig();
+	const { authed, openModal, logout, device, setDevice, deviceSizes, setDeviceSize, resetDeviceSizes, previewEnabled, setPreviewEnabled } = useAdmin();
+	const { save, reset, exportFile, importConfig, dirty } = useSiteConfig();
 	const [hidden, setHidden] = (0, import_react.useState)(true);
+	const configInputRef = (0, import_react.useRef)(null);
 	(0, import_react.useEffect)(() => setHidden(isDevicePreview()), []);
+	function handleImportConfig(file) {
+		const reader = new FileReader();
+		reader.onload = () => {
+			const ok = importConfig(String(reader.result));
+			window.alert(ok ? "Đã nhập và lưu cấu hình thành công." : "File cấu hình không hợp lệ hoặc thiếu trường bắt buộc.");
+		};
+		reader.onerror = () => window.alert("Không thể đọc file cấu hình.");
+		reader.readAsText(file);
+	}
 	if (hidden) return null;
 	if (!authed) return null;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -226,13 +196,25 @@ function AdminBar() {
 						className: "shrink-0 text-[10px] font-semibold uppercase tracking-wide text-white/40",
 						children: "Xem thử"
 					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						onClick: () => setPreviewEnabled(!previewEnabled),
+						"aria-pressed": previewEnabled,
+						title: previewEnabled ? "Tắt khung xem trước, sửa trực tiếp trên trang thật" : "Bật lại khung xem trước theo thiết bị",
+						className: `flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-bold transition-colors ${previewEnabled ? "bg-white text-neutral-900" : "bg-white/10 text-white/70 hover:bg-white/20"}`,
+						children: [
+							previewEnabled ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, { className: "h-3.5 w-3.5" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EyeOff, { className: "h-3.5 w-3.5" }),
+							"Xem trước: ",
+							previewEnabled ? "BẬT" : "TẮT"
+						]
+					}),
 					DEVICES.map((d) => {
 						const Icon = d.icon;
 						const active = device === d.key;
 						return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 							onClick: () => setDevice(d.key),
+							disabled: !previewEnabled,
 							"aria-pressed": active,
-							className: `flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-bold transition-colors ${active ? "bg-white text-neutral-900" : "bg-white/10 text-white/70 hover:bg-white/20"}`,
+							className: `flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11px] font-bold transition-colors disabled:opacity-40 ${active ? "bg-white text-neutral-900" : "bg-white/10 text-white/70 hover:bg-white/20"}`,
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, { className: "h-3.5 w-3.5" }), d.label]
 						}, d.key);
 					}),
@@ -291,6 +273,22 @@ function AdminBar() {
 						onClick: exportFile,
 						className: "flex items-center gap-1.5 rounded-md bg-white/10 px-3 py-1.5 text-[11px] font-bold text-white/80 transition-colors hover:bg-white/20",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Package, { className: "h-3.5 w-3.5" }), "XUẤT CONFIG"]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+						ref: configInputRef,
+						type: "file",
+						accept: "application/json,.json,.js",
+						className: "hidden",
+						onChange: (event) => {
+							const file = event.target.files?.[0];
+							if (file) handleImportConfig(file);
+							event.target.value = "";
+						}
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
+						onClick: () => configInputRef.current?.click(),
+						className: "flex items-center gap-1.5 rounded-md bg-white/10 px-3 py-1.5 text-[11px] font-bold text-white/80 transition-colors hover:bg-white/20",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Upload, { className: "h-3.5 w-3.5" }), "NHẬP CONFIG"]
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", {
 						onClick: () => {
@@ -629,6 +627,10 @@ function ThemeModal({ onClose }) {
 					onChange: (e) => update((d) => d.theme.fontBody = e.target.value)
 				})
 			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "text-[11px] text-neutral-400",
+				children: "Màu và font này được áp dụng chung cho trang chủ, trang phụ và các khối nội dung."
+			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SaveHint, {})
 		]
 	});
@@ -697,6 +699,16 @@ function ContactModal({ onClose }) {
 				onChange: (v) => update((d) => d.floatingContact.enabled = v),
 				label: "Bật nút liên hệ nổi"
 			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toggle, {
+				checked: c.animateHotline !== false,
+				onChange: (v) => update((d) => d.floatingContact.animateHotline = v),
+				label: "Hiệu ứng nút gọi hotline"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toggle, {
+				checked: c.animateMessenger !== false,
+				onChange: (v) => update((d) => d.floatingContact.animateMessenger = v),
+				label: "Hiệu ứng nút Messenger"
+			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
 				label: "Số hotline",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
@@ -746,6 +758,16 @@ function PixelModal({ onClose }) {
 				})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+				label: "TikTok Events API Access Token",
+				hint: "Chỉ dùng ở backend/server; không nhúng token vào mã trình duyệt.",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+					type: "password",
+					value: t.tiktokAccessToken,
+					autoComplete: "new-password",
+					onChange: (e) => update((d) => d.tracking.tiktokAccessToken = e.target.value)
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
 				label: "GA4 Measurement ID",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
 					value: t.ga4Id,
@@ -783,6 +805,16 @@ function PixelModal({ onClose }) {
 				onChange: (v) => update((d) => d.tracking.events.completeRegistration = v),
 				label: "CompleteRegistration"
 			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toggle, {
+				checked: t.events.click !== false,
+				onChange: (v) => update((d) => d.tracking.events.click = v),
+				label: "Click CTA / Hotline / Zalo / Messenger"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toggle, {
+				checked: t.events.scroll !== false,
+				onChange: (v) => update((d) => d.tracking.events.scroll = v),
+				label: "Scroll depth 25 / 50 / 75 / 90%"
+			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "mt-4 rounded-xl border border-neutral-200 p-3 dark:border-white/10",
 				children: [
@@ -793,7 +825,17 @@ function PixelModal({ onClose }) {
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "mt-2 text-[11px] text-neutral-400",
-						children: "Lưu cấu hình và tải lại trang trước khi kiểm tra để mã pixel được chèn."
+						children: "Lưu cấu hình, tải lại trang rồi kiểm tra. Sự kiện thử không phải là chuyển đổi thật và không gửi lead."
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("ol", {
+						className: "mt-3 list-decimal space-y-1 pl-4 text-[11px] text-neutral-500",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Meta: lấy Pixel ID trong Events Manager." }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "TikTok: lấy Pixel ID trong Events Manager; Access Token chỉ cấu hình ở server." }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "GA4: dùng Measurement ID dạng G-XXXXXXXXXX." }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "GTM: dùng Container ID dạng GTM-XXXXXXX rồi kiểm tra Preview." }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Dùng nút kiểm tra, xem log Admin và DebugView/Test Events." })
+						]
 					}),
 					logs && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
 						className: "mt-3 space-y-1.5",
@@ -818,11 +860,108 @@ function PixelModal({ onClose }) {
 function WebmasterModal({ onClose }) {
 	const { config, update } = useSiteConfig();
 	const t = config.tracking;
+	const [logs, setLogs] = (0, import_react.useState)(null);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AdminModal, {
 		title: "Webmaster & Custom Scripts",
-		subtitle: "Xác minh Google + chèn mã tùy chỉnh",
+		subtitle: "Pixel, tracking, xác minh Google và mã tùy chỉnh",
 		onClose,
 		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "mb-4 rounded-xl border border-neutral-200 p-3 dark:border-white/10",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "mb-3 text-xs font-bold",
+						children: "Pixel & sự kiện quảng cáo"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+						label: "Facebook Pixel ID",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+							value: t.facebookPixelId,
+							onChange: (e) => update((d) => d.tracking.facebookPixelId = e.target.value)
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+						label: "TikTok Pixel ID",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+							value: t.tiktokPixelId,
+							onChange: (e) => update((d) => d.tracking.tiktokPixelId = e.target.value)
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+						label: "TikTok Events API Access Token",
+						hint: "Chỉ lưu để backend dùng; không nhúng token vào browser.",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+							type: "password",
+							value: t.tiktokAccessToken,
+							autoComplete: "new-password",
+							onChange: (e) => update((d) => d.tracking.tiktokAccessToken = e.target.value)
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "grid gap-3 sm:grid-cols-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+							label: "GA4 Measurement ID",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								value: t.ga4Id,
+								placeholder: "G-XXXXXXXXXX",
+								onChange: (e) => update((d) => d.tracking.ga4Id = e.target.value)
+							})
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+							label: "Google Tag Manager ID",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								value: t.gtmId,
+								placeholder: "GTM-XXXXXXX",
+								onChange: (e) => update((d) => d.tracking.gtmId = e.target.value)
+							})
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "mb-2 mt-3 text-[11px] font-semibold text-neutral-600",
+						children: "Sự kiện được phép ghi nhận"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "grid gap-1 sm:grid-cols-2",
+						children: [
+							["pageView", "PageView"],
+							["formStart", "Form Start"],
+							["lead", "Lead"],
+							["completeRegistration", "CompleteRegistration"],
+							["click", "Click CTA / liên hệ"],
+							["scroll", "Scroll depth"]
+						].map(([key, label]) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toggle, {
+							checked: t.events[key] !== false,
+							onChange: (value) => update((draft) => {
+								draft.tracking.events[key] = value;
+							}),
+							label
+						}, key))
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "mt-3 text-[11px] text-neutral-400",
+						children: "Webhook nhận UTM, hành vi form, click, scroll và trạng thái chuyển đổi sau khi CRM lưu lead thành công. Dùng Webmaster làm nơi kiểm tra Pixel và tracking duy nhất."
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						type: "button",
+						onClick: () => setLogs(fireTestEvent()),
+						className: "mt-3 w-full rounded-lg bg-neutral-900 py-2.5 text-xs font-bold text-white dark:bg-white dark:text-neutral-900",
+						children: "Kiểm tra sự kiện Pixel / Ads"
+					}),
+					logs && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+						className: "mt-3 space-y-1 text-[11px]",
+						children: logs.map((log) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", {
+							className: "flex gap-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: log.ok ? "text-emerald-500" : "text-red-500",
+								children: log.ok ? "OK" : "Lỗi"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: log.channel }),
+								": ",
+								log.detail
+							] })]
+						}, log.channel))
+					})
+				]
+			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
 				label: "Google Search Console verification",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
@@ -858,6 +997,9 @@ function WebmasterModal({ onClose }) {
 function SeoModal({ onClose }) {
 	const { config, update } = useSiteConfig();
 	const s = config.seo;
+	const faviconInputRef = (0, import_react.useRef)(null);
+	const titleLength = s.title.length;
+	const descriptionLength = s.description.length;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AdminModal, {
 		title: "SEO Google",
 		subtitle: "Meta tags & schema",
@@ -870,12 +1012,28 @@ function SeoModal({ onClose }) {
 					onChange: (e) => update((d) => d.seo.title = e.target.value)
 				})
 			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+				className: `text-[11px] ${titleLength > 60 ? "text-amber-600" : "text-neutral-400"}`,
+				children: [
+					"Meta Title: ",
+					titleLength,
+					"/60 ký tự"
+				]
+			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
 				label: "Meta Description",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
 					value: s.description,
 					onChange: (e) => update((d) => d.seo.description = e.target.value)
 				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+				className: `text-[11px] ${descriptionLength > 160 ? "text-amber-600" : "text-neutral-400"}`,
+				children: [
+					"Meta Description: ",
+					descriptionLength,
+					"/160 ký tự"
+				]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
 				label: "Keywords",
@@ -889,6 +1047,42 @@ function SeoModal({ onClose }) {
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
 					value: s.ogImage,
 					onChange: (e) => update((d) => d.seo.ogImage = e.target.value)
+				})
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+				label: "Favicon URL hoặc ảnh tải lên",
+				hint: "Dùng .ico/.png/.svg; ảnh tải lên tối đa 512KB.",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "space-y-2",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+							value: s.faviconUrl,
+							placeholder: "/favicon.ico hoặc https://...",
+							onChange: (e) => update((d) => d.seo.faviconUrl = e.target.value)
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+							ref: faviconInputRef,
+							type: "file",
+							accept: "image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon",
+							className: "hidden",
+							onChange: (e) => {
+								const file = e.target.files?.[0];
+								if (!file || file.size > 524288) return;
+								const reader = new FileReader();
+								reader.onload = () => {
+									if (typeof reader.result === "string") update((d) => d.seo.faviconUrl = reader.result);
+								};
+								reader.readAsDataURL(file);
+								e.target.value = "";
+							}
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+							type: "button",
+							onClick: () => faviconInputRef.current?.click(),
+							className: "rounded-lg border border-neutral-300 px-3 py-2 text-xs font-bold",
+							children: "Chọn favicon"
+						})
+					]
 				})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
@@ -1090,6 +1284,81 @@ function WebhookModal({ onClose }) {
 		onClose,
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "mb-4 space-y-3 rounded-xl border border-neutral-200 p-3 dark:border-white/10",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-xs font-bold",
+						children: "Form đăng ký & UTM"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "grid gap-3 sm:grid-cols-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+							label: "Tiêu đề form",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								value: config.form.headline,
+								onChange: (event) => update((draft) => draft.form.headline = event.target.value)
+							})
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+							label: "Nhãn nút gửi form",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								value: config.form.ctaLabel,
+								onChange: (event) => update((draft) => draft.form.ctaLabel = event.target.value)
+							})
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+						label: "Webhook chính",
+						hint: "Endpoint này vẫn được gửi cùng các endpoint đa kênh bên dưới.",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+							value: config.form.webhookUrl,
+							placeholder: "https://hook.make.com/...",
+							onChange: (event) => update((draft) => draft.form.webhookUrl = event.target.value)
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "grid gap-3 sm:grid-cols-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+							label: "Giới hạn gửi",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								type: "number",
+								min: "1",
+								value: config.form.rateLimitCount,
+								onChange: (event) => update((draft) => draft.form.rateLimitCount = Math.max(1, Number(event.target.value) || 1))
+							})
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+							label: "Trong số phút",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								type: "number",
+								min: "1",
+								value: config.form.rateLimitWindowMin,
+								onChange: (event) => update((draft) => draft.form.rateLimitWindowMin = Math.max(1, Number(event.target.value) || 1))
+							})
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+						className: "text-[11px] text-neutral-400",
+						children: [
+							"UTM được đọc từ URL quảng cáo và gửi trong các trường",
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "font-semibold",
+								children: " traffic_ads_source"
+							}),
+							",",
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "font-semibold",
+								children: " utm_source"
+							}),
+							",",
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "font-semibold",
+								children: " utm_campaign"
+							}),
+							" của lead."
+						]
+					})
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "mb-3 rounded-lg bg-neutral-50 p-3 text-xs text-neutral-600",
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
@@ -1107,6 +1376,76 @@ function WebhookModal({ onClose }) {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "mt-1",
 						children: "Hãy bấm test sau khi nhập URL. Trình duyệt có thể chặn endpoint không bật CORS; khi đó nên dùng Make/Zapier làm cổng trung gian."
+					})
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "mb-3 rounded-xl border border-neutral-200 p-3 dark:border-white/10",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "mb-1 text-xs font-bold text-neutral-800",
+						children: "AI Sales Advisor & kịch bản gọi"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "mb-3 text-[11px] text-neutral-500",
+						children: "AI dùng hành vi tracking đã thu thập để chấm điểm, phân loại và gợi ý cách gọi. Kết quả được gửi cùng payload webhook và lưu trong Mini-CRM."
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toggle, {
+						checked: config.aiAdvisor.enabled,
+						onChange: (value) => update((draft) => draft.aiAdvisor.enabled = value),
+						label: "Bật AI Sales Advisor"
+					}),
+					config.aiAdvisor.enabled && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "mt-3 space-y-3",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+								label: "Regex thiết bị ưu tiên",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									value: config.aiAdvisor.vipDeviceRegex,
+									onChange: (event) => update((draft) => draft.aiAdvisor.vipDeviceRegex = event.target.value)
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+								label: "Tỉnh trọng điểm, phân tách bằng |",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									value: config.aiAdvisor.keyRegions,
+									onChange: (event) => update((draft) => draft.aiAdvisor.keyRegions = event.target.value)
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "grid grid-cols-3 gap-2",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+										label: "Điền nhanh (s)",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+											type: "number",
+											min: "1",
+											value: config.aiAdvisor.fastFillThresholdSec,
+											onChange: (event) => update((draft) => draft.aiAdvisor.fastFillThresholdSec = Math.max(1, Number(event.target.value) || 1))
+										})
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+										label: "VIP: thời gian (s)",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+											type: "number",
+											min: "1",
+											value: config.aiAdvisor.vipTimeOnPageSec,
+											onChange: (event) => update((draft) => draft.aiAdvisor.vipTimeOnPageSec = Math.max(1, Number(event.target.value) || 1))
+										})
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+										label: "VIP: cuộn (%)",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+											type: "number",
+											min: "1",
+											max: "100",
+											value: config.aiAdvisor.vipScrollPercent,
+											onChange: (event) => update((draft) => draft.aiAdvisor.vipScrollPercent = Math.min(100, Math.max(1, Number(event.target.value) || 1)))
+										})
+									})
+								]
+							})
+						]
 					})
 				]
 			}),
@@ -1434,10 +1773,18 @@ function LeadsModal({ onClose }) {
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
 								className: "px-3 py-2 font-semibold",
-								children: [l.name, l.aiRank && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: "ml-1.5 rounded bg-amber-100 px-1.5 text-[10px] font-bold text-amber-700",
-									children: l.aiRank
-								})]
+								children: [
+									l.name,
+									l.aiRank && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "ml-1.5 rounded bg-amber-100 px-1.5 text-[10px] font-bold text-amber-700",
+										children: l.aiRank
+									}),
+									l.riskLevel && l.riskLevel !== "low" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										title: l.riskReasons?.join("; ") || l.recommendedAction || "Cần kiểm tra thêm",
+										className: `ml-1.5 rounded px-1.5 text-[10px] font-bold ${l.riskLevel === "high" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"}`,
+										children: l.riskLevel === "high" ? "CẦN XÁC MINH" : "XEM LẠI"
+									})
+								]
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
 								className: "px-3 py-2 tabular-nums",
@@ -1827,6 +2174,7 @@ function LandingEditorModal({ onClose }) {
 	const content = config.landing;
 	const importRef = (0, import_react.useRef)(null);
 	const logoInputRef = (0, import_react.useRef)(null);
+	const galleryInputRef = (0, import_react.useRef)(null);
 	const [logoError, setLogoError] = (0, import_react.useState)("");
 	const [templateType, setTemplateType] = (0, import_react.useState)("promo");
 	const updateLines = (key, value) => update((draft) => {
@@ -1890,6 +2238,21 @@ function LandingEditorModal({ onClose }) {
 		};
 		reader.onerror = () => setLogoError("Không thể đọc file logo.");
 		reader.readAsDataURL(file);
+	}
+	function uploadGallery(files) {
+		const selected = Array.from(files).filter((file) => /^image\/(png|jpeg|webp)$/.test(file.type) && file.size <= 2097152);
+		if (selected.length === 0) return;
+		Promise.all(selected.map((file) => new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(/* @__PURE__ */ new Error("invalid image"));
+			reader.onerror = () => reject(/* @__PURE__ */ new Error("read failed"));
+			reader.readAsDataURL(file);
+		}))).then((images) => {
+			update((draft) => {
+				draft.landing.galleryImageUrls = [...draft.landing.galleryImageUrls, ...images];
+				draft.landing.galleryCaptions = [...draft.landing.galleryCaptions, ...images.map(() => "Ảnh thực tế chương trình")];
+			});
+		});
 	}
 	function updateSections(nextSections) {
 		update((draft) => {
@@ -2046,11 +2409,125 @@ function LandingEditorModal({ onClose }) {
 				]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "mb-4 space-y-3 rounded-xl border border-neutral-200 p-3 dark:border-white/10",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-xs font-bold",
+						children: "CTA & liên hệ trang chủ"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toggle, {
+						checked: config.countdown.enabled,
+						onChange: (value) => update((draft) => draft.countdown.enabled = value),
+						label: "Hiển thị Countdown"
+					}),
+					config.countdown.enabled && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "grid gap-3 sm:grid-cols-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+							label: "Số suất còn lại",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								type: "number",
+								min: "0",
+								value: config.countdown.slotsLeft,
+								onChange: (event) => update((draft) => draft.countdown.slotsLeft = Math.max(0, Number(event.target.value) || 0))
+							})
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+							label: "Mô tả Countdown",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+								value: config.countdown.headline,
+								onChange: (event) => update((draft) => draft.countdown.headline = event.target.value)
+							})
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toggle, {
+						checked: config.floatingContact.enabled,
+						onChange: (value) => update((draft) => draft.floatingContact.enabled = value),
+						label: "Hiển thị Hotline / Zalo / Messenger"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "grid gap-3 sm:grid-cols-2",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+								label: "Số hotline",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									type: "tel",
+									value: config.floatingContact.hotline,
+									onChange: (event) => update((draft) => draft.floatingContact.hotline = event.target.value)
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+								label: "Link hoặc số Zalo",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									value: config.floatingContact.zalo,
+									onChange: (event) => update((draft) => draft.floatingContact.zalo = event.target.value)
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+								label: "Link Messenger",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+									value: config.floatingContact.messenger,
+									onChange: (event) => update((draft) => draft.floatingContact.messenger = event.target.value)
+								})
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-[11px] text-neutral-400",
+						children: "Countdown và liên hệ dùng chung một nguồn cấu hình với CTA, footer và tracking. Bấm LƯU trên thanh Admin để áp dụng."
+					})
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "mb-3 rounded-xl border border-neutral-200 p-3 dark:border-white/10",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "mb-2 text-xs font-bold",
+						children: "Logo & menu footer"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+						label: "Logo footer URL",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+							type: "url",
+							value: config.footer.logoUrl,
+							placeholder: "Để trống dùng logo header",
+							onChange: (event) => update((draft) => draft.footer.logoUrl = event.target.value)
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+						label: "Tên menu footer",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextInput, {
+							value: config.footer.menuLabel,
+							onChange: (event) => update((draft) => draft.footer.menuLabel = event.target.value)
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
+						label: "Menu footer (JSON: label, href)",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
+							value: JSON.stringify(config.footer.menuLinks, null, 2),
+							onChange: (event) => {
+								try {
+									const links = JSON.parse(event.target.value);
+									if (Array.isArray(links)) update((draft) => draft.footer.menuLinks = links);
+								} catch {}
+							}
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-[11px] text-neutral-400",
+						children: "Footer tự xếp cột trên mobile và hai vùng trên tablet/desktop, không gây tràn chiều ngang."
+					})
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "mb-4 rounded-xl border border-neutral-200 p-3 dark:border-white/10",
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "mb-2 text-xs font-bold",
 						children: "Thứ tự & trạng thái section"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toggle, {
+						checked: config.trafficStats.enabled,
+						onChange: (value) => update((draft) => draft.trafficStats.enabled = value),
+						label: "Hiển thị khối thống kê truy cập ở chân trang"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						className: "space-y-1.5",
@@ -2397,6 +2874,36 @@ function LandingEditorModal({ onClose }) {
 					onChange: (e) => updateJson("galleryImageUrls", e.target.value)
 				})
 			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "mb-3 rounded-xl border border-neutral-200 p-3 dark:border-white/10",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-xs font-bold",
+						children: "Thêm nhiều ảnh vào slider"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "mt-1 text-[11px] text-neutral-400",
+						children: "Chọn nhiều PNG/JPG/WebP, tối đa 2MB mỗi ảnh. Caption tương ứng chỉnh ở ô Caption gallery ngay phía trên."
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+						ref: galleryInputRef,
+						type: "file",
+						multiple: true,
+						accept: "image/png,image/jpeg,image/webp",
+						className: "hidden",
+						onChange: (event) => {
+							if (event.target.files) uploadGallery(event.target.files);
+							event.target.value = "";
+						}
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+						type: "button",
+						onClick: () => galleryInputRef.current?.click(),
+						className: "mt-3 rounded-lg bg-neutral-900 px-3 py-2 text-xs font-bold text-white",
+						children: "Chọn nhiều ảnh"
+					})
+				]
+			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
 				label: "URL ảnh chuyên gia (JSON array)",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TextArea, {
@@ -2722,6 +3229,24 @@ function PagesModal({ onClose }) {
 }
 function GuideModal({ onClose }) {
 	const { config } = useSiteConfig();
+	const isHttpUrl = (value) => {
+		try {
+			const url = new URL(value);
+			return url.protocol === "https:" || url.hostname === "localhost";
+		} catch {
+			return false;
+		}
+	};
+	const isEmailLike = (value) => /\S+@\S+\.\S+/.test(value.trim());
+	const isPhoneLike = (value) => value.replace(/\D/g, "").length >= 8;
+	const activeTrackingChannels = [
+		config.tracking.facebookPixelId,
+		config.tracking.tiktokPixelId,
+		config.tracking.ga4Id,
+		config.tracking.gtmId
+	].filter((value) => value.trim()).length;
+	const trackingEventsEnabled = Object.values(config.tracking.events).some(Boolean);
+	const primaryWebhookReady = !!config.form.webhookUrl.trim() && isHttpUrl(config.form.webhookUrl.trim());
 	const normalizedPagePaths = config.pages.map((page) => page.path.trim().replace(/^\/+|\/+$/g, "").toLowerCase());
 	const pagePathsAreUnique = new Set(normalizedPagePaths).size === normalizedPagePaths.length;
 	const pagePathsAreValid = config.pages.every((page) => !page.path || /^[a-z0-9-]+$/i.test(page.path.trim().replace(/^\/+|\/+$/g, "")));
@@ -2729,62 +3254,208 @@ function GuideModal({ onClose }) {
 	const pageSectionsAreValid = config.pages.every((page) => (page.sectionIds || []).every((sectionId) => knownSectionIds.has(sectionId)));
 	const configuredWebhookCount = [config.form.webhookUrl, ...config.webhooks.filter((endpoint) => endpoint.enabled).map((endpoint) => endpoint.url)].filter((url) => url.trim() && url.startsWith("http") && !url.includes("REPLACE")).length;
 	const configuredWebhookUrls = [config.form.webhookUrl, ...config.webhooks.filter((endpoint) => endpoint.enabled).map((endpoint) => endpoint.url)].filter((url) => url.trim() && url.startsWith("http") && !url.includes("REPLACE"));
+	const adminPath = config.admin.adminPath.trim().replace(/^\/+|\/+$/g, "");
+	const storageReady = config.admin.storageMode === "local" || isHttpUrl(config.admin.supabaseUrl.trim()) && !!config.admin.supabaseAnonKey.trim();
+	const contactReady = !config.floatingContact.enabled || isPhoneLike(config.floatingContact.hotline) || isHttpUrl(config.floatingContact.zalo.trim()) || isHttpUrl(config.floatingContact.messenger.trim());
 	const checks = [
 		{
-			label: "Có ít nhất một webhook hoạt động",
-			ok: configuredWebhookCount > 0
+			label: "Lead có đầu ra nhận dữ liệu",
+			ok: primaryWebhookReady || configuredWebhookCount > 0,
+			purpose: "Ngăn form gửi thành công nhưng dữ liệu không tới đội sale hoặc hệ CRM.",
+			action: "Nhập Webhook chính hợp lệ hoặc bật ít nhất một endpoint đang nhận lead."
 		},
 		{
-			label: "Không có endpoint trùng URL",
-			ok: new Set(configuredWebhookUrls).size === configuredWebhookCount
+			label: "Webhook không bị trùng hoặc cấu hình sai",
+			ok: new Set(configuredWebhookUrls).size === configuredWebhookCount,
+			purpose: "Tránh gửi lead lặp, đo sai chuyển đổi và làm đội vận hành xử lý trùng dữ liệu.",
+			action: "Loại bỏ URL trùng nhau và test lại từng endpoint quan trọng."
 		},
 		{
-			label: "TikTok Pixel",
-			ok: !!config.tracking.tiktokPixelId
+			label: "Tracking đang đủ tối thiểu để đo hiệu quả",
+			ok: activeTrackingChannels > 0 && trackingEventsEnabled,
+			purpose: "Giúp biết nguồn quảng cáo nào ra lead và phát hiện điểm rơi chuyển đổi.",
+			action: "Điền ít nhất một Pixel, GA4 hoặc GTM và giữ các event cốt lõi ở trạng thái bật."
 		},
 		{
-			label: "SEO title & description",
-			ok: !!config.seo.title && !!config.seo.description
+			label: "SEO cốt lõi đủ để trang hiển thị đúng",
+			ok: !!config.seo.title.trim() && !!config.seo.description.trim() && !!config.seo.ogImage.trim(),
+			purpose: "Giữ chất lượng hiển thị trên Google, Facebook và tránh snippet rỗng.",
+			action: "Điền title, description và ảnh OG rõ ràng cho chiến dịch đang chạy."
 		},
 		{
-			label: "Hotline/Zalo",
-			ok: !!config.floatingContact.hotline
+			label: "Kênh liên hệ nhanh đang sẵn sàng",
+			ok: contactReady,
+			purpose: "Đảm bảo khách có đường liên hệ ngay khi chưa kịp điền form hoặc cần tư vấn gấp.",
+			action: "Bật hotline, Zalo hoặc Messenger với thông tin hợp lệ nếu muốn nhận lead tức thì."
 		},
 		{
-			label: "Storage mode",
-			ok: config.admin.storageMode === "local" || !!config.admin.supabaseUrl
+			label: "Lưu trữ và backup phù hợp chế độ vận hành",
+			ok: storageReady && (config.admin.cronSchedule === "off" || isEmailLike(config.admin.backupEmail)),
+			purpose: "Giảm nguy cơ mất cấu hình, mất lead và hỗ trợ đồng bộ khi nhiều người cùng vận hành.",
+			action: "Nếu dùng database hãy điền Supabase; nếu bật cron backup hãy thêm email nhận backup."
+		},
+		{
+			label: "Admin có đường dẫn và mật khẩu an toàn cơ bản",
+			ok: /^[a-z0-9-]+$/i.test(adminPath) && config.admin.password.trim().length >= 6 && config.admin.password !== DEFAULT_CONFIG.admin.password,
+			purpose: "Giảm truy cập nhầm hoặc rủi ro giữ nguyên thông tin đăng nhập mặc định.",
+			action: "Đổi admin path rõ ràng và thay mật khẩu mặc định bằng mật khẩu riêng từ 6 ký tự trở lên."
 		},
 		{
 			label: "Đa trang không trùng đường dẫn",
-			ok: pagePathsAreUnique && pagePathsAreValid
+			ok: pagePathsAreUnique && pagePathsAreValid,
+			purpose: "Ngăn va chạm route khiến menu, quảng cáo hoặc index SEO dẫn sai nội dung.",
+			action: "Chuẩn hóa slug từng trang bằng chữ, số, dấu gạch ngang và tránh trùng nhau."
 		},
 		{
-			label: "Section đa trang còn tồn tại",
-			ok: pageSectionsAreValid
+			label: "Section đa trang còn tồn tại đúng phạm vi",
+			ok: pageSectionsAreValid,
+			purpose: "Đảm bảo section đã gán cho từng trang vẫn còn tồn tại và hiển thị đúng vị trí.",
+			action: "Gỡ section đã xóa khỏi từng trang hoặc tạo lại section còn thiếu."
 		}
 	];
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AdminModal, {
+	const passedCount = checks.filter((check) => check.ok).length;
+	const pendingCount = checks.length - passedCount;
+	const score = Math.round(passedCount / checks.length * 100);
+	const readiness = score === 100 ? {
+		label: "Sẵn sàng vận hành",
+		description: "Các điểm cốt lõi đã ổn. Có thể chạy ads, nhận lead và theo dõi hiệu quả mượt hơn.",
+		tone: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300"
+	} : score >= 75 ? {
+		label: "Hoạt động tốt nhưng còn mục nên tối ưu",
+		description: "Hệ thống đã dùng được, nhưng nên xử lý hết cảnh báo để tránh sai số hoặc thất thoát lead.",
+		tone: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300"
+	} : {
+		label: "Cần hoàn thiện thêm trước khi đẩy mạnh vận hành",
+		description: "Một số cấu hình nền tảng còn thiếu; nên xử lý trước để website chạy đúng vai trò và mục đích sinh ra.",
+		tone: "border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+	};
+	const valueChecklist = [
+		{
+			label: "Giảm rủi ro mất lead hoặc gửi lead trùng.",
+			done: (primaryWebhookReady || configuredWebhookCount > 0) && new Set(configuredWebhookUrls).size === configuredWebhookCount
+		},
+		{
+			label: "Giữ tracking đủ dữ liệu để đánh giá nguồn quảng cáo.",
+			done: activeTrackingChannels > 0 && trackingEventsEnabled
+		},
+		{
+			label: "Giúp đội vận hành biết ngay mục nào cần sửa trước khi chạy chiến dịch.",
+			done: score >= 75
+		},
+		{
+			label: "Xác nhận website đang dùng đúng vai trò: hút lead, tư vấn nhanh và đo hiệu quả.",
+			done: score === 100
+		}
+	];
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AdminModal, {
 		title: "Hướng Dẫn & Health Check",
 		subtitle: "Chẩn đoán nhanh trạng thái hệ thống",
 		onClose,
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-			className: "mb-4 space-y-1.5",
-			children: checks.map((c) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "flex items-center justify-between rounded-lg border border-neutral-200 px-3 py-2 text-xs dark:border-white/10",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: c.label }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-					className: c.ok ? "font-bold text-emerald-600" : "font-bold text-amber-600",
-					children: c.ok ? "OK" : "Cần cấu hình"
-				})]
-			}, c.label))
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("ol", {
-			className: "list-decimal space-y-1.5 pl-5 text-xs text-neutral-600 dark:text-neutral-300",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "space-y-4",
 			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Đăng nhập admin, chỉnh sửa các thẻ công cụ trên thanh trên cùng." }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Bấm LƯU để áp dụng (localStorage) hoặc XUẤT CONFIG để tải file dán vào mã nguồn." }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Kết nối Supabase trong Storage Mode để đồng bộ đa thiết bị & lưu lead cloud." }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Vào Cổng Webhook & Đa Kênh, bấm test từng endpoint và chỉ chạy Ads khi các kênh cần thiết trả về OK." })
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: `rounded-2xl border px-4 py-3 ${readiness.tone}`,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-xs font-black uppercase tracking-[0.18em]",
+						children: readiness.label
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "mt-1 text-sm font-medium",
+						children: readiness.description
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "grid grid-cols-3 gap-2",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Stat, {
+							label: "Điểm health",
+							value: `${score}/100`,
+							tone: "text-primary"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Stat, {
+							label: "Mục đạt",
+							value: passedCount,
+							tone: "text-emerald-600"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Stat, {
+							label: "Mục cần xử lý",
+							value: pendingCount,
+							tone: "text-amber-600"
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "rounded-xl border border-neutral-200 p-3 text-xs dark:border-white/10",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "font-bold text-neutral-900 dark:text-neutral-100",
+						children: "Tính năng này sinh ra để làm gì?"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("ul", {
+						className: "mt-2 space-y-1.5 text-neutral-600 dark:text-neutral-300",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "• Rà soát nhanh toàn bộ điểm dễ làm website chạy sai vai trò hoặc thất thoát lead." }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "• Cảnh báo ngay cấu hình ảnh hưởng tới đo lường, đa trang, liên hệ và backup." }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "• Xác nhận mức độ sẵn sàng trước khi chạy quảng cáo hoặc bàn giao vận hành." })
+						]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "space-y-2",
+					children: checks.map((c) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "rounded-xl border border-neutral-200 px-3 py-3 text-xs dark:border-white/10",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex items-start justify-between gap-3",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "font-bold text-neutral-900 dark:text-neutral-100",
+								children: c.label
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+								className: "mt-1 text-neutral-600 dark:text-neutral-300",
+								children: c.purpose
+							})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: `shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${c.ok ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300" : "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"}`,
+								children: c.ok ? "OK" : "Cần xử lý"
+							})]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+							className: "mt-2 text-neutral-500 dark:text-neutral-400",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "font-semibold",
+									children: "Nâng cấp đề xuất:"
+								}),
+								" ",
+								c.action
+							]
+						})]
+					}, c.label))
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "rounded-xl border border-neutral-200 p-3 dark:border-white/10",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "text-xs font-bold text-neutral-900 dark:text-neutral-100",
+						children: "Checklist giá trị sau khi hoàn tất"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+						className: "mt-2 space-y-1.5 text-xs text-neutral-600 dark:text-neutral-300",
+						children: valueChecklist.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: item.done ? "text-emerald-600" : "text-amber-600",
+								children: item.done ? "☑" : "☐"
+							}),
+							" ",
+							item.label
+						] }, item.label))
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("ol", {
+					className: "list-decimal space-y-1.5 pl-5 text-xs text-neutral-600 dark:text-neutral-300",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Đăng nhập admin, mở đúng công cụ cần chỉnh và cập nhật cấu hình còn thiếu." }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Bấm LƯU để áp dụng ngay, sau đó XUẤT CONFIG nếu cần đồng bộ lại mã nguồn." }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Nếu dùng nhiều thiết bị hoặc cần lưu cloud, cấu hình Storage Mode trước khi chạy thật." }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Vào Cổng Webhook & Đa Kênh để test endpoint; chỉ chạy traffic khi các kênh quan trọng báo OK." }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", { children: "Khi điểm health đạt 100/100, xem như xác nhận vận hành thành công." })
+					]
+				})
 			]
-		})]
+		})
 	});
 }
 var REGISTRY = {
@@ -2874,6 +3545,27 @@ function setMeta(name, content) {
 	}
 	el.content = content;
 }
+function setProperty(property, content) {
+	if (!content) return;
+	let el = document.querySelector(`meta[property="${property}"]`);
+	if (!el) {
+		el = document.createElement("meta");
+		el.setAttribute("property", property);
+		document.head.appendChild(el);
+	}
+	el.content = content;
+}
+function setLink(rel, href, type) {
+	if (!href) return;
+	let el = document.querySelector(`link[rel="${rel}"]`);
+	if (!el) {
+		el = document.createElement("link");
+		el.rel = rel;
+		document.head.appendChild(el);
+	}
+	el.href = href;
+	if (type) el.type = type;
+}
 /**
 * Áp dụng cấu hình động lên trang thật: Pixel/GA4/GTM, mã xác thực
 * webmaster, custom scripts, màu & font theme, chia biến thể A/B và
@@ -2882,8 +3574,20 @@ function setMeta(name, content) {
 function RuntimeConfig() {
 	const { config } = useSiteConfig();
 	const t = config.tracking;
+	const clickTracking = t.events.click;
+	const scrollTracking = t.events.scroll;
+	const seoTitle = config.seo.title;
+	const seoDescription = config.seo.description;
+	const seoKeywords = config.seo.keywords;
+	const seoOgImage = config.seo.ogImage;
+	const seoFaviconUrl = config.seo.faviconUrl;
+	const seoSchemaType = config.seo.schemaType;
 	(0, import_react.useEffect)(() => {
-		if (t.facebookPixelId) injectInline("fb-pixel", `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${t.facebookPixelId}');${t.events.pageView ? "fbq('track','PageView');" : ""}`);
+		const existingFbq = typeof window.fbq === "function";
+		if (t.facebookPixelId) if (existingFbq) {
+			window.fbq?.("init", t.facebookPixelId);
+			if (t.events.pageView) window.fbq?.("track", "PageView");
+		} else injectInline("fb-pixel", `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${t.facebookPixelId}');${t.events.pageView ? "fbq('track','PageView');" : ""}`);
 		if (t.tiktokPixelId) injectInline("tiktok-pixel", `!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};ttq.load('${t.tiktokPixelId}');${t.events.pageView ? "ttq.page();" : ""}}(window,document,'ttq');`);
 		if (t.ga4Id) {
 			injectSrc("ga4-src", `https://www.googletagmanager.com/gtag/js?id=${t.ga4Id}`);
@@ -2906,14 +3610,90 @@ function RuntimeConfig() {
 		t.events.pageView
 	]);
 	(0, import_react.useEffect)(() => {
+		const canTrack = (key) => (key === "click" ? clickTracking : scrollTracking) !== false;
+		const onClick = (event) => {
+			if (!canTrack("click")) return;
+			const action = event.target?.closest("a, button");
+			if (!action) return;
+			const href = action.getAttribute("href") || "";
+			const label = (action.textContent || action.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 100);
+			const isContact = href.startsWith("tel:") || /zalo|messenger/i.test(href) || /zalo|messenger|hotline|gọi/i.test(label);
+			const isFormCta = href.startsWith("#dang-ky") || /đăng ký|tư vấn/i.test(label);
+			if (!isContact && !isFormCta) return;
+			trackInteraction(isContact ? "contact_click" : "cta_click", {
+				action_label: label || "unlabeled",
+				destination: href || "button",
+				contact_type: isContact ? href.startsWith("tel:") ? "hotline" : /messenger/i.test(href) || /messenger/i.test(label) ? "messenger" : "zalo" : void 0
+			});
+		};
+		const milestones = /* @__PURE__ */ new Set();
+		const onScroll = () => {
+			if (!canTrack("scroll")) return;
+			const total = document.documentElement.scrollHeight - window.innerHeight;
+			if (total <= 0) return;
+			const percent = Math.min(100, Math.round(window.scrollY / total * 100));
+			for (const milestone of [
+				25,
+				50,
+				75,
+				90
+			]) if (percent >= milestone && !milestones.has(milestone)) {
+				milestones.add(milestone);
+				trackInteraction("scroll_depth", { percent });
+			}
+		};
+		document.addEventListener("click", onClick, true);
+		window.addEventListener("scroll", onScroll, { passive: true });
+		return () => {
+			document.removeEventListener("click", onClick, true);
+			window.removeEventListener("scroll", onScroll);
+		};
+	}, [clickTracking, scrollTracking]);
+	(0, import_react.useEffect)(() => {
 		const root = document.documentElement;
 		if (config.theme.primary) root.style.setProperty("--primary", config.theme.primary);
 		if (config.theme.gold) root.style.setProperty("--gold", config.theme.gold);
 		if (config.theme.fontBody) root.style.setProperty("--font-sans", `"${config.theme.fontBody}", system-ui, sans-serif`);
+		if (config.theme.fontHeading) root.style.setProperty("--font-display", `"${config.theme.fontHeading}", system-ui, sans-serif`);
 	}, [
 		config.theme.primary,
 		config.theme.gold,
-		config.theme.fontBody
+		config.theme.fontBody,
+		config.theme.fontHeading
+	]);
+	(0, import_react.useEffect)(() => {
+		if (seoTitle) document.title = seoTitle;
+		setMeta("description", seoDescription);
+		setMeta("keywords", seoKeywords);
+		setProperty("og:title", seoTitle);
+		setProperty("og:description", seoDescription);
+		setProperty("og:type", "website");
+		setProperty("og:image", /^https?:\/\//i.test(seoOgImage) ? seoOgImage : `${window.location.origin}${seoOgImage.startsWith("/") ? seoOgImage : `/${seoOgImage}`}`);
+		setMeta("twitter:title", seoTitle);
+		setMeta("twitter:description", seoDescription);
+		setLink("canonical", window.location.href.split("#")[0] || "/");
+		setLink("icon", seoFaviconUrl, seoFaviconUrl.endsWith(".ico") ? "image/x-icon" : void 0);
+		let schema = document.getElementById("runtime-seo-schema");
+		if (!schema) {
+			schema = document.createElement("script");
+			schema.id = "runtime-seo-schema";
+			schema.type = "application/ld+json";
+			document.head.appendChild(schema);
+		}
+		schema.textContent = JSON.stringify({
+			"@context": "https://schema.org",
+			"@type": seoSchemaType || "WebPage",
+			name: seoTitle,
+			description: seoDescription,
+			url: window.location.href.split("#")[0]
+		});
+	}, [
+		seoTitle,
+		seoDescription,
+		seoKeywords,
+		seoOgImage,
+		seoFaviconUrl,
+		seoSchemaType
 	]);
 	(0, import_react.useEffect)(() => {
 		const experimentKey = `funnel_visit_counted_v2_${config.abTest.enabled ? "ab" : "plain"}_${config.abTest.split}`;
@@ -3056,7 +3836,7 @@ document,'script','https://connect.facebook.net/en_US/fbevents.js');
 ` },
 			{ children: `
 !function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e};ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=d.createElement("script");o.type="text/javascript",o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;var a=d.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};
-ttq.load('DAILRC3C77U3EDHHCGUG'); ttq.page();
+/* RuntimeConfig loads the configured TikTok pixel exactly once. */
 }(window,document,'ttq');
 ` },
 			{ children: `
@@ -3090,7 +3870,7 @@ function RootComponent() {
 		] }) })
 	});
 }
-var $$splitComponentImporter$2 = () => import("./routes-B58-uFM6.mjs");
+var $$splitComponentImporter$2 = () => import("./routes-B2kiTGv0.mjs");
 var TITLE = "Du Học Nghề Trung Quốc 0Đ | Vừa Học Vừa Làm Lương 15-30 Triệu";
 var DESC = "Du học nghề Trung Quốc học phí 0Đ: học 20% lý thuyết - 80% thực hành, lương cứng 15-30 triệu/tháng, bằng Cao đẳng chính quy quốc tế. Đăng ký nhận lộ trình miễn phí.";
 var FAQ_JSONLD = JSON.stringify({
@@ -3168,9 +3948,9 @@ var Route$2 = createFileRoute("/")({
 	}),
 	component: lazyRouteComponent($$splitComponentImporter$2, "component")
 });
-var $$splitComponentImporter$1 = () => import("../_-CCkaqSP4.mjs");
+var $$splitComponentImporter$1 = () => import("../_-d88F39bq.mjs");
 var Route$1 = createFileRoute("/$")({ component: lazyRouteComponent($$splitComponentImporter$1, "component") });
-var $$splitComponentImporter = () => import("./admin-DQoNSr86.mjs");
+var $$splitComponentImporter = () => import("./admin-DGVnUf6G.mjs");
 var Route = createFileRoute("/admin")({ component: lazyRouteComponent($$splitComponentImporter, "component") });
 var rootRouteChildren = {
 	IndexRoute: Route$2.update({

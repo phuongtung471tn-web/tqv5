@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import heroImg from "@/assets/hero-student.webp";
 import expert1 from "@/assets/expert-1.webp";
 import expert2 from "@/assets/expert-2.webp";
@@ -308,13 +308,15 @@ function Landing() {
             aria-label="Menu chính"
           >
             {menuPages.map((page) => (
-              <a
+              <Link
                 key={page.id}
-                href={page.path ? `/${page.path}` : "#top"}
+                to={page.path ? "/$" : "/"}
+                params={page.path ? { _splat: page.path } : undefined}
+                hash={page.path ? undefined : "top"}
                 className="text-xs font-semibold text-muted-foreground transition hover:text-foreground"
               >
                 {page.title}
-              </a>
+              </Link>
             ))}
           </nav>
         </div>

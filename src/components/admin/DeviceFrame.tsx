@@ -24,7 +24,7 @@ export function DeviceFrame({ children }: { children: ReactNode }) {
   if (!authed || inPreview || !previewEnabled) return <>{children}</>;
 
   return (
-    <div className="flex justify-center bg-neutral-200 py-6 dark:bg-neutral-800">
+    <div className="flex justify-center bg-neutral-200 px-2 pb-6 dark:bg-neutral-800 sm:px-4">
       <iframe
         title={`Xem thử ${device}`}
         src={`${pathname}?device_preview=1`}

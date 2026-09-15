@@ -1,11 +1,11 @@
 import { n as __toESM } from "../_runtime.mjs";
 import { n as require_jsx_runtime, r as require_react } from "../_libs/react+tanstack__react-query.mjs";
-import { c as isDuplicateLead, d as saveLead, h as useSiteConfig, p as trackConversion, r as LEAD_CREATED_EVENT, u as loadLeads } from "./use-site-config-ivcknSZJ.mjs";
-import { p as Phone, v as MessageCircle, w as GraduationCap } from "../_libs/lucide-react.mjs";
-import { n as ScarcityBar, t as ContentSection } from "./ContentSection-sShD4TP1.mjs";
-import { d as utmSource, i as getVariant, l as trackFormStart, n as dispatchLead, o as sendLeadEmail, u as trackLead } from "./ab-1ZHA4A9t.mjs";
+import { c as isDuplicateLead, d as saveLead, h as useSiteConfig, p as trackConversion, r as LEAD_CREATED_EVENT, u as loadLeads } from "./use-site-config-B_O3eup5.mjs";
+import { A as Cpu, C as GraduationCap, L as Activity, P as CalendarDays, _ as MapPin, f as Phone, g as MessageCircle, n as Wifi } from "../_libs/lucide-react.mjs";
+import { n as ScarcityBar, t as ContentSection } from "./ContentSection-B12TcAVb.mjs";
+import { d as trackLead, f as utmSource, i as getVariant, l as trackFormStart, n as dispatchLead, o as sendLeadEmail } from "./ab-DUIDkaDP.mjs";
 import { n as toast, t as Toaster } from "../_libs/sonner.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-B58-uFM6.js
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-B2kiTGv0.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var expert_1_default = "/assets/expert-1-CcX0y7YN.webp";
@@ -23,6 +23,8 @@ var state = {
 	isCopyPaste: false,
 	startBattery: null,
 	currentBattery: null,
+	networkProvider: "",
+	networkFlags: [],
 	ip: "",
 	city: "",
 	sectionTime: {},
@@ -94,7 +96,7 @@ function isHeadless() {
 	if (!isBrowser()) return false;
 	return Boolean(navigator.webdriver || /HeadlessChrome|Puppeteer|Playwright|PhantomJS/i.test(navigator.userAgent) || navigator.languages && navigator.languages.length === 0);
 }
-function connectionType() {
+function getConnectionType() {
 	if (!isBrowser()) return "";
 	const c = navigator.connection;
 	return c?.effectiveType ? c.effectiveType.toUpperCase() : "";
@@ -233,6 +235,13 @@ function initBehavior() {
 		if (j?.ip) {
 			state.ip = j.ip;
 			state.city = j.city || "";
+			state.networkProvider = j.connection?.isp || j.connection?.org || "";
+			state.networkFlags = [
+				j.security?.vpn && "VPN",
+				j.security?.proxy && "Proxy",
+				j.security?.tor && "Tor",
+				j.security?.hosting && "Hosting"
+			].filter((flag) => Boolean(flag));
 			bumpIpVisits(j.ip);
 		}
 	}).catch(() => {});
@@ -265,7 +274,9 @@ function getIpSnapshot() {
 	return {
 		ip: state.ip,
 		city: state.city,
-		visitsToday: visits
+		visitsToday: visits,
+		networkProvider: state.networkProvider,
+		networkFlags: state.networkFlags
 	};
 }
 function collectBehavior(form) {
@@ -289,7 +300,9 @@ function collectBehavior(form) {
 		device_model_name: dev.model,
 		operating_system: dev.os,
 		browser: dev.browser,
-		connection_type: connectionType(),
+		connection_type: getConnectionType(),
+		network_provider: state.networkProvider,
+		network_flags: state.networkFlags,
 		start_battery_level: state.startBattery,
 		current_battery_level: state.currentBattery,
 		battery_drain: state.startBattery != null && state.currentBattery != null ? Math.max(0, state.startBattery - state.currentBattery) : 0,
@@ -309,12 +322,28 @@ function collectBehavior(form) {
 * Trả về điểm 0-100 và nhãn phân hạng để lưu Mini-CRM và chèn vào email.
 */
 function scoreLead(data, cfg) {
+	if (cfg?.enabled === false) return {
+		score: 0,
+		rank: "Chưa chấm AI",
+		riskLevel: "unrated",
+		reasons: ["AI Sales Advisor đang tắt trong cấu hình Admin"],
+		recommendedAction: "Tư vấn theo quy trình thông thường"
+	};
 	const fastFill = cfg?.fastFillThresholdSec ?? 4;
 	const vipTime = cfg?.vipTimeOnPageSec ?? 80;
 	const vipScroll = cfg?.vipScrollPercent ?? 70;
-	if (data.is_headless_browser || data.form_fill_duration_seconds < fastFill || data.submission_count_same_ip > 1) return {
+	const reasons = [];
+	if (data.is_headless_browser) reasons.push("Trình duyệt tự động/headless được nhận diện");
+	if (data.form_fill_duration_seconds < fastFill) reasons.push(`Thời gian điền form dưới ${fastFill} giây`);
+	if (data.submission_count_same_ip > 1) reasons.push(`IP đã ghi nhận ${data.submission_count_same_ip} lần gửi trong ngày`);
+	const locationMismatch = Boolean(data.location_city && data.form_city && !data.location_city.toLowerCase().includes(data.form_city.toLowerCase()) && !data.form_city.toLowerCase().includes(data.location_city.toLowerCase()));
+	if (locationMismatch && data.is_copy_paste) reasons.push("Khu vực IP khác tỉnh khai báo kèm thao tác copy số điện thoại");
+	if (data.is_headless_browser) return {
 		score: 5,
-		rank: "Bot / Ảo"
+		rank: "Bot / Ảo",
+		riskLevel: "high",
+		reasons,
+		recommendedAction: "Không tự động gọi; kiểm tra lead và nguồn quảng cáo"
 	};
 	let score = 45;
 	const safe = (re) => {
@@ -334,21 +363,25 @@ function scoreLead(data, cfg) {
 	if (data.utm_source && data.utm_source !== "Direct") score += 5;
 	if (data.focus_section === "luong_thuc_tap" || data.copied_text_type === "chi_phi") score += 5;
 	score = Math.max(0, Math.min(100, score));
+	const rank = score >= 80 ? "VIP" : score >= 65 ? "Tiềm năng cao" : score >= 50 ? "Tiềm năng" : "Cần nuôi dưỡng";
+	const riskLevel = data.submission_count_same_ip > 1 || locationMismatch && data.is_copy_paste ? "high" : data.form_fill_duration_seconds < fastFill ? "review" : "low";
 	return {
 		score,
-		rank: score >= 80 ? "VIP" : score >= 65 ? "Tiềm năng cao" : score >= 50 ? "Tiềm năng" : "Cần nuôi dưỡng"
+		rank,
+		riskLevel,
+		reasons,
+		recommendedAction: riskLevel === "high" ? "Xác minh thủ công trước khi gửi báo giá hoặc chạy lại quảng cáo" : riskLevel === "review" ? "Ưu tiên xác minh qua Zalo trước khi gọi" : "Gọi tư vấn theo kịch bản phù hợp nhu cầu"
 	};
 }
-function generateSaleAdvice(data) {
+function generateSaleAdvice(data, assessment = scoreLead(data)) {
+	if (assessment.riskLevel === "unrated") return `ℹ️ [CHƯA CHẤM AI] ${assessment.recommendedAction}.`;
 	const advice = [];
 	const isHighEndDevice = /iPhone (13|14|15|16) Pro|Pro Max|Galaxy S(22|23|24|25)|Fold|Flip/i.test(data.device_model_name);
 	const h = (/* @__PURE__ */ new Date()).getHours();
 	const isNightTime = h >= 22 || h <= 6;
-	const isLocationMismatch = Boolean(data.location_city && data.form_city && !data.location_city.toLowerCase().includes(data.form_city.toLowerCase()) && !data.form_city.toLowerCase().includes(data.location_city.toLowerCase()));
 	const isKeyRegion = /Nghệ An|Hà Tĩnh|Quảng Bình|Thanh Hóa|Quảng Ninh|Hải Phòng/i.test(data.form_city);
-	if (data.form_fill_duration_seconds < 4 || data.is_headless_browser) return "🚨 [LEAD ẢO / BOT SPAM] Điền Form quá nhanh (<4s) hoặc dùng trình duyệt giả lập. KHÔNG GỌI, kiểm tra Zalo trước!";
-	if (data.submission_count_same_ip > 1) return `🚨 [CẢNH BÁO SPAM IP] IP này đã bấm gửi ${data.submission_count_same_ip} lần trong ngày. Nghi vấn đối thủ phá Ads hoặc trùng thông tin!`;
-	if (isLocationMismatch && data.is_copy_paste) return `⚠️ [NGHI VẤN ĐỐI THỦ DÒ GIÁ] Khai ở ${data.form_city} nhưng IP tại ${data.location_city} + Copy/Paste SĐT. Xác minh kỹ, tuyệt đối không gửi báo giá chi tiết sớm!`;
+	if (assessment.riskLevel === "high") return `⚠️ [CẦN XÁC MINH] ${assessment.reasons.join("; ")}. ${assessment.recommendedAction}.`;
+	if (assessment.riskLevel === "review") return `🟡 [TÍN HIỆU YẾU] ${assessment.reasons.join("; ")}. ${assessment.recommendedAction}.`;
 	if (isHighEndDevice && data.time_on_page_seconds >= 80 && data.scroll_depth_percent >= 70) {
 		advice.push(`💡 [KHÁCH VIP - PHỤ HUYNH TÀI CHÍNH TỐT] Dùng ${data.device_model_name}. Nghiên cứu rất kỹ trang (${data.time_on_page_seconds}s, cuộn ${data.scroll_depth_percent}%).`);
 		advice.push(`👉 KỊCH BẢN GỌI: "Em chào anh/chị, em thấy mình đang tìm hiểu lộ trình Du học nghề trọn gói cho cháu. Bên em có chương trình cam kết Visa 100% & KTX VIP tiêu chuẩn..."`);
@@ -517,6 +550,7 @@ function LeadForm({ id = "dang-ky" }) {
 	const [form, setForm] = (0, import_react.useState)(EMPTY);
 	const startedRef = (0, import_react.useRef)(false);
 	const honeypotRef = (0, import_react.useRef)(null);
+	const field = (name, fallback) => config.form.fields.find((item) => item.name === name)?.placeholder || fallback;
 	const set = (k) => (e) => setForm((f) => ({
 		...f,
 		[k]: e.target.value
@@ -536,7 +570,7 @@ function LeadForm({ id = "dang-ky" }) {
 		if (startedRef.current) return;
 		startedRef.current = true;
 		markFormStart();
-		trackFormStart();
+		trackFormStart(config.tracking.events.formStart);
 	};
 	async function onSubmit(e) {
 		e.preventDefault();
@@ -574,7 +608,8 @@ function LeadForm({ id = "dang-ky" }) {
 			city: form.province,
 			major: form.major
 		});
-		const { score: aiScore, rank: aiRank } = scoreLead(behavior, config.aiAdvisor);
+		const assessment = scoreLead(behavior, config.aiAdvisor);
+		const { score: aiScore, rank: aiRank } = assessment;
 		const variant = getVariant(config.abTest.enabled, config.abTest.split);
 		const source = utmSource();
 		const payload = {
@@ -588,7 +623,15 @@ function LeadForm({ id = "dang-ky" }) {
 			ab_variant: variant,
 			ai_score: aiScore,
 			ai_rank: aiRank,
-			sale_advice: generateSaleAdvice(behavior),
+			lead_risk_level: assessment.riskLevel,
+			lead_risk_reasons: assessment.reasons,
+			recommended_action: assessment.recommendedAction,
+			utm_source: behavior.utm_source,
+			utm_medium: behavior.utm_medium,
+			utm_campaign: behavior.utm_campaign,
+			utm_content: behavior.utm_content,
+			ttclid: behavior.ttclid,
+			sale_advice: generateSaleAdvice(behavior, assessment),
 			behavior_summary: generateBehaviorSummary(behavior),
 			device_tech_info: generateDeviceTechInfo(behavior),
 			traffic_ads_source: generateTrafficAdsSource(behavior)
@@ -601,19 +644,30 @@ function LeadForm({ id = "dang-ky" }) {
 				phone: payload.phone,
 				aiScore,
 				aiRank,
+				riskLevel: assessment.riskLevel,
+				riskReasons: assessment.reasons,
+				recommendedAction: assessment.recommendedAction,
+				behaviorSummary: payload.behavior_summary,
+				saleAdvice: payload.sale_advice,
+				deviceTechInfo: payload.device_tech_info,
+				trafficAdsSource: payload.traffic_ads_source,
 				utmSource: source,
+				utmMedium: payload.utm_medium,
+				utmCampaign: payload.utm_campaign,
+				utmContent: payload.utm_content,
+				ttclid: payload.ttclid,
 				variant
 			};
 			if (payload.email) leadRecord.email = payload.email;
 			if (payload.city) leadRecord.city = payload.city;
 			if (payload.major) leadRecord.major = payload.major;
 			await saveLead(leadRecord, config);
-			dispatchLead(config, payload).then(({ ok, results }) => {
-				if (!ok && results.length > 0) {
-					console.warn("All webhook endpoints failed:", results);
-					toast.warning("Lead đã lưu vào CRM nhưng webhook chưa nhận được", { description: "Kiểm tra cấu hình endpoint trong Admin > Cổng Webhook & Đa Kênh." });
-				} else if (results.some((result) => !result.ok)) console.warn("Some webhook endpoints failed:", results);
-			});
+			const delivery = await dispatchLead(config, payload);
+			if (!delivery.ok) {
+				const failed = delivery.results.filter((result) => !result.ok).map((result) => result.label).join(", ");
+				console.warn("Webhook delivery incomplete:", delivery.results);
+				throw new Error(failed ? `Webhook chưa nhận được dữ liệu: ${failed}` : "Webhook chưa được cấu hình hoặc chưa phản hồi.");
+			}
 			trackConversion(source, config.abTest.enabled ? variant : void 0);
 			if (config.emailAutomation.enabled && email) {
 				const fill = (s) => s.replaceAll("{name}", payload.full_name).replaceAll("{phone}", payload.phone).replaceAll("{city}", payload.city || "").replaceAll("{ai_score}", String(aiScore));
@@ -629,7 +683,7 @@ function LeadForm({ id = "dang-ky" }) {
 					console.warn("Lead confirmation email failed:", error);
 				});
 			}
-			trackLead({ content_name: form.major || "Du hoc nghe Trung Quoc" });
+			trackLead({ content_name: form.major || "Du hoc nghe Trung Quoc" }, config.tracking.events);
 			setForm(EMPTY);
 			setStatus("done");
 			toast.success("Đăng ký thành công!", { description: "Tư vấn viên sẽ liên hệ lại trong 5 phút." });
@@ -680,7 +734,7 @@ function LeadForm({ id = "dang-ky" }) {
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
 				className: "mt-1 text-2xl font-extrabold leading-tight sm:text-3xl",
-				children: "Nhận lộ trình du học nghề 0Đ"
+				children: config.form.headline || "Nhận lộ trình du học nghề 0Đ"
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "mt-2 text-sm text-muted-foreground",
@@ -704,7 +758,7 @@ function LeadForm({ id = "dang-ky" }) {
 						value: form.name,
 						onChange: set("name"),
 						onFocus: onFirstInteract,
-						placeholder: "Họ và tên",
+						placeholder: field("name", "Họ và tên"),
 						className: inputClass
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
@@ -717,7 +771,7 @@ function LeadForm({ id = "dang-ky" }) {
 						onChange: setPhone,
 						onFocus: onFirstInteract,
 						onPaste: () => markCopyPaste("sdt"),
-						placeholder: "Số điện thoại (Zalo) — 10 số",
+						placeholder: field("phone", "Số điện thoại (Zalo) — 10 số"),
 						className: inputClass
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
@@ -726,7 +780,7 @@ function LeadForm({ id = "dang-ky" }) {
 						value: form.email,
 						onChange: set("email"),
 						onFocus: onFirstInteract,
-						placeholder: "Email (không bắt buộc)",
+						placeholder: field("email", "Email (không bắt buộc)"),
 						className: inputClass
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", {
@@ -736,7 +790,7 @@ function LeadForm({ id = "dang-ky" }) {
 						className: inputClass,
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
 							value: "",
-							children: "Tỉnh/Thành phố"
+							children: field("city", "Tỉnh/Thành phố")
 						}), PROVINCE_GROUPS.map((g) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("optgroup", {
 							label: g.region,
 							children: g.provinces.map((p) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
@@ -752,7 +806,7 @@ function LeadForm({ id = "dang-ky" }) {
 						className: inputClass,
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
 							value: "",
-							children: "Ngành quan tâm"
+							children: field("major", "Ngành quan tâm")
 						}), MAJORS.map((m) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
 							value: m,
 							children: m
@@ -773,7 +827,7 @@ function LeadForm({ id = "dang-ky" }) {
 				children: [status === "sending" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 					"aria-hidden": "true",
 					className: "h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground/40 border-t-primary-foreground"
-				}), status === "sending" ? "Đang gửi..." : "Gửi đăng ký — Nhận lộ trình 0Đ"]
+				}), status === "sending" ? "Đang gửi..." : config.form.ctaLabel || "Gửi đăng ký — Nhận lộ trình 0Đ"]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "mt-3 text-center text-xs text-muted-foreground",
@@ -1084,113 +1138,122 @@ function FloatingContact() {
 	const links = contactLinks(config);
 	if (!links.enabled) return null;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "fixed bottom-20 right-4 z-50 flex flex-col gap-3 sm:bottom-6 sm:right-6",
-		children: [
-			links.messengerHref && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-				href: links.messengerHref,
-				target: "_blank",
-				rel: "noopener noreferrer",
-				"aria-label": "Nhắn tin Messenger",
-				className: "flex h-12 w-12 items-center justify-center rounded-full bg-card text-foreground shadow-[var(--shadow-card)] ring-1 ring-border transition hover:scale-105",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MessageCircle, { className: "h-5 w-5" })
-			}),
-			links.hasZalo && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-				href: links.zaloHref,
-				target: "_blank",
-				rel: "noopener noreferrer",
-				"aria-label": "Chat Zalo tư vấn",
-				className: "flex h-12 w-12 items-center justify-center rounded-full bg-gold text-xs font-black text-gold-foreground shadow-[var(--shadow-card)] transition hover:scale-105",
-				children: "Zalo"
-			}),
-			links.hasHotline && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-				href: links.hotlineHref,
-				"aria-label": "Gọi hotline tư vấn",
-				className: "flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-cta)] transition hover:scale-105",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Phone, { className: "h-6 w-6" })
-			})
-		]
+		className: "fixed bottom-24 right-4 z-50 flex flex-col gap-3 sm:bottom-6 sm:right-6",
+		children: [links.messengerHref && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+			href: links.messengerHref,
+			target: "_blank",
+			rel: "noopener noreferrer",
+			"aria-label": "Nhắn tin Messenger",
+			className: `flex h-12 w-12 items-center justify-center rounded-full bg-card text-foreground shadow-[var(--shadow-card)] ring-1 ring-border transition hover:scale-105 ${config.floatingContact.animateMessenger !== false ? "contact-breathe" : ""}`,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MessageCircle, { className: "h-5 w-5" })
+		}), links.hasHotline && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+			href: links.hotlineHref,
+			"aria-label": "Gọi hotline tư vấn",
+			className: `flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-cta)] transition hover:scale-105 ${config.floatingContact.animateHotline !== false ? "contact-breathe" : ""}`,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Phone, { className: "h-6 w-6" })
+		})]
 	});
 }
 /**
-* Widget thống kê traffic realtime ở chân trang.
-* Số người online là chỉ số tương đối (12–38) dao động nhẹ theo thời gian;
-* lượt truy cập ngày/tháng lưu ở localStorage của chính thiết bị.
+* Khối thống kê minh bạch: số truy cập chỉ tính trên thiết bị hiện tại.
+* Không hiển thị IP và không giả lập số người online bằng số ngẫu nhiên.
 */
 function FooterStats() {
-	const [online, setOnline] = (0, import_react.useState)(24);
 	const [visits, setVisits] = (0, import_react.useState)({
 		today: 0,
 		month: 0
 	});
-	const [device, setDevice] = (0, import_react.useState)("");
-	const [ip, setIp] = (0, import_react.useState)({
-		ip: "",
-		city: "",
-		visitsToday: 0
+	const [device, setDevice] = (0, import_react.useState)(null);
+	const [connection, setConnection] = (0, import_react.useState)("");
+	const [location, setLocation] = (0, import_react.useState)("");
+	const [network, setNetwork] = (0, import_react.useState)({
+		provider: "",
+		flags: []
 	});
+	const [bot, setBot] = (0, import_react.useState)(false);
 	(0, import_react.useEffect)(() => {
 		setVisits(bumpVisitCounters());
-		const dev = detectDevice();
-		setDevice(`${dev.model} · ${dev.os}`);
-		setOnline(12 + Math.floor(Math.random() * 27));
-		const drift = window.setInterval(() => {
-			setOnline((v) => {
-				const next = v + (Math.random() < .5 ? -1 : 1) * (1 + Math.floor(Math.random() * 2));
-				return Math.min(38, Math.max(12, next));
+		setDevice(detectDevice());
+		setConnection(getConnectionType());
+		setBot(isHeadless());
+		const refreshLocation = () => {
+			const snapshot = getIpSnapshot();
+			setLocation(snapshot.city);
+			setNetwork({
+				provider: snapshot.networkProvider,
+				flags: snapshot.networkFlags
 			});
-		}, 4e3);
-		const poll = window.setInterval(() => setIp(getIpSnapshot()), 1500);
+		};
+		refreshLocation();
+		const poll = window.setInterval(refreshLocation, 1500);
 		return () => {
-			window.clearInterval(drift);
 			window.clearInterval(poll);
 		};
 	}, []);
-	const suspicious = ip.visitsToday > 5;
+	const deviceValue = device ? [
+		device.model,
+		device.os,
+		device.browser
+	].filter(Boolean).join(" · ") : "Đang nhận diện...";
+	const connectionValue = [
+		connection || "Loại kết nối không cung cấp",
+		network.provider && `Nhà mạng: ${network.provider}`,
+		location && `Khu vực: ${location}`,
+		network.flags.length > 0 && `Cảnh báo: ${network.flags.join(", ")}`,
+		bot && "Trình duyệt tự động"
+	].filter(Boolean).join(" · ") || "Chưa xác định";
 	const items = [
 		{
-			icon: "🔴",
-			label: "Đang online",
-			value: `${online} người`
+			icon: Activity,
+			label: "Phiên hiện tại",
+			value: "1 phiên"
 		},
 		{
-			icon: "📅",
-			label: "Truy cập hôm nay",
+			icon: CalendarDays,
+			label: "Truy cập hôm nay trên thiết bị",
 			value: visits.today.toLocaleString("vi-VN")
 		},
 		{
-			icon: "📆",
-			label: "Truy cập tháng này",
+			icon: CalendarDays,
+			label: "Truy cập tháng này trên thiết bị",
 			value: visits.month.toLocaleString("vi-VN")
 		},
 		{
-			icon: "⚡",
-			label: "Thiết bị của bạn",
-			value: device ? `${device}${ip.ip ? ` · IP ${ip.ip}` : ""}` : "Đang nhận diện..."
+			icon: Cpu,
+			label: "Thiết bị nhận diện",
+			value: deviceValue
+		},
+		{
+			icon: Wifi,
+			label: "Kết nối & khu vực",
+			value: connectionValue
 		}
 	];
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("aside", {
 		"aria-label": "Thống kê lưu lượng truy cập",
 		className: "rounded-2xl bg-card/80 p-4 ring-1 ring-border backdrop-blur",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("dl", {
-			className: "grid gap-3 sm:grid-cols-2 lg:grid-cols-4",
+			className: "grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-5",
 			children: items.map((it) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "rounded-xl bg-background/70 px-3.5 py-3 ring-1 ring-border/70",
+				className: "min-w-0 rounded-xl bg-background/70 px-3.5 py-3 ring-1 ring-border/70",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("dt", {
 					className: "flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						"aria-hidden": "true",
-						children: it.icon
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(it.icon, {
+						className: "h-3.5 w-3.5 shrink-0",
+						"aria-hidden": "true"
 					}), it.label]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("dd", {
-					className: "mt-1 truncate text-sm font-bold text-foreground",
+					className: "mt-1 min-h-10 break-words text-sm font-bold text-foreground",
 					title: it.value,
 					children: it.value
 				})]
 			}, it.label))
-		}), suspicious && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-			role: "status",
-			className: "mt-3 rounded-xl bg-destructive/10 px-3.5 py-2.5 text-sm font-bold text-destructive ring-1 ring-destructive/30",
-			children: "🛡️ Cảnh báo: Phát hiện lưu lượng cao từ IP này!"
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+			className: "mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(MapPin, {
+				className: "h-3.5 w-3.5 shrink-0",
+				"aria-hidden": "true"
+			}), "Dữ liệu truy cập được lưu cục bộ trên thiết bị này; khu vực chỉ hiển thị khi dịch vụ định vị IP phản hồi."]
 		})]
 	});
 }
@@ -1622,6 +1685,14 @@ function Landing() {
 									"aria-hidden": "true",
 									children: "★★★★★"
 								}),
+								t.avatarUrl && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+									src: t.avatarUrl,
+									alt: `Ảnh đại diện ${t.name}`,
+									width: 48,
+									height: 48,
+									loading: "lazy",
+									className: "mt-3 h-12 w-12 rounded-full object-cover ring-2 ring-border"
+								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
 									className: "mt-3 flex-1 text-sm leading-relaxed text-card-foreground/90",
 									children: [
@@ -1732,15 +1803,42 @@ function Landing() {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("footer", {
 				style: { order: 99 },
 				className: "border-t border-border bg-background py-12",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				children: [config.trafficStats.enabled && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					className: "mx-auto mb-10 max-w-6xl px-4",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FooterStats, {})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "mx-auto max-w-6xl px-4 text-sm text-muted-foreground",
 					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-							className: "font-bold text-foreground",
-							children: content.brandName
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "min-w-0",
+								children: [(config.footer.logoUrl || content.logoUrl) && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+									src: config.footer.logoUrl || content.logoUrl,
+									alt: `Logo ${content.brandName}`,
+									width: 180,
+									height: 52,
+									loading: "lazy",
+									className: "mb-3 h-10 max-w-[180px] object-contain object-left"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "font-bold text-foreground",
+									children: content.brandName
+								})]
+							}), config.footer.menuLinks.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("nav", {
+								"aria-label": config.footer.menuLabel,
+								className: "min-w-0",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "mb-2 text-xs font-bold uppercase tracking-wide text-foreground",
+									children: config.footer.menuLabel
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "flex flex-wrap gap-x-4 gap-y-2",
+									children: config.footer.menuLinks.map((link) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+										href: link.href,
+										className: "font-semibold underline-offset-4 transition hover:text-primary hover:underline",
+										children: link.label
+									}, `${link.label}-${link.href}`))
+								})]
+							})]
 						}),
 						(links.hasHotline || FOOTER.email) && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
 							className: "mt-2",
