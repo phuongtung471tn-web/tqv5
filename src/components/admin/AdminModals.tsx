@@ -3261,6 +3261,51 @@ function PagesModal({ onClose }: ModalProps) {
 
 function GuideModal({ onClose }: ModalProps) {
   const { config } = useSiteConfig();
+  const { openModal } = useAdmin();
+  const normalizedAdminPath = config.admin.adminPath
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .toLowerCase();
+  const hasCustomAdminPath = Boolean(normalizedAdminPath && normalizedAdminPath !== "admin");
+  const hasSupabaseConfig =
+    !!config.admin.supabaseUrl.trim() && !!config.admin.supabaseAnonKey.trim();
+  const cronEnabled = config.admin.cronSchedule !== "off";
+  const cronCanRunInCloud =
+    !cronEnabled ||
+    (config.admin.storageMode === "database" &&
+      hasSupabaseConfig &&
+      !!config.admin.backupEmail.trim());
+  const backupSnapshotCount =
+    typeof window === "undefined"
+      ? 0
+      : (() => {
+          try {
+            const value = JSON.parse(
+              window.localStorage.getItem("funnel_backup_snapshots_v1") || "[]",
+            ) as unknown[];
+            return Array.isArray(value) ? value.length : 0;
+          } catch {
+            return 0;
+          }
+        })();
+  const storageChecks = [
+    {
+      label: "Storage mode có cấu hình hợp lệ",
+      ok: config.admin.storageMode === "local" || hasSupabaseConfig,
+    },
+    {
+      label: "Cloud Cron phù hợp với chế độ lưu trữ",
+      ok: cronCanRunInCloud,
+    },
+    {
+      label: "Backup local snapshot đã có dữ liệu gần đây",
+      ok: config.admin.storageMode === "database" || backupSnapshotCount > 0,
+    },
+    {
+      label: "Đổi link admin khỏi mặc định /admin",
+      ok: hasCustomAdminPath,
+    },
+  ];
   const normalizedPagePaths = config.pages.map((page) =>
     page.path
       .trim()
@@ -3315,20 +3360,58 @@ function GuideModal({ onClose }: ModalProps) {
     { label: "Hotline/Zalo", ok: !!config.floatingContact.hotline },
     {
       label: "Storage mode",
-      ok: config.admin.storageMode === "local" || !!config.admin.supabaseUrl,
+      ok: storageChecks[0].ok,
     },
     {
       label: "Đa trang không trùng đường dẫn",
       ok: pagePathsAreUnique && pagePathsAreValid,
     },
     { label: "Section đa trang còn tồn tại", ok: pageSectionsAreValid },
+    ...storageChecks.slice(1),
   ];
+  const totalChecks = checks.length;
+  const passedChecks = checks.filter((check) => check.ok).length;
+  const healthScore = Math.round((passedChecks / totalChecks) * 100);
+  const featureScore = Math.round(
+    (storageChecks.filter((check) => check.ok).length / storageChecks.length) * 10,
+  );
   return (
     <AdminModal
       title="Hướng Dẫn & Health Check"
       subtitle="Chẩn đoán nhanh trạng thái hệ thống"
       onClose={onClose}
     >
+      <div className="mb-3 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs dark:border-white/10 dark:bg-white/5">
+        <p className="font-bold text-neutral-700 dark:text-neutral-100">
+          Debug tester: {passedChecks}/{totalChecks} ({healthScore}%)
+        </p>
+        <p className="mt-1 text-neutral-600 dark:text-neutral-300">
+          Điểm riêng nhóm Storage/Cron/Admin Link: {featureScore}/10
+        </p>
+      </div>
+      <div className="mb-4 grid gap-2 sm:grid-cols-3">
+        <button
+          type="button"
+          onClick={() => openModal("adminlink")}
+          className="rounded-lg border border-neutral-300 px-3 py-2 text-xs font-bold hover:border-primary hover:text-primary"
+        >
+          Đổi Link Admin
+        </button>
+        <button
+          type="button"
+          onClick={() => openModal("storage")}
+          className="rounded-lg border border-neutral-300 px-3 py-2 text-xs font-bold hover:border-primary hover:text-primary"
+        >
+          Storage Mode
+        </button>
+        <button
+          type="button"
+          onClick={() => openModal("cron")}
+          className="rounded-lg border border-neutral-300 px-3 py-2 text-xs font-bold hover:border-primary hover:text-primary"
+        >
+          Cloud Cron & Backup
+        </button>
+      </div>
       <div className="mb-4 space-y-1.5">
         {checks.map((c) => (
           <div
@@ -3346,6 +3429,17 @@ function GuideModal({ onClose }: ModalProps) {
           </div>
         ))}
       </div>
+      <ul className="mb-4 list-disc space-y-1 pl-5 text-xs text-neutral-600 dark:text-neutral-300">
+        <li>
+          Storage Mode: quyết định nơi lưu config/lead (local hoặc Supabase cloud).
+        </li>
+        <li>
+          Cloud Cron & Backup: cấu hình lịch sao lưu định kỳ khi chạy Database Mode.
+        </li>
+        <li>
+          Đổi Link Admin: giảm rủi ro truy cập trái phép vào trang quản trị.
+        </li>
+      </ul>
       <ol className="list-decimal space-y-1.5 pl-5 text-xs text-neutral-600 dark:text-neutral-300">
         <li>
           Đăng nhập admin, chỉnh sửa các thẻ công cụ trên thanh trên cùng.
@@ -3355,12 +3449,14 @@ function GuideModal({ onClose }: ModalProps) {
           mã nguồn.
         </li>
         <li>
-          Kết nối Supabase trong Storage Mode để đồng bộ đa thiết bị & lưu lead
-          cloud.
+          Kết nối Supabase trong Storage Mode để đồng bộ đa thiết bị & lưu lead cloud.
         </li>
         <li>
-          Vào Cổng Webhook & Đa Kênh, bấm test từng endpoint và chỉ chạy Ads khi
-          các kênh cần thiết trả về OK.
+          Bật Cron chỉ khi đã có Supabase URL + anon key + email backup hợp lệ.
+        </li>
+        <li>
+          Sau khi hoàn tất cấu hình, bấm LƯU và kiểm tra lại trạng thái Debug tester
+          phải đạt tối thiểu 8/10.
         </li>
       </ol>
     </AdminModal>
